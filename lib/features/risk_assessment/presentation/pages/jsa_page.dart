@@ -1,0 +1,21 @@
+import 'package:flutter/material.dart';
+
+class JsaPage extends StatelessWidget {
+  const JsaPage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF3F4F6),
+      appBar: AppBar(
+        title: const Text('ประเมินความเสี่ยง & JSA (Risk Assessment)', style: TextStyle(fontWeight: FontWeight.w600)),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black87,
+        elevation: 0.5,
+      ),
+      body: Center(
+        child: Text('ตารางการทำ JSA และประเมินความเสี่ยงก่อนปฏิบัติงาน', style: TextStyle(color: Colors.grey.shade600, fontSize: 18)),
+      ),
+    );
+  }
+}
