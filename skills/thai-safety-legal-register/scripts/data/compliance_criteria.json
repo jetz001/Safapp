@@ -1,0 +1,281 @@
+{
+  "$schema": "https://safapp.internal/schemas/compliance_criteria.v1.json",
+  "version": "1.0.0",
+  "scoring_rules": {
+    "risk_weights": {
+      "CRITICAL": 4.0,
+      "HIGH": 3.0,
+      "MEDIUM": 2.0,
+      "LOW": 1.0
+    },
+    "status_scores": {
+      "COMPLIANT": 1.0,
+      "IN_PROGRESS": 0.5,
+      "NON_COMPLIANT": 0.0,
+      "NOT_APPLICABLE": null
+    },
+    "grades": [
+      {
+        "grade": "Grade A (Excellent)",
+        "min_index": 95.0,
+        "max_critical_gaps": 0,
+        "description": "สถานประกอบกิจการมีความสอดคล้องตามกฎหมายความปลอดภัยระดับดีเยี่ยม ไม่มีข้อบกพร่องวิกฤต"
+      },
+      {
+        "grade": "Grade B (Good)",
+        "min_index": 85.0,
+        "max_critical_gaps": 0,
+        "description": "สถานประกอบกิจการมีความสอดคล้องตามกฎหมายระดับดี ไม่มีข้อบกพร่องวิกฤต"
+      },
+      {
+        "grade": "Grade C (Needs Improvement)",
+        "min_index": 70.0,
+        "max_critical_gaps": 2,
+        "description": "มีความสอดคล้องระดับปานกลาง มีข้อบกพร่องที่ต้องเร่งดำเนินการปรับปรุงแก้ไข"
+      },
+      {
+        "grade": "Grade D (Critical Non-Compliance)",
+        "min_index": 0.0,
+        "max_critical_gaps": 999,
+        "description": "มีความไม่สอดคล้องระดับวิกฤต หรือมีข้อบกพร่องวิกฤตมากกว่า ๒ ข้อ เสี่ยงต่อการถูกดำเนินคดีหรือสั่งระงับการทำงาน"
+      }
+    ]
+  },
+  "rules": {
+    "LAW-01-REQ-01": {
+      "practice_key": "has_safety_policy",
+      "default_value": true,
+      "applicability": "all",
+      "gap_description": "ยังไม่มีการจัดทำนโยบายและแผนงานความปลอดภัยประจำปีที่ลงนามโดยผู้บริหารสูงสุด",
+      "required_action": "จัดทำเอกสารนโยบายความปลอดภัย อาชีวอนามัย และแผนปฏิบัติการประจำปี ให้ผู้บริหารสูงสุดลงนามและประกาศใช้"
+    },
+    "LAW-01-REQ-02": {
+      "practice_key": "new_employee_safety_trained",
+      "default_value": true,
+      "applicability": "all",
+      "gap_description": "ลูกจ้างใหม่หรือลูกจ้างเปลี่ยนงานยังไม่ได้รับการฝึกอบรมความปลอดภัยปฐมนิเทศก่อนเริ่มงาน 100%",
+      "required_action": "จัดฝึกอบรมความปลอดภัยสำหรับลูกจ้างใหม่ทุกคนก่อนเข้าปฏิบัติงานจริง พร้อมเก็บบันทึกประวัติการฝึกอบรม"
+    },
+    "LAW-01-REQ-03": {
+      "practice_key": "safety_signs_and_rights_posted",
+      "default_value": true,
+      "applicability": "all",
+      "gap_description": "ยังไม่ได้ติดประกาศป้ายเตือนอันตราย ป้ายบังคับสวม PPE หรือประกาศสิทธิหน้าที่ลูกจ้างตามที่กฎหมายกำหนด",
+      "required_action": "สำรวจจุดเสี่ยงและติดตั้งป้ายเตือนอันตราย ป้ายบังคับ PPE และประกาศสิทธิหน้าที่ลูกจ้างตามแบบกรมฯ"
+    },
+    "LAW-01-REQ-04": {
+      "practice_key": "free_standard_ppe_provided",
+      "default_value": true,
+      "applicability": "all",
+      "gap_description": "ไม่มีการแจกจ่ายอุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE) ได้มาตรฐานโดยไม่คิดมูลค่าให้แก่ลูกจ้างกลุ่มเสี่ยงครบถ้วน",
+      "required_action": "จัดหาและแจกจ่ายอุปกรณ์ PPE ที่ได้รับมาตรฐาน มอก./สากล ให้แก่ลูกจ้างตามปัจจัยเสี่ยงโดยไม่คิดค่าใช้จ่าย"
+    },
+    "LAW-01-REQ-05": {
+      "practice_key": "accident_reporting_procedure_ready",
+      "default_value": true,
+      "applicability": "all",
+      "gap_description": "ขาดขั้นตอนการรายงานอุบัติเหตุร้ายแรงหรือกรณีหยุดงานเกิน ๓ วันตามแบบ สปร. ๕ ต่อพนักงานตรวจความปลอดภัย",
+      "required_action": "จัดทำระเบียบปฏิบัติการสอบสวนอุบัติเหตุและขั้นตอนการยื่นแบบ สปร. ๕ ต่อสำนักงานสวัสดิการและคุ้มครองแรงงานภายใน ๗ วัน"
+    },
+    "LAW-02-REQ-01": {
+      "practice_key": "has_jpor_supervisory_and_executive",
+      "check_keys": ["has_jpor_supervisory", "has_jpor_executive"],
+      "applicability": "jpor_sup_exec",
+      "gap_description": "ยังแต่งตั้ง จป.หัวหน้างาน หรือ จป.บริหาร ไม่ครบถ้วนตามเกณฑ์กฎหมาย",
+      "required_action": "ส่งลูกจ้างระดับหัวหน้างานและระดับบริหารเข้าอบรมและออกคำสั่งแต่งตั้งเป็น จป.หัวหน้างาน/จป.บริหาร พร้อมยื่นแบบ จป.๑ ภายใน ๓๐ วัน"
+    },
+    "LAW-02-REQ-02": {
+      "practice_key": "has_jpor_technical",
+      "applicability": "jpor_tech",
+      "gap_description": "สถานประกอบกิจการต้องแต่งตั้ง จป.เทคนิค อย่างน้อย ๑ คนแต่ยังไม่มีการแต่งตั้งและขึ้นทะเบียน",
+      "required_action": "แต่งตั้ง จป.เทคนิค ที่ผ่านการฝึกอบรมหลักสูตรตามเกณฑ์และขึ้นทะเบียนต่อกรมสวัสดิการฯ"
+    },
+    "LAW-02-REQ-03": {
+      "practice_key": "has_jpor_technical_adv",
+      "applicability": "jpor_tech_adv",
+      "gap_description": "สถานประกอบกิจการต้องแต่งตั้ง จป.เทคนิคขั้นสูง หรือ จป.วิชาชีพ แต่ยังไม่มีการแต่งตั้ง",
+      "required_action": "สรรหาหรืออบรมแต่งตั้ง จป.เทคนิคขั้นสูง / จป.วิชาชีพ และแจ้งขึ้นทะเบียนต่อกรมฯ"
+    },
+    "LAW-02-REQ-04": {
+      "practice_key": "has_jpor_professional",
+      "applicability": "jpor_prof",
+      "gap_description": "สถานประกอบกิจการอยู่ในเกณฑ์บังคับให้มี จป.วิชาชีพ เต็มเวลา แต่ยังไม่มีการแต่งตั้งและแจ้งชื่อต่อกรมฯ",
+      "required_action": "สรรหาและแต่งตั้ง จป.วิชาชีพ เต็มเวลาประจำสถานประกอบการ พร้อมแจ้งแบบ จป.ว ต่อกรมสวัสดิการฯ ภายใน ๓๐ วัน"
+    },
+    "LAW-02-REQ-05": {
+      "practice_key": "has_safety_committee_and_meeting",
+      "check_keys": ["has_safety_committee", "safety_committee_meeting_monthly"],
+      "applicability": "safety_committee",
+      "gap_description": "มีลูกจ้างตั้งแต่ ๕๐ คนขึ้นไป แต่ยังไม่จัดตั้ง คปอ. หรือไม่ได้จัดการประชุม คปอ. เป็นประจำทุกเดือน",
+      "required_action": "ออกคำสั่งแต่งตั้งคณะกรรมการ คปอ. ตามสัดส่วนลูกจ้าง และจัดประชุม คปอ. อย่างน้อยเดือนละ ๑ ครั้ง พร้อมบันทึกรายงานการประชุม"
+    },
+    "LAW-02-REQ-06": {
+      "practice_key": "has_safety_unit",
+      "applicability": "safety_unit",
+      "gap_description": "สถานประกอบกิจการอยู่ในเกณฑ์ต้องจัดตั้งหน่วยงานความปลอดภัย แต่ยังไม่มีการจัดตั้งเป็นทางการ",
+      "required_action": "ออกคำสั่งจัดตั้งหน่วยงานความปลอดภัย อาชีวอนามัยฯ ขึ้นตรงต่อผู้บริหารสูงสุด และแต่งตั้งหัวหน้าหน่วยงานความปลอดภัย"
+    },
+    "LAW-02-REQ-07": {
+      "practice_key": "jpor_quarterly_report_submitted",
+      "applicability": "jpor_quarterly",
+      "gap_description": "ยังไม่ได้จัดทำและส่งรายงานผลการดำเนินงานของ จป. (แบบ จป.ท. ๑) รายไตรมาสต่อกรมสวัสดิการฯ",
+      "required_action": "ให้ จป.วิชาชีพ หรือ จป.เทคนิคขั้นสูง จัดทำแบบ จป.ท. ๑ และส่งต่อกรมสวัสดิการฯ ภายใน ๓๐ วันหลังสิ้นแต่ละไตรมาส"
+    },
+    "LAW-03-REQ-01": {
+      "practice_key": "has_sds_16_sections_sor_or_1",
+      "applicability": "chemicals",
+      "gap_description": "มีสารเคมีอันตรายครอบครอง แต่ยังจัดทำแบบ สอ.๑ ไม่ครบถ้วน หรือไม่มี SDS 16 หัวข้อภาษาไทย",
+      "required_action": "จัดทำบัญชีรายชื่อสารเคมีอันตราย (แบบ สอ.๑) พร้อมรวบรวมแฟ้ม SDS 16 หัวข้อภาษาไทย และส่งรายงานทบทวนต่อกรมฯ"
+    },
+    "LAW-03-REQ-02": {
+      "practice_key": "ghs_labeling_compliant",
+      "applicability": "chemicals",
+      "gap_description": "ภาชนะบรรจุสารเคมีอันตรายยังติดฉลากระบบ GHS ไม่ครบถ้วนทุกใบ",
+      "required_action": "จัดทำและติดฉลากสารเคมีตามระบบ GHS ภาษาไทยที่มีสัญลักษณ์อันตราย คำสัญญาณ ข้อความอันตรายครบถ้วน"
+    },
+    "LAW-03-REQ-03": {
+      "practice_key": "chem_measurement_sor_or_3_conducted_last_12m",
+      "applicability": "chemicals",
+      "gap_description": "ยังไม่ได้ตรวจวัดระดับความเข้มข้นสารเคมีในบรรยากาศการทำงานประจำปี หรือยังไม่ได้ส่งแบบ สอ.๓ ๒๕๖๕",
+      "required_action": "ว่าจ้างผู้ขึ้นทะเบียน ม.๙/ม.๑๑ ตรวจวัดสารเคมีในบรรยากาศ เทียบค่า TLV และส่งรายงานแบบ สอ.๓ ต่อกรมฯ ภายใน ๑๕ วัน"
+    },
+    "LAW-03-REQ-04": {
+      "practice_key": "bund_wall_containment_compliant",
+      "applicability": "chemicals",
+      "gap_description": "คลังจัดเก็บสารเคมีไม่มีเขื่อนกักเก็บ (Bund Wall) ขนาด ๑๑๐% หรือไม่มีการแยกเก็บสารที่ไม่เข้ากัน",
+      "required_action": "ปรับปรุงพื้นที่จัดเก็บสารเคมี สร้างเขื่อนกักเก็บสารหกรั่วไหล (Secondary Containment) ขนาด >= ๑๑๐% และแยกสารตามตารางเคมี"
+    },
+    "LAW-03-REQ-05": {
+      "practice_key": "eyewash_shower_checked_weekly",
+      "applicability": "chemicals",
+      "gap_description": "ไม่ได้ติดตั้งที่ล้างตา/ฝักบัวฉุกเฉินในระยะเข้าถึง ๑๐ วินาที หรือขาดการตรวจสอบความพร้อมใช้งานรายสัปดาห์",
+      "required_action": "ติดตั้ง Emergency Eyewash & Shower ในจุดใช้สารเคมี (ห่างไม่เกิน ๑๕ ม.) และจัดทำ Checklist ตรวจสอบทุกสัปดาห์"
+    },
+    "LAW-03-REQ-06": {
+      "practice_key": "chem_emergency_drill_conducted_last_12m",
+      "applicability": "chemicals",
+      "gap_description": "ยังไม่ได้จัดฝึกซ้อมแผนตอบโต้เหตุฉุกเฉินสารเคมีรั่วไหลในรอบ ๑๒ เดือนที่ผ่านมา",
+      "required_action": "จัดทำแผนฉุกเฉินสารเคมีและฝึกซ้อมแผนสารเคมีรั่วไหลประจำปี พร้อมบันทึกภาพถ่ายและรายงานสรุปผล"
+    },
+    "LAW-04-REQ-01": {
+      "practice_key": "fire_exit_and_emergency_lights_compliant",
+      "applicability": "all",
+      "gap_description": "ทางหนีไฟมีสิ่งกีดขวาง ประตูหนีไฟไม่มี Panic Bar หรือไฟฉุกเฉินสำรองไฟไม่ถึง ๒ ชั่วโมง",
+      "required_action": "เคลียร์สิ่งกีดขวางทางหนีไฟทั้งหมด ตรวจเช็กประตูหนีไฟให้เปิดออกง่าย และทดสอบระบบไฟฉุกเฉินรายเดือน"
+    },
+    "LAW-04-REQ-02": {
+      "practice_key": "fire_extinguishers_checked_regularly",
+      "applicability": "all",
+      "gap_description": "ถังดับเพลิงมือถือขาดการตรวจเช็กสภาพความพร้อมใช้งานตามรอบ หรือติดตั้งไม่ได้ระยะตามเกณฑ์",
+      "required_action": "สำรวจและติดป้ายตรวจเช็กถังดับเพลิงทุกใบ ดำเนินการตรวจสภาพทุกเดือน/ทุก ๖ เดือน และติดตั้งสูงไม่เกิน ๑.๕๐ ม."
+    },
+    "LAW-04-REQ-03": {
+      "practice_key": "fire_alarm_and_pump_tested_last_12m",
+      "applicability": "all",
+      "gap_description": "ระบบสัญญาณแจ้งเหตุเพลิงไหม้ (Fire Alarm) หรือระบบน้ำดับเพลิง/Fire Pump ยังไม่ได้รับการทดสอบประจำปี",
+      "required_action": "ประสานงานผู้เชี่ยวชาญเข้าทดสอบการทำงานของ Fire Alarm System, Smoke Detector และ Fire Pump ประจำปีพร้อมออกใบรับรอง"
+    },
+    "LAW-04-REQ-04": {
+      "practice_key": "basic_fire_trained_percent",
+      "threshold": 40.0,
+      "applicability": "all",
+      "gap_description": "สัดส่วนลูกจ้างที่ผ่านการอบรมดับเพลิงขั้นต้นในแต่ละแผนกต่ำกว่าร้อยละ ๔๐",
+      "required_action": "ส่งลูกจ้างในแผนกที่ยังมีสัดส่วนไม่ถึงเกณฑ์เข้าอบรมหลักสูตรการดับเพลิงขั้นต้นกับหน่วยฝึกที่ได้รับอนุญาตให้ครบ >= ๔๐%"
+    },
+    "LAW-04-REQ-05": {
+      "practice_key": "fire_drill_conducted_last_12m",
+      "applicability": "all",
+      "gap_description": "ยังไม่ได้จัดฝึกซ้อมดับเพลิงและฝึกซ้อมอพยพหนีไฟประจำปี หรือยังไม่ได้ส่งรายงานต่อกรมฯ ภายใน ๓๐ วัน",
+      "required_action": "จัดให้ลูกจ้างทุกคนฝึกซ้อมดับเพลิงและอพยพหนีไฟประจำปี และจัดทำรายงานพร้อมส่งต่อสำนักงานสวัสดิการฯ ภายใน ๓๐ วัน"
+    },
+    "LAW-05-REQ-01": {
+      "practice_key": "electrical_inspection_conducted_last_12m",
+      "check_keys": ["single_line_diagram_updated", "electrical_inspection_conducted_last_12m"],
+      "applicability": "electrical",
+      "gap_description": "ระบบไฟฟ้ายังไม่ได้รับการตรวจสอบและรับรองความปลอดภัยประจำปีโดยวิศวกรไฟฟ้า หรือ Single Line Diagram ไม่เป็นปัจจุบัน",
+      "required_action": "ว่าจ้างวิศวกรไฟฟ้าที่มีใบ กว. ดำเนินการตรวจสอบและรับรองความปลอดภัยระบบไฟฟ้าประจำปี พร้อมอัปเดต Single Line Diagram"
+    },
+    "LAW-05-REQ-02": {
+      "practice_key": "grounding_and_rcd_tested_compliant",
+      "applicability": "electrical",
+      "gap_description": "ค่าความต้านทานหลักดินเกิน ๕ โอห์ม หรือจุดเปียกชื้นยังไม่มีการติดตั้ง/ทดสอบเครื่องตัดไฟรั่ว (RCD)",
+      "required_action": "ปรับปรุงระบบสายดินให้มีความต้านทานไม่เกิน ๕ โอห์ม และติดตั้ง/ทดสอบ Trip Test เครื่องตัดไฟรั่ว RCD ทุกจุดเปียกชื้น"
+    },
+    "LAW-05-REQ-03": {
+      "practice_key": "lightning_protection_inspected",
+      "applicability": "electrical",
+      "gap_description": "ระบบป้องกันฟ้าผ่าขาดการตรวจเช็กความพร้อมใช้งานและวัดค่าความต้านทานดินประจำปี",
+      "required_action": "ดำเนินการตรวจสภาพระบบล่อฟ้า เสาล่อฟ้า และวัดค่าความต้านทานดินของระบบป้องกันฟ้าผ่าประจำปี"
+    },
+    "LAW-05-REQ-04": {
+      "practice_key": "electrical_safety_trained_and_loto",
+      "applicability": "electrical",
+      "gap_description": "ช่างไฟฟ้ายังไม่ผ่านการอบรมความปลอดภัยเกี่ยวกับไฟฟ้า หรือขาดอุปกรณ์ Lockout/Tagout (LOTO) และ PPE ไฟฟ้า",
+      "required_action": "จัดฝึกอบรมความปลอดภัยงานไฟฟ้าแก่ช่างไฟฟ้า จัดหาอุปกรณ์ LOTO และจัดหา PPE ไฟฟ้าที่มีผลทดสอบ Dielectric Test"
+    },
+    "LAW-06-REQ-01": {
+      "practice_key": "machine_guarding_and_estop_compliant",
+      "applicability": "machinery",
+      "gap_description": "เครื่องจักรบางตัวยังไม่มีการ์ดป้องกันส่วนหมุน/จุดหนีบ หรือปุ่ม Emergency Stop ไม่พร้อมใช้งาน",
+      "required_action": "ติดตั้ง Machine Guarding ครอบจุดหนีบและส่วนหมุนของเครื่องจักรทุกตัว และทดสอบปุ่ม Emergency Stop ให้พร้อมใช้งานทันที"
+    },
+    "LAW-06-REQ-02": {
+      "practice_key": "crane_pj2_inspected_last_interval",
+      "applicability": "cranes",
+      "gap_description": "ปั้นจั่นยังไม่ได้รับการตรวจสอบ ทดสอบพิกัดการยก (Load Test) และรับรองแบบ ปจ.๑ / ปจ.๒ โดยวิศวกรเครื่องกลตามงวด",
+      "required_action": "จัดให้วิศวกรเครื่องกลเข้าทำการ Load Test และออกเอกสารรับรองความปลอดภัยปั้นจั่น (แบบ ปจ.๑ หรือ ปจ.๒)"
+    },
+    "LAW-06-REQ-03": {
+      "practice_key": "crane_4_operators_trained",
+      "applicability": "cranes",
+      "gap_description": "ผู้ปฏิบัติงานเกี่ยวกับปั้นจั่น (ผู้บังคับ/ผู้ให้สัญญาณ/ผู้ยึดเกาะ/ผู้ควบคุม) ยังไม่ผ่านการอบรมหลักสูตร ๔ ผู้ครบถ้วน",
+      "required_action": "ส่งพนักงานที่ทำงานเกี่ยวกับปั้นจั่นทุกคนเข้าฝึกอบรมหลักสูตร ๔ ผู้ จากสถาบันฝึกอบรมที่ขึ้นทะเบียนกับกรมฯ"
+    },
+    "LAW-06-REQ-04": {
+      "practice_key": "boiler_br2_inspected_last_12m",
+      "check_keys": ["boiler_br2_inspected_last_12m", "has_licensed_boiler_controller"],
+      "applicability": "boilers",
+      "gap_description": "หม้อน้ำขาดการตรวจรับรองความปลอดภัยประจำปี (แบบ บร.๑/บร.๒) หรือไม่มีผู้ควบคุมหม้อน้ำที่ได้รับใบอนุญาตประจำการ",
+      "required_action": "จัดให้วิศวกรเครื่องกลตรวจรับรองความปลอดภัยหม้อน้ำประจำปี (บร.๒) และจัดให้มีผู้ควบคุมหม้อน้ำที่มีใบอนุญาตประจำตลอดเวลาเดินเครื่อง"
+    },
+    "LAW-07-REQ-01": {
+      "practice_key": "env_standards_compliant",
+      "default_value": true,
+      "applicability": "environment",
+      "gap_description": "ระดับความร้อน แสงสว่าง หรือเสียงในพื้นที่ทำงานเกินเกณฑ์มาตรฐานที่กฎหมายกำหนด",
+      "required_action": "ปรับปรุงสภาพแวดล้อมเชิงวิศวกรรม เช่น ปรับปรุงการระบายอากาศ เพิ่มโคมไฟส่องสว่าง หรือติดตั้งฉนวนลดเสียง"
+    },
+    "LAW-07-REQ-02": {
+      "practice_key": "env_measurement_conducted_last_12m",
+      "applicability": "environment",
+      "gap_description": "ยังไม่ได้จัดให้มีการตรวจวัดความร้อน แสงสว่าง เสียง ประจำปีโดยผู้ขึ้นทะเบียน ม.๙/ม.๑๑ หรือยังไม่ได้ส่งรายงานต่อกรมฯ",
+      "required_action": "ว่าจ้างผู้ขึ้นทะเบียน ม.๙/ม.๑๑ เข้าตรวจวัดสภาพแวดล้อมในการทำงานประจำปี และส่งรายงานผลต่อกรมสวัสดิการฯ ภายใน ๓๐ วัน"
+    },
+    "LAW-07-REQ-03": {
+      "practice_key": "has_hearing_conservation_program",
+      "applicability": "hearing_conservation",
+      "gap_description": "พื้นที่ทำงานมีระดับเสียงเฉลี่ย ๘ ชม. เกิน ๘๕ dBA แต่ยังไม่มีการจัดทำโครงการอนุรักษ์การได้ยินเป็นลายลักษณ์อักษร",
+      "required_action": "จัดทำโครงการอนุรักษ์การได้ยิน จัดทำแผนที่เสียง (Noise Map) ตรวจสมรรถภาพการได้ยิน (Audiogram) และแจกจ่ายที่อุดหู/ครอบหู"
+    },
+    "LAW-08-REQ-01": {
+      "practice_key": "health_check_conducted_last_12m",
+      "applicability": "health_risks",
+      "gap_description": "ลูกจ้างทำงานเกี่ยวกับปัจจัยเสี่ยงยังไม่ได้รับการตรวจสุขภาพก่อนเข้างาน (ภายใน ๓๐ วัน) หรือตรวจประจำปีโดยแพทย์อาชีวเวชศาสตร์",
+      "required_action": "จัดให้ลูกจ้างกลุ่มเสี่ยงทุกคนได้รับการตรวจสุขภาพตามปัจจัยเสี่ยงโดยแพทย์อาชีวเวชศาสตร์ที่มีใบอนุญาต"
+    },
+    "LAW-08-REQ-02": {
+      "practice_key": "health_booklet_recorded",
+      "default_value": true,
+      "applicability": "health_risks",
+      "gap_description": "ยังไม่ได้บันทึกผลตรวจสุขภาพลงในสมุดประจำตัวลูกจ้าง (แบบ จปภ.๑ / จผ.๑) หรือไม่ได้แจ้งผลตรวจให้ลูกจ้างทราบในเวลาที่กำหนด",
+      "required_action": "บันทึกผลตรวจสุขภาพลงในสมุด จปภ.๑ ภายใน ๗ วัน และแจ้งผลการตรวจสุขภาพให้ลูกจ้างรับทราบเป็นลายลักษณ์อักษร"
+    },
+    "LAW-08-REQ-03": {
+      "practice_key": "health_check_report_submitted_jphor1",
+      "check_keys": ["health_check_report_submitted_jphor1", "health_report_submitted_jpor3"],
+      "applicability": "health_risks",
+      "gap_description": "ยังไม่ได้จัดส่งรายงานสรุปผลการตรวจสุขภาพตามปัจจัยเสี่ยง (แบบ จปภ.๓ / จผ.๑) ต่อพนักงานตรวจแรงงานภายใน ๓๐ วัน",
+      "required_action": "รวบรวมเล่มผลตรวจสุขภาพ จัดทำแบบ จปภ.๓ (หรือ จผ.๑) แนบใบรับรองแพทย์ และยื่นต่อสำนักงานสวัสดิการและคุ้มครองแรงงานภายใน ๓๐ วัน"
+    }
+  }
+}

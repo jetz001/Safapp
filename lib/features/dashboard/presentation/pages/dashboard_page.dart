@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:safety_superapp/core/widgets/glass_container.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({Key? key}) : super(key: key);
@@ -7,10 +8,10 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Lighter, modern background
+      backgroundColor: Colors.transparent, // Let gradient show through
       appBar: AppBar(
         title: const Text('ภาพรวมความปลอดภัย (Safety Dashboard)', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 22)),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         foregroundColor: Colors.black87,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -41,16 +42,9 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 40),
             const Text('สถิติการเกิดอุบัติเหตุรายเดือน (TRIR)', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF334155))),
             const SizedBox(height: 24),
-            Container(
+            GlassContainer(
               height: 350,
               padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))
-                ],
-              ),
               child: LineChart(
                 LineChartData(
                   gridData: const FlGridData(show: true, drawVerticalLine: false),
@@ -106,22 +100,14 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildPremiumStatCard(String title, String value, IconData icon, Color color) {
-    return Container(
+    return GlassContainer(
       padding: const EdgeInsets.all(24.0),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 10, offset: const Offset(0, 4))
-        ],
-        border: Border.all(color: Colors.grey.shade100),
-      ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: color, size: 32),

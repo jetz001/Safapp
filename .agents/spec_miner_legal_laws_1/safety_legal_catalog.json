@@ -1,0 +1,579 @@
+{
+  "$schema": "https://safapp.internal/schemas/safety_legal_catalog.v1.json",
+  "version": "1.0.0",
+  "published_date": "2026-08-31",
+  "total_laws": 8,
+  "total_items": 32,
+  "laws": [
+    {
+      "law_id": "LAW-OSH-2554",
+      "law_name_th": "พระราชบัญญัติ ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔",
+      "law_name_en": "Occupational Safety, Health and Working Environment Act B.E. 2554 (2011)",
+      "category": "OSH_ACT",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๒๘",
+        "part": "๔ ก",
+        "page": "๑",
+        "published_date": "2011-01-17",
+        "effective_date": "2011-07-16"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-OSH-001",
+          "article_no": "มาตรา ๖ และ ๘",
+          "title": "การจัดทำนโยบายและระบบบริหารจัดการความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน",
+          "description": "นายจ้างมีหน้าที่จัดและดูแลสถานประกอบกิจการและลูกจ้างให้มีสภาพการทำงานที่ปลอดภัย และบริหารจัดการตามมาตรฐานกฎกระทรวง",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่งที่มีลูกจ้างตั้งแต่ ๑ คนขึ้นไป",
+          "compliance_criteria": "มีเอกสารนโยบายความปลอดภัยเป็นลายลักษณ์อักษร ลงนามโดยผู้บริหารสูงสุด และมีการกำหนดแผนงานความปลอดภัยประจำปี",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": null,
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๔๐๐,๐๐๐ บาท หรือจำคุกไม่เกิน ๑ ปี หรือทั้งจำทั้งปรับ (ม.๕๓)"
+        },
+        {
+          "item_id": "ITEM-OSH-002",
+          "article_no": "มาตรา ๑๖",
+          "title": "การฝึกอบรมความปลอดภัย อาชีวอนามัยฯ ให้แก่ลูกจ้างใหม่ / เปลี่ยนงาน",
+          "description": "นายจ้างต้องจัดให้ผู้บริหาร หัวหน้างาน และลูกจ้างทุกคนได้รับการฝึกอบรมความปลอดภัยก่อนเริ่มงาน เปลี่ยนงาน หรือเปลี่ยนสถานที่ทำงาน",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่ง",
+          "compliance_criteria": "ลูกจ้างใหม่ 100% ผ่านการฝึกอบรมหลักสูตรความปลอดภัยปฐมนิเทศก่อนเข้าปฏิบัติงานจริง",
+          "risk_level": "HIGH",
+          "required_evidence_type": "TRAINING_RECORD",
+          "official_form_name": null,
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ (ม.๕๖)"
+        },
+        {
+          "item_id": "ITEM-OSH-003",
+          "article_no": "มาตรา ๑๗",
+          "title": "การติดประกาศสัญลักษณ์เตือนอันตราย ป้ายความปลอดภัย และประกาศสิทธิหน้าที่ลูกจ้าง",
+          "description": "นายจ้างต้องติดประกาศคำเตือน ป้ายสัญลักษณ์ความปลอดภัย และประกาศสิทธิและหน้าที่ของนายจ้างและลูกจ้าง ณ จุดที่เห็นได้ชัดเจน",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่ง",
+          "compliance_criteria": "มีป้ายสัญลักษณ์เตือนอันตราย ป้ายบังคับสวม PPE และประกาศสิทธิหน้าที่ตามแบบที่อธิบดีประกาศครบถ้วน",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "PHYSICAL_PHOTO",
+          "official_form_name": null,
+          "retention_years": 1,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๕๐,๐๐๐ บาท (ม.๕๗)"
+        },
+        {
+          "item_id": "ITEM-OSH-004",
+          "article_no": "มาตรา ๒๒",
+          "title": "การจัดหาอุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE) ได้มาตรฐานโดยไม่คิดมูลค่า",
+          "description": "นายจ้างต้องจัดหาและดูแลให้ลูกจ้างสวมใส่อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคลที่ได้มาตรฐาน โดยไม่คิดค่าใช้จ่ายจากลูกจ้าง",
+          "applicability_criteria": "สถานประกอบกิจการที่มีงานที่มีความเสี่ยงอันตราย",
+          "compliance_criteria": "มีทะเบียนแจกจ่าย PPE เหมาะสมกับปัจจัยเสี่ยง ลูกจ้างสวมใส่จริงขณะทำงาน และมีมาตรฐาน มอก./ANSI/CE",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": null,
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๓ เดือน หรือปรับไม่เกิน ๑๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ (ม.๖๑)"
+        },
+        {
+          "item_id": "ITEM-OSH-005",
+          "article_no": "มาตรา ๓๔",
+          "title": "การแจ้งอุบัติเหตุร้ายแรง เพลิงไหม้ สารเคมีรั่วไหล หรือลูกจ้างหยุดงานเกิน ๓ วัน (แบบ สปร. ๕)",
+          "description": "เมื่อเกิดอุบัติเหตุร้ายแรงหรือลูกจ้างหยุดงานเกิน ๓ วัน นายจ้างต้องแจ้งพนักงานตรวจความปลอดภัยทันที และส่งรายงานตามแบบ สปร. ๕",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่งเมื่อเกิดเหตุการณ์",
+          "compliance_criteria": "มีการส่งแบบ สปร. ๕ พร้อมผลการสอบสวนอุบัติเหตุต่อสำนักงานสวัสดิการฯ ภายใน ๗ วันนับแต่วันที่ลูกจ้างหยุดงานครบ ๓ วัน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ สปร. ๕",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๕๐,๐๐๐ บาท (ม.๖๖)"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-JPO-2565",
+      "law_name_th": "กฎกระทรวง การจัดให้มีเจ้าหน้าที่ความปลอดภัยในการทำงาน บุคลากร หน่วยงาน หรือคณะบุคคลเพื่อดำเนินการด้านความปลอดภัยในสถานประกอบกิจการ พ.ศ. ๒๕๖๕",
+      "law_name_en": "Ministerial Regulation on Safety Officers, Personnel, Units, or Committees B.E. 2565 (2022)",
+      "category": "SAFETY_OFFICER",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๓๙",
+        "part": "๔๑ ก",
+        "page": "๑",
+        "published_date": "2022-06-20",
+        "effective_date": "2022-08-19"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-JPO-001",
+          "article_no": "ข้อ ๓-๖",
+          "title": "การแต่งตั้งเจ้าหน้าที่ความปลอดภัยในการทำงาน (จป.บริหาร, จป.หัวหน้างาน, จป.วิชาชีพ)",
+          "description": "นายจ้างต้องแต่งตั้งลูกจ้างเป็น จป. แต่ละระดับตามบัญชีประเภทกิจการ (บัญชี ๑, ๒, ๓) และจำนวนลูกจ้าง",
+          "applicability_criteria": "สถานประกอบกิจการตามบัญชี ๑, ๒, ๓",
+          "compliance_criteria": "มีคำสั่งแต่งตั้ง จป. ครบทุกระดับตามเกณฑ์กฎหมาย และนำไปขึ้นทะเบียนกับกรมสวัสดิการฯ ภายใน ๓๐ วัน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "แบบ จป. ๑ / ใบขึ้นทะเบียน จป.",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ"
+        },
+        {
+          "item_id": "ITEM-JPO-002",
+          "article_no": "ข้อ ๒๓-๒๘",
+          "title": "การจัดตั้งคณะกรรมการความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (คปอ.) และประชุมประจำเดือน",
+          "description": "สถานประกอบกิจการที่มีลูกจ้างตั้งแต่ ๕๐ คนขึ้นไป ต้องแต่งตั้ง คปอ. ตามสัดส่วน และจัดให้มีการประชุมอย่างน้อยเดือนละ ๑ ครั้ง",
+          "applicability_criteria": "สถานประกอบกิจการที่มีลูกจ้างตั้งแต่ ๕๐ คนขึ้นไป",
+          "compliance_criteria": "มีคำสั่งแต่งตั้ง คปอ. ตามสัดส่วนลูกจ้าง และมีรายงานการประชุม คปอ. ครบทุกเดือน (๑๒ ครั้งต่อปี)",
+          "risk_level": "HIGH",
+          "required_evidence_type": "INSPECTION_REPORT",
+          "official_form_name": "รายงานการประชุม คปอ.",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-JPO-003",
+          "article_no": "ข้อ ๒๙-๓๓",
+          "title": "การจัดตั้งหน่วยงานความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (Safety Unit)",
+          "description": "สถานประกอบกิจการบัญชี ๑ (ลูกจ้าง >= ๒ คน) และบัญชี ๒ (ลูกจ้าง >= ๒๐๐ คน) ต้องจัดตั้งหน่วยงานความปลอดภัยขึ้นตรงต่อผู้บริหารสูงสุด",
+          "applicability_criteria": "สถานประกอบกิจการบัญชี ๑ (ลูกจ้าง >= ๒ คน) หรือบัญชี ๒ (ลูกจ้าง >= ๒๐๐ คน)",
+          "compliance_criteria": "มีคำสั่งแต่งตั้งหน่วยงานความปลอดภัย ผังโครงสร้างองค์กร และแต่งตั้งหัวหน้าหน่วยงานความปลอดภัย",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "คำสั่งจัดตั้งหน่วยงานความปลอดภัย",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-JPO-004",
+          "article_no": "ข้อ ๓๖",
+          "title": "การจัดทำและส่งรายงานผลการดำเนินงานของเจ้าหน้าที่ความปลอดภัย (แบบ จป.ท. ๑)",
+          "description": "จป.วิชาชีพ หรือ จป.เทคนิคขั้นสูง ต้องจัดทำและส่งรายงานผลการดำเนินงานต่ออธิบดีทุก ๓ เดือน (รายไตรมาส)",
+          "applicability_criteria": "สถานประกอบกิจการที่มี จป.วิชาชีพ หรือ จป.เทคนิคขั้นสูง",
+          "compliance_criteria": "มีการส่งแบบ จป.ท. ๑ ครบทั้ง ๔ ไตรมาส ภายใน ๓๐ วันหลังสิ้นแต่ละไตรมาส พร้อมหลักฐานการรับรายงาน",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ จป.ท. ๑",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษปรับทางปกครองตามระเบียบกรมฯ"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-CHEM-2556",
+      "law_name_th": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับสารเคมีอันตราย พ.ศ. ๒๕๕๖",
+      "law_name_en": "Ministerial Regulation on Hazardous Chemical Safety B.E. 2556 (2013)",
+      "category": "CHEMICAL_SAFETY",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๓๐",
+        "part": "๑๑๓ ก",
+        "page": "๒๘",
+        "published_date": "2013-11-29",
+        "effective_date": "2014-05-28"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-CHM-001",
+          "article_no": "ข้อ ๒-๔",
+          "title": "การจัดทำบัญชีรายชื่อสารเคมีอันตรายและเอกสารข้อมูลความปลอดภัย SDS 16 หัวข้อ (แบบ สอ.๑)",
+          "description": "จัดทำบัญชีรายชื่อและ SDS 16 หัวข้อภาษาไทย ภายใน ๗ วันนับแต่ครอบครอง และส่งรายงาน สอ.๑ ทบทวนทุกปีในเดือนมกราคม",
+          "applicability_criteria": "สถานประกอบกิจการที่มีสารเคมีอันตรายตามบัญชี ๑,๕๑๖ รายการ",
+          "compliance_criteria": "มีแบบ สอ.๑ ครบถ้วนตรงกับสารเคมีที่มีจริง มี SDS 16 หัวข้อภาษาไทย และส่งกรมฯ ภายในกำหนด",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ สอ.๑",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-CHM-002",
+          "article_no": "ข้อ ๕-๗",
+          "title": "การติดฉลากสารเคมีอันตรายตามระบบ GHS บนภาชนะบรรจุ",
+          "description": "ติดฉลากภาษาไทยที่มีรูปสัญลักษณ์อันตราย GHS คำสัญญาณ ข้อความอันตราย และข้อควรระวังบนภาชนะบรรจุทุกใบ",
+          "applicability_criteria": "ภาชนะบรรจุสารเคมีอันตรายทุกชิ้นในสถานประกอบกิจการ",
+          "compliance_criteria": "ภาชนะบรรจุสารเคมีทุกใบมีฉลาก GHS สมบูรณ์ อ่านออกชัดเจน ไม่ฉีกขาด",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "PHYSICAL_PHOTO",
+          "official_form_name": null,
+          "retention_years": 1,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-CHM-003",
+          "article_no": "ข้อ ๑๒-๑๕",
+          "title": "การตรวจวัดและประเมินระดับความเข้มข้นสารเคมีในบรรยากาศ (แบบ สอ.๓ & TLV ๓๒๔ รายการ)",
+          "description": "ตรวจวัดระดับความเข้มข้นสารเคมีในบรรยากาศสถานที่ทำงานอย่างน้อยปีละ ๑ ครั้ง ควบคุมไม่ให้เกิน TLV และส่งรายงานภายใน ๑๕ วัน",
+          "applicability_criteria": "สถานประกอบกิจการที่มีการใช้หรือผลิตสารเคมีอันตรายตามบัญชี TLV ๓๒๔ รายการ",
+          "compliance_criteria": "มีรายงานผลตรวจวัดแบบ สอ.๓ ๒๕๖๕ จากผู้ขึ้นทะเบียน ม.๙/๑๑ ค่าไม่เกินเกณฑ์ TLV และส่งกรมฯ ภายใน ๑๕ วัน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ สอ.๓ (๒๕๖๕)",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-CHM-004",
+          "article_no": "ข้อ ๒๒-๒๕",
+          "title": "การจัดเก็บสารเคมีอันตรายและเขื่อนกักเก็บสารหกรั่วไหล (Bund Wall / Secondary Containment)",
+          "description": "สถานที่เก็บรักษาสารเคมีทนไฟ ระบายอากาศ มี Bund กักเก็บสารรั่วไหลได้อย่างน้อย ๑๑๐% ของถังใหญ่สุด และแยกเก็บสารที่ไม่เข้ากัน",
+          "applicability_criteria": "คลังจัดเก็บสารเคมีอันตรายและถังจัดเก็บสารเคมีเหลว",
+          "compliance_criteria": "มีเขื่อนกักเก็บ (Bund) ขนาดไม่น้อยกว่า ๑๑๐% สภาพสมบูรณ์ไม่มีรอยแตกร้าว และแยกเก็บสารตามตาราง Incompatibility",
+          "risk_level": "HIGH",
+          "required_evidence_type": "PHYSICAL_PHOTO",
+          "official_form_name": null,
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-CHM-005",
+          "article_no": "ข้อ ๒๙-๓๐",
+          "title": "การติดตั้งที่ล้างตาฉุกเฉินและฝักบัวชำระล้างสารเคมี (Emergency Eyewash & Shower)",
+          "description": "ติดตั้งที่ล้างตาและฝักบัวฉุกเฉินในตำแหน่งที่เข้าถึงได้ภายใน ๑๐ วินาที (<= ๑๕ เมตร) และทดสอบความพร้อมใช้งานทุกสัปดาห์",
+          "applicability_criteria": "บริเวณที่มีการใช้หรือจัดเก็บสารเคมีอันตราย",
+          "compliance_criteria": "มีที่ล้างตาและฝักบัวฉุกเฉินน้ำแรงสม่ำเสมอ เข้าถึงได้สะดวก และมีบันทึกการตรวจสอบรายสัปดาห์",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "INSPECTION_REPORT",
+          "official_form_name": "บันทึกการตรวจสอบ Eyewash/Shower",
+          "retention_years": 1,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๑๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-CHM-006",
+          "article_no": "ข้อ ๓๑-๓๓",
+          "title": "แผนตอบโต้เหตุฉุกเฉินสารเคมีรั่วไหลและการฝึกซ้อมประจำปี",
+          "description": "จัดทำแผนระงับอุบัติภัยจากสารเคมีอันตรายและฝึกซ้อมแผนฉุกเฉินสารเคมีอย่างน้อยปีละ ๑ ครั้ง",
+          "applicability_criteria": "สถานประกอบกิจการที่มีสารเคมีอันตราย",
+          "compliance_criteria": "มีเอกสารแผนฉุกเฉินสารเคมี และมีรายงานสรุปพร้อมภาพถ่ายการฝึกซ้อมสารเคมีรั่วไหลประจำปี",
+          "risk_level": "HIGH",
+          "required_evidence_type": "INSPECTION_REPORT",
+          "official_form_name": "รายงานผลการซ้อมแผนฉุกเฉินสารเคมี",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-FIRE-2555",
+      "law_name_th": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับการป้องกันและระงับอัคคีภัย พ.ศ. ๒๕๕๕",
+      "law_name_en": "Ministerial Regulation on Fire Prevention and Suppression B.E. 2555 (2012)",
+      "category": "FIRE_SAFETY",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๒๙",
+        "part": "๑๓๐ ก",
+        "page": "๒๕",
+        "published_date": "2012-12-28",
+        "effective_date": "2012-12-29"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-FIR-001",
+          "article_no": "ข้อ ๔-๘",
+          "title": "ความปลอดภัยเกี่ยวกับทางหนีไฟ ประตูหนีไฟ และระบบไฟฉุกเฉินส่องสว่าง",
+          "description": "ทางหนีไฟกว้างไม่น้อยกว่า ๙๐ ซม. ไม่มีสิ่งกีดขวาง ประตูหนีไฟผลักออกง่ายไม่ล็อกในเวลาทำงาน มีไฟฉุกเฉินสว่างต่อเนื่องไม่น้อยกว่า ๒ ชั่วโมง",
+          "applicability_criteria": "อาคารสถานประกอบกิจการทุกแห่ง",
+          "compliance_criteria": "ทางหนีไฟโล่ง 100% ประตูหนีไฟติดตั้ง Panic Bar พร้อมป้ายเรืองแสง และไฟฉุกเฉินผ่านการทดสอบแบตเตอรี่รายเดือน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "INSPECTION_REPORT",
+          "official_form_name": "บันทึกการตรวจสอบไฟฉุกเฉินและทางหนีไฟ",
+          "retention_years": 1,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-FIR-002",
+          "article_no": "ข้อ ๑๔-๑๖",
+          "title": "การติดตั้งและการตรวจสอบสภาพถังดับเพลิงมือถือ (Portable Fire Extinguisher)",
+          "description": "ติดตั้งถังดับเพลิงระยะห่างไม่เกิน ๒๐ เมตร ความสูงจากพื้นไม่เกิน ๑.๕๐ เมตร และตรวจเช็กสภาพความพร้อมใช้งานอย่างน้อยทุก ๖ เดือน",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่ง",
+          "compliance_criteria": "มีถังดับเพลิงครอบคลุมทุกจุด เกจวัดแรงดันอยู่ในเกณฑ์ปกติ มีป้ายแท็กบันทึกการตรวจเช็กทุก ๖ เดือน (หรือรายเดือน)",
+          "risk_level": "HIGH",
+          "required_evidence_type": "INSPECTION_REPORT",
+          "official_form_name": "ทะเบียนคุมและบันทึกตรวจถังดับเพลิง",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-FIR-003",
+          "article_no": "ข้อ ๑๗-๒๐",
+          "title": "ระบบสัญญาณแจ้งเหตุเพลิงไหม้ (Fire Alarm) และระบบน้ำดับเพลิง",
+          "description": "ติดตั้งระบบแจ้งเหตุเพลิงไหม้ (Manual Station, Smoke/Heat Detector) ได้ยินชัดเจนทั่วอาคาร และมีระบบน้ำดับเพลิง/Fire Pump พร้อมใช้งาน",
+          "applicability_criteria": "อาคารโรงงานหรือสถานประกอบการตามที่กฎหมายกำหนด",
+          "compliance_criteria": "มีรายงานผลการทดสอบการทำงานของ Fire Alarm System และ Fire Pump ประจำปีโดยผู้เชี่ยวชาญ",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "รายงานผลการทดสอบระบบดับเพลิงประจำปี",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-FIR-004",
+          "article_no": "ข้อ ๒๑",
+          "title": "การฝึกอบรมการดับเพลิงขั้นต้นให้แก่ลูกจ้างไม่น้อยกว่าร้อยละ ๔๐ ของแต่ละหน่วยงาน",
+          "description": "นายจ้างต้องจัดให้ลูกจ้างไม่น้อยกว่าร้อยละ ๔๐ ของแต่ละแผนกผ่านการอบรมดับเพลิงขั้นต้นจากหน่วยงานที่ได้รับอนุญาต",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่ง",
+          "compliance_criteria": "มีวุฒิบัตรรับรองการอบรมดับเพลิงขั้นต้นของพนักงานในแต่ละแผนก มีสัดส่วนไม่น้อยกว่า ๔๐%",
+          "risk_level": "HIGH",
+          "required_evidence_type": "TRAINING_RECORD",
+          "official_form_name": "วุฒิบัตรดับเพลิงขั้นต้น",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-FIR-005",
+          "article_no": "ข้อ ๒๗-๓๐",
+          "title": "การฝึกซ้อมดับเพลิงและฝึกซ้อมอพยพหนีไฟประจำปี พร้อมส่งรายงานภายใน ๓๐ วัน",
+          "description": "จัดให้ลูกจ้างทุกคนฝึกซ้อมดับเพลิงและอพยพหนีไฟพร้อมกันอย่างน้อยปีละ ๑ ครั้ง และส่งรายงานผลต่อพนักงานตรวจความปลอดภัยภายใน ๓๐ วัน",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่ง",
+          "compliance_criteria": "มีรายงานผลการฝึกซ้อมอพยพหนีไฟประจำปี พร้อมภาพถ่าย และมีหลักฐานการยื่นรายงานต่อสำนักงานสวัสดิการฯ ภายใน ๓๐ วัน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "รายงานผลการฝึกซ้อมดับเพลิงและอพยพหนีไฟ",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-ELEC-2558",
+      "law_name_th": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับไฟฟ้า พ.ศ. ๒๕๕๘",
+      "law_name_en": "Ministerial Regulation on Electrical Safety B.E. 2558 (2015)",
+      "category": "ELECTRICAL_SAFETY",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๓๒",
+        "part": "๑๑ ก",
+        "page": "๔๐",
+        "published_date": "2015-02-19",
+        "effective_date": "2015-02-20"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-ELE-001",
+          "article_no": "ข้อ ๓-๔",
+          "title": "แผนผังวงจรไฟฟ้า (Single Line Diagram) และการตรวจสอบระบบไฟฟ้าประจำปีโดยวิศวกร",
+          "description": "จัดทำ Single Line Diagram ที่เป็นปัจจุบัน และตรวจสอบระบบไฟฟ้าประจำปีโดยวิศวกรไฟฟ้า พร้อมเก็บบันทึกผลไม่น้อยกว่า ๒ ปี",
+          "applicability_criteria": "สถานประกอบกิจการที่ใช้ไฟฟ้า",
+          "compliance_criteria": "มี Single Line Diagram ตรงตามหน้างานจริง และมีรายงานผลการตรวจรับรองระบบไฟฟ้าประจำปีลงนามโดยวิศวกรไฟฟ้า (ภฟ./สฟ.)",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "รายงานการตรวจสอบระบบไฟฟ้าประจำปี",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-ELE-002",
+          "article_no": "ข้อ ๕-๑๐",
+          "title": "การติดตั้งระบบสายดิน (Grounding) และเครื่องตัดไฟรั่ว (RCD / ELCB)",
+          "description": "บริภัณฑ์ไฟฟ้าโลหะต้องต่อลงดิน (ความต้านทานดิน <= ๕ โอห์ม) และติดตั้งเครื่องตัดไฟรั่วในบริเวณเปียกชื้นหรือมีความเสี่ยง",
+          "applicability_criteria": "บริภัณฑ์ไฟฟ้าและเต้ารับไฟฟ้าทุกจุด",
+          "compliance_criteria": "มีผลการวัดค่าความต้านทานหลักดินไม่เกิน ๕ โอห์ม และเครื่องตัดไฟรั่วผ่านการทดสอบ Trip Test ประจำปี",
+          "risk_level": "HIGH",
+          "required_evidence_type": "MEASUREMENT_LOG",
+          "official_form_name": "บันทึกผลการทดสอบค่าความต้านทานดินและ RCD",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-ELE-003",
+          "article_no": "ข้อ ๑๔-๑๕",
+          "title": "การติดตั้งและตรวจสอบระบบป้องกันฟ้าผ่า (Lightning Protection System)",
+          "description": "ติดตั้งระบบป้องกันฟ้าผ่าตามมาตรฐาน วสท. หรือมาตรฐานสากล และตรวจสอบสภาพความพร้อมใช้งานประจำปี",
+          "applicability_criteria": "อาคารและโครงสร้างที่มีความเสี่ยงต่อฟ้าผ่า",
+          "compliance_criteria": "มีรายงานผลการตรวจสอบระบบป้องกันฟ้าผ่าและค่าความต้านทานดินของระบบล่อฟ้าประจำปี",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "รายงานการตรวจระบบป้องกันฟ้าผ่า",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๑๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-ELE-004",
+          "article_no": "ข้อ ๑๖-๒๐",
+          "title": "การฝึกอบรมความปลอดภัยทางไฟฟ้า มาตรการ LOTO และอุปกรณ์คุ้มครอง PPE เฉพาะทางไฟฟ้า",
+          "description": "ช่างไฟฟ้าต้องผ่านการฝึกอบรมความปลอดภัยทางไฟฟ้า มีขั้นตอน Lockout/Tagout และสวมใส่อุปกรณ์ PPE ทางไฟฟ้า (ถุงมือ/รองเท้าฉนวน)",
+          "applicability_criteria": "ผู้ปฏิบัติงานที่ทำงานเกี่ยวกับไฟฟ้า",
+          "compliance_criteria": "มีวุฒิบัตรอบรมความปลอดภัยทางไฟฟ้า มีอุปกรณ์ LOTO พร้อมป้ายเตือน และมีอุปกรณ์ฉนวนไฟฟ้าที่ผ่านการทดสอบ Dielectric Test",
+          "risk_level": "HIGH",
+          "required_evidence_type": "TRAINING_RECORD",
+          "official_form_name": "วุฒิบัตรอบรมไฟฟ้า & ทะเบียนอุปกรณ์ PPE ไฟฟ้า",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-MCH-2564",
+      "law_name_th": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับเครื่องจักร ปั้นจั่น และหม้อน้ำ พ.ศ. ๒๕๖๔",
+      "law_name_en": "Ministerial Regulation on Machinery, Cranes, and Boilers B.E. 2564 (2021)",
+      "category": "MACHINERY_BOILER",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๓๘",
+        "part": "๕๓ ก",
+        "page": "๑",
+        "published_date": "2021-08-06",
+        "effective_date": "2021-11-04"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-MCH-001",
+          "article_no": "ข้อ ๔-๑๑",
+          "title": "การติดตั้งการ์ดป้องกันอันตรายจากเครื่องจักร (Machine Guarding) และสวิตช์หยุดฉุกเฉิน (E-Stop)",
+          "description": "ติดตั้งฝาครอบป้องกันส่วนหมุน/เคลื่อนไหว และปุ่มหยุดฉุกเฉินสีแดงในตำแหน่งที่เข้าถึงได้ทันที",
+          "applicability_criteria": "เครื่องจักรทุกชนิดที่มีชิ้นส่วนเคลื่อนไหวหรือจุดหนีบ",
+          "compliance_criteria": "เครื่องจักรมีการ์ดป้องกันจุดอันตราย 100% ปุ่ม E-Stop ทำงานได้สมบูรณ์ และมีระบบ LOTO ระหว่างซ่อมบำรุง",
+          "risk_level": "HIGH",
+          "required_evidence_type": "INSPECTION_REPORT",
+          "official_form_name": "แบบตรวจเช็กความปลอดภัยเครื่องจักรประจำวัน/เดือน",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-MCH-002",
+          "article_no": "ข้อ ๓๒-๔๕",
+          "title": "การตรวจสอบและทดสอบพิกัดการยกของปั้นจั่น (Load Test) ตามแบบ ปจ.๑ / ปจ.๒ โดยวิศวกรเครื่องกล",
+          "description": "ปั้นจั่นทุกประเภทต้องผ่านการตรวจสอบและทดสอบการรับน้ำหนักตามรอบที่กำหนด (๓ เดือน / ๖ เดือน / ๑ ปี) โดยวิศวกรเครื่องกล",
+          "applicability_criteria": "สถานประกอบกิจการที่มีปั้นจั่น (Overhead Crane, Tower Crane, Mobile Crane)",
+          "compliance_criteria": "มีเอกสารรับรองการตรวจสอบความปลอดภัยปั้นจั่น (แบบ ปจ.๑ หรือ ปจ.๒) ที่ไม่หมดอายุ ลงนามโดยวิศวกรเครื่องกล",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ ปจ.๑ / แบบ ปจ.๒",
+          "retention_years": 3,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-MCH-003",
+          "article_no": "ข้อ ๔๖-๕๐",
+          "title": "การฝึกอบรมผู้ปฏิบัติงานเกี่ยวกับปั้นจั่น ๔ ผู้ (ผู้บังคับ/ผู้ให้สัญญาณ/ผู้ยึดเกาะ/ผู้ควบคุม)",
+          "description": "ลูกจ้างที่ปฏิบัติงานเกี่ยวกับปั้นจั่นต้องผ่านการฝึกอบรมหลักสูตร ๔ ผู้ ตามที่กฎหมายกำหนดจากหน่วยฝึกที่ได้รับอนุญาต",
+          "applicability_criteria": "ผู้ปฏิบัติงานปั้นจั่นทุกคน",
+          "compliance_criteria": "ผู้บังคับปั้นจั่น ผู้ให้สัญญาณ ผู้ยึดเกาะ และผู้ควบคุม มีวุฒิบัตรรับรองผ่านการฝึกอบรมครบถ้วน 100%",
+          "risk_level": "HIGH",
+          "required_evidence_type": "TRAINING_RECORD",
+          "official_form_name": "วุฒิบัตรการฝึกอบรมปั้นจั่น ๔ ผู้",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-MCH-004",
+          "article_no": "ข้อ ๗๔-๙๐",
+          "title": "การตรวจสอบรับรองความปลอดภัยหม้อน้ำ (แบบ บร.๑ / บร.๒) และการมีผู้ควบคุมหม้อน้ำขึ้นทะเบียน",
+          "description": "ตรวจทดสอบหม้อน้ำและภาชนะรับแรงดันประจำปีโดยวิศวกรเครื่องกล และจัดให้มีผู้ควบคุมหม้อน้ำที่ได้รับใบอนุญาตประจำการ",
+          "applicability_criteria": "สถานประกอบกิจการที่มีการใช้งานหม้อน้ำ หม้อต้มของเหลว หรือภาชนะรับแรงดัน",
+          "compliance_criteria": "มีรายงานตรวจรับรองความปลอดภัยหม้อน้ำ (แบบ บร.๑/บร.๒) และมีผู้ควบคุมหม้อน้ำที่มีใบอนุญาตปฏิบัติงานตลอดเวลาเดินเครื่อง",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ บร.๑ / แบบ บร.๒",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-ENV-2559",
+      "law_name_th": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับความร้อน แสงสว่าง และเสียง พ.ศ. ๒๕๕๙",
+      "law_name_en": "Ministerial Regulation on Heat, Light, and Noise B.E. 2559 (2016)",
+      "category": "ENVIRONMENT_PHYSICAL",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๓๓",
+        "part": "๙๑ ก",
+        "page": "๔๘",
+        "published_date": "2016-10-17",
+        "effective_date": "2016-10-18"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-ENV-001",
+          "article_no": "ข้อ ๓-๑๐",
+          "title": "การควบคุมระดับความร้อน (WBGT), แสงสว่าง (Lux) และระดับเสียง (dBA) ให้เป็นไปตามมาตรฐาน",
+          "description": "ควบคุมสภาพแวดล้อม: ความร้อนไม่เกินเกณฑ์ภาระงาน, แสงสว่างไม่ต่ำกว่าเกณฑ์ความละเอียด, เสียงเฉลี่ย ๘ ชม. ไม่เกิน ๘๕ dBA",
+          "applicability_criteria": "สถานประกอบกิจการทุกแห่งที่มีสภาพแวดล้อมความร้อน แสง เสียง",
+          "compliance_criteria": "ผลการตรวจวัดทุกจุดอยู่ในเกณฑ์มาตรฐานตามประกาศกรมฯ พ.ศ. ๒๕๖๑ หรือมีมาตรการลดผลกระทบเชิงวิศวกรรม",
+          "risk_level": "HIGH",
+          "required_evidence_type": "MEASUREMENT_LOG",
+          "official_form_name": "รายงานผลการตรวจวัดความร้อน แสงสว่าง เสียง",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-ENV-002",
+          "article_no": "ข้อ ๑๑-๑๔",
+          "title": "การตรวจวัดสภาพแวดล้อมประจำปีโดยผู้ขึ้นทะเบียน ม.๙/ม.๑๑ และส่งรายงานภายใน ๓๐ วัน",
+          "description": "จัดให้มีการตรวจวัดความร้อน แสงสว่าง เสียง ประจำปีโดยผู้ขึ้นทะเบียน และส่งรายงานต่ออธิบดีภายใน ๓๐ วันนับแต่วันตรวจวัด",
+          "applicability_criteria": "สถานประกอบกิจการตามที่กฎหมายกำหนด",
+          "compliance_criteria": "มีรายงานผลการตรวจวัดรับรองโดยผู้ขึ้นทะเบียน ม.๙ หรือ ม.๑๑ และมีหลักฐานการยื่นรายงานต่อกรมฯ ภายใน ๓๐ วัน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "รายงานผลตรวจวัดสภาพแวดล้อม ม.๙/๑๑",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-ENV-003",
+          "article_no": "ประกาศกรมฯ ๒๕๖๑",
+          "title": "การจัดทำโครงการอนุรักษ์การได้ยิน (Hearing Conservation Program) สำหรับพื้นที่เสียง >= ๘๕ dBA",
+          "description": "จัดทำโครงการอนุรักษ์การได้ยินเป็นลายลักษณ์อักษร หากระดับเสียงเฉลี่ย ๘ ชั่วโมง เท่ากับหรือเกิน ๘๕ dBA",
+          "applicability_criteria": "สถานประกอบกิจการที่มีระดับเสียงเฉลี่ย ๘ ชั่วโมงตั้งแต่ ๘๕ dBA ขึ้นไป",
+          "compliance_criteria": "มีเอกสารโครงการอนุรักษ์การได้ยิน แผนที่เสียง (Noise Map) การตรวจสมรรถภาพการได้ยิน และแจกจ่าย PPE ลดเสียง",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "เอกสารโครงการอนุรักษ์การได้ยิน",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-HLT-2563",
+      "law_name_th": "กฎกระทรวง กำหนดมาตรฐานการตรวจสุขภาพลูกจ้างซึ่งทำงานเกี่ยวกับปัจจัยเสี่ยง พ.ศ. ๒๕๖๓",
+      "law_name_en": "Ministerial Regulation on Health Examination Standards for Risk Factors B.E. 2563 (2020)",
+      "category": "HEALTH_SURVEILLANCE",
+      "governing_authority": "กรมสวัสดิการและคุ้มครองแรงงาน (DLPW)",
+      "gazette_reference": {
+        "volume": "๑๓๗",
+        "part": "๗๖ ก",
+        "page": "๕",
+        "published_date": "2020-09-23",
+        "effective_date": "2020-10-23"
+      },
+      "items": [
+        {
+          "item_id": "ITEM-HLT-001",
+          "article_no": "ข้อ ๕-๑๐",
+          "title": "การตรวจสุขภาพก่อนเริ่มงาน/เปลี่ยนงาน (ภายใน ๓๐ วัน) และตรวจสุขภาพประจำปีตามปัจจัยเสี่ยง",
+          "description": "ตรวจสุขภาพลูกจ้างที่ทำงานเกี่ยวกับปัจจัยเสี่ยง (เคมี ชีวภาพ กายภาพ) ภายใน ๓๐ วันแรกและประจำปี โดยแพทย์อาชีวเวชศาสตร์",
+          "applicability_criteria": "ลูกจ้างที่ทำงานสัมผัสปัจจัยเสี่ยงทุกคน",
+          "compliance_criteria": "ลูกจ้างกลุ่มเสี่ยงทุกคนได้รับการตรวจสุขภาพ 100% รายการตรวจตรงกับปัจจัยเสี่ยง และตรวจโดยแพทย์ที่ได้รับอนุญาต",
+          "risk_level": "HIGH",
+          "required_evidence_type": "DOCUMENT_CERTIFICATE",
+          "official_form_name": "ใบรับรองแพทย์อาชีวเวชศาสตร์ / ผลตรวจสุขภาพเฉพาะทาง",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-HLT-002",
+          "article_no": "ข้อ ๑๑-๑๔",
+          "title": "การบันทึกผลการตรวจสุขภาพลงในสมุดประจำตัวลูกจ้าง (แบบ จปภ.๑) และการแจ้งผลแก่ลูกจ้าง",
+          "description": "บันทึกผลตรวจลงสมุด จปภ.๑ ภายใน ๗ วัน และแจ้งผลแก่ลูกจ้างภายใน ๓ วัน (กรณีผิดปกติ) หรือ ๗ วัน (กรณีปกติ)",
+          "applicability_criteria": "สถานประกอบกิจการที่มีลูกจ้างทำงานเกี่ยวกับปัจจัยเสี่ยง",
+          "compliance_criteria": "มีสมุด จปภ.๑ บันทึกผลครบถ้วน และมีหลักฐานการแจ้งผลตรวจสุขภาพให้ลูกจ้างรับทราบเป็นลายลักษณ์อักษร",
+          "risk_level": "MEDIUM",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ จปภ.๑ (สมุดประจำตัว)",
+          "retention_years": 2,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๕๐,๐๐๐ บาท"
+        },
+        {
+          "item_id": "ITEM-HLT-003",
+          "article_no": "ข้อ ๑๕",
+          "title": "การส่งรายงานสรุปผลการตรวจสุขภาพตามปัจจัยเสี่ยง (แบบ จปภ.๓) ต่อพนักงานตรวจแรงงาน",
+          "description": "ส่งรายงานสรุปผลการตรวจสุขภาพ (แบบ จปภ.๓) พร้อมสำเนาใบรับรองแพทย์ต่อพนักงานตรวจแรงงานภายใน ๓๐ วันนับแต่ทราบผล",
+          "applicability_criteria": "สถานประกอบกิจการที่มีลูกจ้างทำงานเกี่ยวกับปัจจัยเสี่ยง",
+          "compliance_criteria": "มีเอกสารแบบ จปภ.๓ พร้อมหลักฐานการยื่นต่อสำนักงานสวัสดิการฯ ภายในกำหนด ๓๐ วัน",
+          "risk_level": "HIGH",
+          "required_evidence_type": "OFFICIAL_FORM",
+          "official_form_name": "แบบ จปภ.๓",
+          "retention_years": 5,
+          "penalty_summary": "ระวางโทษปรับไม่เกิน ๑๐๐,๐๐๐ บาท"
+        }
+      ]
+    }
+  ]
+}

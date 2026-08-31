@@ -1,0 +1,214 @@
+{
+  "form_id": "Sor.Or.1",
+  "form_title_th": "แบบบัญชีรายชื่อสารเคมีอันตรายและรายละเอียดข้อมูลความปลอดภัยของสารเคมีอันตราย (แบบ สอ.๑)",
+  "form_title_en": "Hazardous Chemical Inventory and Safety Data Sheet (Form Sor.Or. 1)",
+  "legal_basis": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง แบบบัญชีรายชื่อสารเคมีอันตรายและรายละเอียดข้อมูลความปลอดภัยของสารเคมีอันตราย พ.ศ. ๒๕๕๖",
+  "total_sections": 16,
+  "sections": [
+    {
+      "section_no": 1,
+      "name_th": "ข้อมูลเกี่ยวกับสารเคมีอันตรายและบริษัทผู้ผลิตและหรือนำเข้า",
+      "name_en": "Identification of the substance/mixture and of the company/undertaking",
+      "mandatory_fields": [
+        "trade_name",
+        "chemical_name",
+        "cas_no",
+        "recommended_use",
+        "manufacturer_importer_name",
+        "address",
+        "telephone",
+        "emergency_phone"
+      ],
+      "description": "ระบุชื่อทางการค้า ชื่อทางเคมี หมายเลข CAS วัตถุประสงค์การใช้ ข้อมูลติดต่อผู้ผลิต/นำเข้า และเบอร์โทรฉุกเฉิน 24 ชั่วโมง"
+    },
+    {
+      "section_no": 2,
+      "name_th": "การบ่งชี้ความเป็นอันตราย",
+      "name_en": "Hazards identification",
+      "mandatory_fields": [
+        "ghs_classification",
+        "signal_word",
+        "hazard_statements",
+        "precautionary_statements",
+        "pictograms"
+      ],
+      "description": "การจำแนกประเภทความเป็นอันตรายตามระบบ GHS คำสัญญาณ (Danger/Warning) ข้อความแสดงความเป็นอันตราย (H-Statements) ข้อควรระวัง (P-Statements) และรูปสัญลักษณ์ GHS 9 แบบ"
+    },
+    {
+      "section_no": 3,
+      "name_th": "ส่วนประกอบและข้อมูลเกี่ยวกับส่วนผสม",
+      "name_en": "Composition/information on ingredients",
+      "mandatory_fields": [
+        "substance_or_mixture",
+        "ingredients"
+      ],
+      "description": "ระบุสถานะว่าเป็นสารเดี่ยวหรือสารผสม รายชื่อส่วนประกอบทางเคมี สูตรโมเลกุล CAS No. และความเข้มข้น (% by weight หรือ % by volume)"
+    },
+    {
+      "section_no": 4,
+      "name_th": "มาตรการปฐมพยาบาล",
+      "name_en": "First-aid measures",
+      "mandatory_fields": [
+        "inhalation",
+        "skin_contact",
+        "eye_contact",
+        "ingestion",
+        "acute_delayed_symptoms",
+        "physician_notes"
+      ],
+      "description": "ขั้นตอนการปฐมพยาบาลเบื้องต้นเมื่อสัมผัสทางการหายใจ ผิวหนัง ดวงตา และการกลืนกิน รวมถึงข้อแนะนำสำหรับแพทย์"
+    },
+    {
+      "section_no": 5,
+      "name_th": "มาตรการผจญเพลิง",
+      "name_en": "Fire-fighting measures",
+      "mandatory_fields": [
+        "suitable_extinguishing_media",
+        "unsuitable_extinguishing_media",
+        "specific_hazards",
+        "protective_equipment_for_firefighters"
+      ],
+      "description": "สารดับเพลิงที่เหมาะสมและสารดับเพลิงที่ห้ามใช้ อันตรายเฉพาะที่เกิดจากสารเคมีขณะเพลิงไหม้ และอุปกรณ์ป้องกันสำหรับนักผจญเพลิง (SCBA)"
+    },
+    {
+      "section_no": 6,
+      "name_th": "มาตรการจัดการเมื่อมีการหกรั่วไหลของสาร",
+      "name_en": "Accidental release measures",
+      "mandatory_fields": [
+        "personal_precautions",
+        "protective_equipment",
+        "environmental_precautions",
+        "cleanup_methods"
+      ],
+      "description": "ข้อควรระวังส่วนบุคคล อุปกรณ์ป้องกันภัย การป้องกันผลกระทบต่อสิ่งแวดล้อม และวิธีการกักเก็บ ดูดซับ และทำความสะอาดสารหกรั่วไหล"
+    },
+    {
+      "section_no": 7,
+      "name_th": "การขนถ่าย เคลื่อนย้าย ใช้งาน และการจัดเก็บ",
+      "name_en": "Handling and storage",
+      "mandatory_fields": [
+        "handling_precautions",
+        "storage_conditions",
+        "incompatibilities",
+        "packaging_materials"
+      ],
+      "description": "ข้อควรระวังในการปฏิบัติงานและการเคลื่อนย้าย สภาพและอุณหภูมิในการจัดเก็บ สารที่เข้ากันไม่ได้ และวัสดุบรรจุภัณฑ์ที่เหมาะสม"
+    },
+    {
+      "section_no": 8,
+      "name_th": "การควบคุมการรับสัมผัสและการป้องกันส่วนบุคคล",
+      "name_en": "Exposure controls/personal protection",
+      "mandatory_fields": [
+        "occupational_exposure_limits",
+        "engineering_controls",
+        "ppe_respiratory",
+        "ppe_hands",
+        "ppe_eyes",
+        "ppe_body"
+      ],
+      "description": "ค่าขีดจำกัดความเข้มข้นตามกฎหมาย (TLV-TWA, STEL, Ceiling) การควบคุมทางวิศวกรรม (ระบบระบายอากาศ) และอุปกรณ์ PPE (หน้ากาก, ถุงมือ, แว่นครอบตา, ชุดป้องกัน)"
+    },
+    {
+      "section_no": 9,
+      "name_th": "คุณสมบัติทางกายภาพและทางเคมี",
+      "name_en": "Physical and chemical properties",
+      "mandatory_fields": [
+        "appearance",
+        "odor",
+        "ph",
+        "boiling_point",
+        "flash_point",
+        "flammability_limits",
+        "vapor_pressure",
+        "relative_density",
+        "solubility"
+      ],
+      "description": "ลักษณะภายนอก กลิ่น ค่า pH จุดเดือด จุดวาบไฟ ขีดจำกัดการติดไฟ ความดันไอ ความหนาแน่นสัมพัทธ์ และการละลายน้ำ"
+    },
+    {
+      "section_no": 10,
+      "name_th": "ความเสถียรและความไวต่อปฏิกิริยา",
+      "name_en": "Stability and reactivity",
+      "mandatory_fields": [
+        "reactivity",
+        "chemical_stability",
+        "hazardous_reactions",
+        "conditions_to_avoid",
+        "incompatible_materials",
+        "hazardous_decomposition_products"
+      ],
+      "description": "ความคงตัวทางเคมี ความเป็นไปได้ในการเกิดปฏิกิริยาอันตราย สภาวะที่ต้องหลีกเลี่ยง สารที่เข้ากันไม่ได้ และผลิตภัณฑ์สลายตัวอันตราย"
+    },
+    {
+      "section_no": 11,
+      "name_th": "ข้อมูลด้านพิษวิทยา",
+      "name_en": "Toxicological information",
+      "mandatory_fields": [
+        "acute_toxicity_ld50_lc50",
+        "skin_corrosion_irritation",
+        "serious_eye_damage_irritation",
+        "carcinogenicity",
+        "mutagenicity",
+        "reproductive_toxicity"
+      ],
+      "description": "ข้อมูลความเป็นพิษเฉียบพลัน (LD50 ทางปาก/ผิวหนัง, LC50 ทางการสูดดม) การระคายเคือง การก่อมะเร็ง การก่อการกลายพันธุ์ และผลต่อระบบสืบพันธุ์"
+    },
+    {
+      "section_no": 12,
+      "name_th": "ข้อมูลผลกระทบต่อระบบนิเวศน์",
+      "name_en": "Ecological information",
+      "mandatory_fields": [
+        "ecotoxicity",
+        "persistence_and_degradability",
+        "bioaccumulative_potential",
+        "mobility_in_soil"
+      ],
+      "description": "ความเป็นพิษต่อสิ่งมีชีวิตในน้ำ (ปลา, ไรน้ำ, สาหร่าย) การย่อยสลายทางชีวภาพ ศักยภาพการสะสมทางชีวภาพ (BCF/Log Kow) และการเคลื่อนที่ในดิน"
+    },
+    {
+      "section_no": 13,
+      "name_th": "ข้อพิจารณาในการกำจัด",
+      "name_en": "Disposal considerations",
+      "mandatory_fields": [
+        "waste_treatment_methods",
+        "packaging_disposal"
+      ],
+      "description": "วิธีการกำจัดสารเคมีตกค้างและของเสียอันตราย การบำบัด และการกำจัดภาชนะบรรจุที่ปนเปื้อนตามกฎหมายกรมโรงงานอุตสาหกรรม"
+    },
+    {
+      "section_no": 14,
+      "name_th": "ข้อมูลการขนส่ง",
+      "name_en": "Transport information",
+      "mandatory_fields": [
+        "un_number",
+        "proper_shipping_name",
+        "transport_hazard_class",
+        "packing_group",
+        "marine_pollutant"
+      ],
+      "description": "หมายเลข UN ชื่อที่ถูกต้องในการขนส่ง ประเภทอันตราย (Class 1-9) กลุ่มการบรรจุ (Packing Group I/II/III) และสถานะมลพิษทางทะเล"
+    },
+    {
+      "section_no": 15,
+      "name_th": "ข้อมูลเกี่ยวกับกฎหมายและข้อบังคับ",
+      "name_en": "Regulatory information",
+      "mandatory_fields": [
+        "safety_health_environmental_regulations",
+        "thai_hazardous_substance_act_category"
+      ],
+      "description": "กฎหมายและข้อบังคับความปลอดภัย สุขภาพ และสิ่งแวดล้อม ประเภทวัตถุอันตรายตาม พ.ร.บ. วัตถุอันตราย พ.ศ. ๒๕๓๕ (ชนิดที่ ๑, ๒, ๓ หรือ ๔)"
+    },
+    {
+      "section_no": 16,
+      "name_th": "ข้อมูลอื่นๆ",
+      "name_en": "Other information",
+      "mandatory_fields": [
+        "revision_date",
+        "revision_number",
+        "references",
+        "nfpa_rating"
+      ],
+      "description": "วันที่จัดทำ/ปรับปรุงแก้ไข หมายเลขฉบับปรับปรุง แหล่งข้อมูลอ้างอิง และระดับความเป็นอันตรายตามมาตรฐาน NFPA 704 (Health, Flammability, Instability, Special)"
+    }
+  ]
+}

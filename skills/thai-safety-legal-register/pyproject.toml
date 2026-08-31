@@ -1,0 +1,11 @@
+[project]
+name = "thai-safety-legal-register"
+version = "1.0.0"
+description = "Thai occupational safety and health legal register (8 Royal Gazette regulations), compliance evaluation engine, and automated CAPA generator."
+readme = "SKILL.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"

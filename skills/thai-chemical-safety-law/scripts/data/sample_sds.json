@@ -1,0 +1,164 @@
+{
+  "product_name": "Toluene Pure 99.8%",
+  "trade_name": "Toluene Industrial Grade",
+  "section_1_identification": {
+    "trade_name": "Toluene Industrial Grade",
+    "chemical_name": "Toluene",
+    "cas_no": "108-88-3",
+    "recommended_use": "Industrial solvent for coatings, printing inks, and chemical syntheses",
+    "manufacturer_importer_name": "Siam Chemical Safety Corporation Ltd.",
+    "address": "123 Industrial Estate Road, Map Ta Phut, Rayong 21150 Thailand",
+    "telephone": "+66 38 123 456",
+    "emergency_phone": "+66 38 123 999 (24 Hours)"
+  },
+  "section_2_hazard_identification": {
+    "ghs_classification": [
+      "Flammable Liquid Category 2",
+      "Skin Irritation Category 2",
+      "Reproductive Toxicity Category 2",
+      "STOT SE Category 3 (Narcotic effects)",
+      "STOT RE Category 2 (Central nervous system)",
+      "Aspiration Hazard Category 1"
+    ],
+    "signal_word": "Danger",
+    "pictograms": [
+      "GHS02_Flame",
+      "GHS07_Exclamation",
+      "GHS08_HealthHazard"
+    ],
+    "hazard_statements": [
+      "H225: Highly flammable liquid and vapour",
+      "H304: May be fatal if swallowed and enters airways",
+      "H315: Causes skin irritation",
+      "H336: May cause drowsiness or dizziness",
+      "H361d: Suspected of damaging the unborn child",
+      "H373: May cause damage to organs through prolonged or repeated exposure"
+    ],
+    "precautionary_statements": [
+      "P210: Keep away from heat, hot surfaces, sparks, open flames and other ignition sources. No smoking.",
+      "P260: Do not breathe dust/fume/gas/mist/vapours/spray.",
+      "P280: Wear protective gloves/protective clothing/eye protection/face protection.",
+      "P301+P310: IF SWALLOWED: Immediately call a POISON CENTER/doctor.",
+      "P331: Do NOT induce vomiting."
+    ]
+  },
+  "section_3_composition": {
+    "substance_or_mixture": "Substance",
+    "ingredients": [
+      {
+        "chemical_name": "Toluene",
+        "cas_no": "108-88-3",
+        "percentage": 99.8,
+        "ec_number": "203-625-9"
+      }
+    ]
+  },
+  "section_4_first_aid": {
+    "inhalation": "Remove victim to fresh air and keep at rest in a position comfortable for breathing. If breathing is difficult, administer oxygen. Seek immediate medical attention.",
+    "skin_contact": "Wash with plenty of soap and water. Take off contaminated clothing and wash before reuse. If skin irritation occurs: Get medical advice/attention.",
+    "eye_contact": "Rinse cautiously with water for several minutes. Remove contact lenses, if present and easy to do. Continue rinsing. If eye irritation persists: Get medical advice/attention.",
+    "ingestion": "Do NOT induce vomiting. Risk of aspiration into lungs. If conscious, rinse mouth with water. Seek emergency medical attention immediately.",
+    "acute_delayed_symptoms": "Headache, dizziness, fatigue, nausea, central nervous system depression.",
+    "physician_notes": "Treat symptomatically. Watch for potential chemical pneumonitis if aspirated."
+  },
+  "section_5_fire_fighting": {
+    "suitable_extinguishing_media": "Dry chemical powder, alcohol-resistant foam, carbon dioxide (CO2), water spray or fog.",
+    "unsuitable_extinguishing_media": "Do not use solid water stream as it may scatter and spread fire.",
+    "specific_hazards": "Vapours are heavier than air and may travel along the ground to distant ignition sources and flash back. Toxic fumes containing carbon oxides may be released during combustion.",
+    "protective_equipment_for_firefighters": "Wear full protective bunker gear and self-contained breathing apparatus (SCBA) operating in positive pressure mode."
+  },
+  "section_6_accidental_release": {
+    "personal_precautions": "Eliminate all ignition sources. Evacuate non-essential personnel. Wear complete chemical-resistant PPE including organic vapor respirator.",
+    "protective_equipment": "Nitrile/butyl rubber gloves, splash goggles, antistatic boots, organic vapor mask.",
+    "environmental_precautions": "Prevent entry into waterways, sewers, basements, or confined areas.",
+    "cleanup_methods": "Absorb spill with non-combustible absorbent material (vermiculite, dry sand, earth) and transfer into closed, grounded containers for disposal."
+  },
+  "section_7_handling_storage": {
+    "handling_precautions": "Use only in well-ventilated areas or under local exhaust. Ground/bond container and receiving equipment. Use non-sparking tools. Avoid contact with skin and eyes.",
+    "storage_conditions": "Store in a cool, dry, well-ventilated place away from direct sunlight, heat, sparks, and open flame. Keep container tightly closed.",
+    "incompatibilities": "Strong oxidizing agents, strong acids, halogens.",
+    "packaging_materials": "Steel drums, glass containers, fluorinated HDPE."
+  },
+  "section_8_exposure_controls": {
+    "occupational_exposure_limits": {
+      "thai_dlpw_twa": "200 ppm (753 mg/m3)",
+      "thai_dlpw_stel": "300 ppm (1130 mg/m3)",
+      "thai_dlpw_ceiling": "500 ppm (1883 mg/m3)",
+      "notation": "Skin"
+    },
+    "engineering_controls": "Explosion-proof local exhaust ventilation system. Eye wash stations and safety showers must be readily accessible within 10 seconds.",
+    "ppe_respiratory": "NIOSH-approved half-mask or full-face respirator with organic vapor cartridges (A1/A2 filter).",
+    "ppe_hands": "Viton or Nitrile rubber chemical-resistant gloves (>0.4 mm thickness, breakthrough time >480 min).",
+    "ppe_eyes": "Chemical splash goggles or full face shield conforming to EN 166 or ANSI Z87.1.",
+    "ppe_body": "Flame-retardant antistatic protective clothing, chemical apron, and antistatic safety shoes."
+  },
+  "section_9_physical_chemical": {
+    "appearance": "Clear, colorless liquid",
+    "odor": "Characteristic aromatic, benzene-like odor",
+    "ph": "Not applicable (non-aqueous)",
+    "boiling_point": "110.6 °C (231.1 °F)",
+    "flash_point": "4.4 °C (40 °F) - Closed Cup",
+    "flammability_limits": "LEL: 1.1% vol, UEL: 7.1% vol",
+    "vapor_pressure": "28.4 mmHg @ 25 °C (3.8 kPa)",
+    "relative_density": "0.867 g/cm3 @ 20 °C",
+    "solubility": "0.52 g/L in water @ 20 °C (Immiscible); miscible with ethanol, ether, acetone, chloroform"
+  },
+  "section_10_stability_reactivity": {
+    "reactivity": "Stable under recommended storage and handling conditions.",
+    "chemical_stability": "Chemically stable under normal ambient conditions.",
+    "hazardous_reactions": "Vapors may form explosive mixture with air. Violent reaction with strong oxidizers.",
+    "conditions_to_avoid": "Heat, sparks, open flames, hot surfaces, direct sunlight, static discharge.",
+    "incompatible_materials": "Strong oxidizing agents (nitric acid, sulfuric acid, peroxides), halogens.",
+    "hazardous_decomposition_products": "Carbon monoxide (CO), Carbon dioxide (CO2), dense toxic smoke during thermal decomposition."
+  },
+  "section_11_toxicological": {
+    "acute_toxicity_ld50_lc50": {
+      "oral_rat_ld50": "5580 mg/kg",
+      "dermal_rabbit_ld50": "12267 mg/kg",
+      "inhalation_rat_lc50_4h": "28.1 mg/L (7500 ppm)"
+    },
+    "skin_corrosion_irritation": "Causes moderate skin irritation with prolonged contact.",
+    "serious_eye_damage_irritation": "Causes slight to moderate eye irritation.",
+    "carcinogenicity": "IARC Group 3: Not classifiable as to its carcinogenicity to humans. ACGIH A4: Not classifiable as human carcinogen.",
+    "mutagenicity": "Negative in bacterial reverse mutation tests (Ames test).",
+    "reproductive_toxicity": "Suspected of damaging the unborn child (Developmental toxicity demonstrated in animal studies)."
+  },
+  "section_12_ecological": {
+    "ecotoxicity": {
+      "fish_oncorhynchus_mykiss_lc50_96h": "5.5 mg/L",
+      "daphnia_magna_ec50_48h": "3.78 mg/L",
+      "algae_pseudokirchneriella_ec50_72h": "12.5 mg/L"
+    },
+    "persistence_and_degradability": "Readily biodegradable (86% degradation after 20 days).",
+    "bioaccumulative_potential": "Low to moderate (BCF = 90, Log Kow = 2.73).",
+    "mobility_in_soil": "Moderate mobility in soil (Koc = 134-240 L/kg)."
+  },
+  "section_13_disposal": {
+    "waste_treatment_methods": "Incinerate in a licensed hazardous waste incineration facility with flue gas scrubbing in compliance with Department of Industrial Works regulations.",
+    "packaging_disposal": "Dispose of empty containers as hazardous waste. Do not puncture, cut or weld empty drums."
+  },
+  "section_14_transport": {
+    "un_number": "UN 1294",
+    "proper_shipping_name": "TOLUENE",
+    "transport_hazard_class": "3 (Flammable Liquid)",
+    "packing_group": "PG II",
+    "marine_pollutant": "No",
+    "emergency_response_guide_no": "128"
+  },
+  "section_15_regulatory": {
+    "safety_health_environmental_regulations": "Ministerial Regulation on Hazardous Chemicals B.E. 2556, DLPW Notification on TLV B.E. 2560 (Item 289)",
+    "thai_hazardous_substance_act_category": "Type 3 Hazardous Substance under the control of Department of Industrial Works (DIW)",
+    "diw_registration_required": true
+  },
+  "section_16_other": {
+    "revision_date": "2026-05-15",
+    "revision_number": "Rev 4.0",
+    "references": "Royal Thai Gazette, ACGIH TLVs 2026, NIOSH Pocket Guide to Chemical Hazards, ECHA Dossier",
+    "nfpa_rating": {
+      "health": 2,
+      "flammability": 3,
+      "instability": 0,
+      "special": "None"
+    }
+  }
+}
