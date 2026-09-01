@@ -1,0 +1,732 @@
+{
+  "metadata": {
+    "title": "Thai Environmental Safety Standards & Legal Catalog (สภาพแวดล้อม แสงสว่าง เสียง ความร้อน WBGT)",
+    "version": "1.0.0",
+    "updated_at": "2026-09-01",
+    "authorities": [
+      "พ.ร.บ. ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔",
+      "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับความร้อน แสงสว่าง และเสียง พ.ศ. ๒๕๕๙",
+      "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑",
+      "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานระดับเสียงที่ยอมให้ลูกจ้างได้รับเฉลี่ยตลอดระยะเวลาการทำงานในแต่ละวัน พ.ศ. ๒๕๖๑",
+      "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง หลักเกณฑ์และวิธีการตรวจวัดและคำนวณระดับความร้อน (WBGT) พ.ศ. ๒๕๖๓",
+      "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง แบบรายงานผลการตรวจวัดและวิเคราะห์สภาวะการทำงานเกี่ยวกับความร้อน แสงสว่าง หรือเสียง"
+    ]
+  },
+  "lighting_standards": [
+    {
+      "id": "LIGHT-GEN-001",
+      "category": "general_area",
+      "workplace_type_th": "ทางเดินภายนอกอาคาร ลานจอดรถ บริเวณถ่ายเทสินค้าภายนอก ลานเก็บสินค้ากลางแจ้ง",
+      "workplace_type_en": "Outdoor walkways, parking lots, outdoor loading bays, open storage yards",
+      "standard_lux_min": 20.0,
+      "recommended_lux_range": "20 - 50 Lux",
+      "category_name_th": "พื้นที่ทั่วไปและทางสัญจร",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๑)"
+    },
+    {
+      "id": "LIGHT-GEN-002",
+      "category": "general_area",
+      "workplace_type_th": "ทางเดินภายในอาคาร ทางหนีไฟ บันได ลิฟต์ โถงทางเดิน",
+      "workplace_type_en": "Indoor corridors, emergency evacuation routes, staircases, elevators, hallways",
+      "standard_lux_min": 50.0,
+      "recommended_lux_range": "50 - 100 Lux",
+      "category_name_th": "พื้นที่ทั่วไปและทางสัญจร",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๒)"
+    },
+    {
+      "id": "LIGHT-GEN-003",
+      "category": "general_area",
+      "workplace_type_th": "ทางสัญจรในพื้นที่ปฏิบัติงาน ทางเดินในโรงงาน ทางวิ่งของรถยกในอาคาร",
+      "workplace_type_en": "Walkways in production/operational areas, plant corridors, forklift lanes",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 150 Lux",
+      "category_name_th": "พื้นที่ทั่วไปและทางสัญจร",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๓)"
+    },
+    {
+      "id": "LIGHT-GEN-004",
+      "category": "general_area",
+      "workplace_type_th": "ห้องน้ำ ห้องสุขา ห้องแต่งตัว ห้องอาบน้ำ ห้องสุขาภิบาล",
+      "workplace_type_en": "Restrooms, toilets, locker rooms, shower rooms, sanitary facilities",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 150 Lux",
+      "category_name_th": "พื้นที่ทั่วไปและทางสัญจร",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๔)"
+    },
+    {
+      "id": "LIGHT-GEN-005",
+      "category": "general_area",
+      "workplace_type_th": "โรงอาหาร ห้องรับประทานอาหาร ห้องพักผ่อนลูกจ้าง ห้องพยาบาล",
+      "workplace_type_en": "Canteens, dining halls, employee rest rooms, first aid rooms",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 200 Lux",
+      "category_name_th": "พื้นที่ทั่วไปและทางสัญจร",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๕)"
+    },
+    {
+      "id": "LIGHT-GEN-006",
+      "category": "general_area",
+      "workplace_type_th": "ห้องเครื่องจักร ห้องควบคุมระบบไฟฟ้า ห้องปั๊มน้ำ ห้องหม้อน้ำทั่วไป",
+      "workplace_type_en": "Machinery rooms, electrical switchboard rooms, pump rooms, boiler rooms",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 200 Lux",
+      "category_name_th": "พื้นที่ทั่วไปและทางสัญจร",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๖)"
+    },
+    {
+      "id": "LIGHT-STO-001",
+      "category": "storage_warehouse",
+      "workplace_type_th": "คลังสินค้าทั่วไป พื้นที่จัดเก็บสินค้าขนาดใหญ่ โกดังสินค้าแบบเทกอง ไม่มีการอ่านฉลากละเอียด",
+      "workplace_type_en": "Bulk storage warehouse, raw material storage yard, inactive storage",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 150 Lux",
+      "category_name_th": "คลังสินค้าและการจัดเก็บ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๗)"
+    },
+    {
+      "id": "LIGHT-STO-002",
+      "category": "storage_warehouse",
+      "workplace_type_th": "คลังสินค้าที่มีการอ่านฉลาก คัดแยกสินค้า เบิกจ่ายสินค้า ช่องทางเดินระหว่างชั้นวางสินค้า",
+      "workplace_type_en": "Active warehouse racking aisles, order picking, reading shipping labels",
+      "standard_lux_min": 200.0,
+      "recommended_lux_range": "200 - 300 Lux",
+      "category_name_th": "คลังสินค้าและการจัดเก็บ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๘)"
+    },
+    {
+      "id": "LIGHT-STO-003",
+      "category": "storage_warehouse",
+      "workplace_type_th": "ห้องเย็นจัดเก็บสินค้า ห้องเก็บวัตถุดิบควบคุมอุณหภูมิ",
+      "workplace_type_en": "Cold storage rooms, temperature-controlled warehouse zones",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 200 Lux",
+      "category_name_th": "คลังสินค้าและการจัดเก็บ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๑ ข้อ ๙)"
+    },
+    {
+      "id": "LIGHT-OFF-001",
+      "category": "office_administration",
+      "workplace_type_th": "งานสำนักงานทั่วไป โต๊ะทำงาน การอ่าน การเขียน การพิมพ์เอกสาร การบันทึกข้อมูลคอมพิวเตอร์",
+      "workplace_type_en": "General office work, desk work, reading, writing, typing, computer data entry",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "400 - 500 Lux",
+      "category_name_th": "งานสำนักงานและธุรการ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑)"
+    },
+    {
+      "id": "LIGHT-OFF-002",
+      "category": "office_administration",
+      "workplace_type_th": "ห้องประชุม ห้องสัมมนา ห้องฝึกอบรม ห้องบรรยาย",
+      "workplace_type_en": "Conference rooms, meeting rooms, training rooms, lecture halls",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 500 Lux",
+      "category_name_th": "งานสำนักงานและธุรการ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒)"
+    },
+    {
+      "id": "LIGHT-OFF-003",
+      "category": "office_administration",
+      "workplace_type_th": "ห้องเขียนแบบ งานออกแบบสถาปัตยกรรม/วิศวกรรมด้วยมือ (Manual CAD/Drafting)",
+      "workplace_type_en": "Technical drafting, architectural design, manual drawing tables",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "500 - 750 Lux",
+      "category_name_th": "งานสำนักงานและธุรการ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๓)"
+    },
+    {
+      "id": "LIGHT-OFF-004",
+      "category": "office_administration",
+      "workplace_type_th": "ห้องเซิร์ฟเวอร์ ห้องควบคุมระบบไอที ห้องดาต้าเซ็นเตอร์ (Data Center)",
+      "workplace_type_en": "Server rooms, IT control rooms, network operations center (NOC)",
+      "standard_lux_min": 200.0,
+      "recommended_lux_range": "200 - 300 Lux",
+      "category_name_th": "งานสำนักงานและธุรการ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๔)"
+    },
+    {
+      "id": "LIGHT-OFF-005",
+      "category": "office_administration",
+      "workplace_type_th": "เคาน์เตอร์ต้อนรับ ประชาสัมพันธ์ โถงรับรองแขก (Reception & Lobby)",
+      "workplace_type_en": "Reception counters, info desks, hotel/office entrance lobby",
+      "standard_lux_min": 200.0,
+      "recommended_lux_range": "200 - 300 Lux",
+      "category_name_th": "งานสำนักงานและธุรการ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๕)"
+    },
+    {
+      "id": "LIGHT-MFG-R01",
+      "category": "manufacturing_rough",
+      "workplace_type_th": "งานที่ใช้สายตาน้อยมาก งานคัดแยกวัตถุขนาดใหญ่ งานผสมคอนกรีต งานตีเหล็กเบื้องต้น",
+      "workplace_type_en": "Very rough tasks, bulk sorting, concrete mixing, heavy forging",
+      "standard_lux_min": 100.0,
+      "recommended_lux_range": "100 - 150 Lux",
+      "category_name_th": "งานอุตสาหกรรมหยาบมาก",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๖)"
+    },
+    {
+      "id": "LIGHT-MFG-R02",
+      "category": "manufacturing_rough",
+      "workplace_type_th": "งานที่ใช้สายตาหยาบ งานเลื่อยไม้ งานตัดเหล็กท่อน งานปั๊มขึ้นรูปโลหะขนาดใหญ่ งานโรงรีดเหล็ก",
+      "workplace_type_en": "Rough tasks, sawmilling, rough steel shearing, heavy stamping, rolling mill",
+      "standard_lux_min": 200.0,
+      "recommended_lux_range": "200 - 250 Lux",
+      "category_name_th": "งานอุตสาหกรรมหยาบ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๗)"
+    },
+    {
+      "id": "LIGHT-MFG-R03",
+      "category": "manufacturing_rough",
+      "workplace_type_th": "งานหล่อโลหะ งานเทน้ำโลหะ งานทำแบบทรายหล่อโลหะ",
+      "workplace_type_en": "Foundry casting, molten metal pouring, sand mold preparation",
+      "standard_lux_min": 200.0,
+      "recommended_lux_range": "200 - 300 Lux",
+      "category_name_th": "งานอุตสาหกรรมหยาบ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๘)"
+    },
+    {
+      "id": "LIGHT-MFG-M01",
+      "category": "manufacturing_medium",
+      "workplace_type_th": "งานที่ใช้สายตาปานกลาง งานกลึง ไส กัด เจาะโลหะทั่วไป งานเครื่องจักรกลอัตโนมัติ",
+      "workplace_type_en": "Medium tasks, general machining, lathe, milling, drilling, CNC operations",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 400 Lux",
+      "category_name_th": "งานอุตสาหกรรมปานกลาง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๙)"
+    },
+    {
+      "id": "LIGHT-MFG-M02",
+      "category": "manufacturing_medium",
+      "workplace_type_th": "งานประกอบชิ้นส่วนยานยนต์ สายพานการผลิตทั่วไป งานประกอบเครื่องใช้ไฟฟ้าขนาดกลาง",
+      "workplace_type_en": "Automotive assembly line, electrical appliance assembly, general assembly",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 450 Lux",
+      "category_name_th": "งานอุตสาหกรรมปานกลาง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๐)"
+    },
+    {
+      "id": "LIGHT-MFG-M03",
+      "category": "manufacturing_medium",
+      "workplace_type_th": "งานเชื่อมโลหะ งานตัดพลาสมา งานเจียรแต่งผิวโลหะ",
+      "workplace_type_en": "Arc welding, plasma cutting, metal grinding and surface finishing",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 400 Lux",
+      "category_name_th": "งานอุตสาหกรรมปานกลาง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๑)"
+    },
+    {
+      "id": "LIGHT-MFG-M04",
+      "category": "manufacturing_medium",
+      "workplace_type_th": "งานบรรจุภัณฑ์ ปิดกล่องสินค้า ติดสติกเกอร์ งานแพ็กสินค้าลงกล่อง",
+      "workplace_type_en": "Packaging line, box taping, label tagging, cartoning",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 400 Lux",
+      "category_name_th": "งานอุตสาหกรรมปานกลาง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๒)"
+    },
+    {
+      "id": "LIGHT-MFG-M05",
+      "category": "manufacturing_medium",
+      "workplace_type_th": "งานแปรรูปอาหาร งานชำแหละเนื้อสัตว์ งานบรรจุอาหารกระป๋อง โรงงานอาหารแปรรูป",
+      "workplace_type_en": "Food processing, meat cutting, canning lines, bakery preparation",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 400 Lux",
+      "category_name_th": "งานอุตสาหกรรมปานกลาง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๓)"
+    },
+    {
+      "id": "LIGHT-MFG-M06",
+      "category": "manufacturing_medium",
+      "workplace_type_th": "งานทอผ้า งานปั่นด้าย งานย้อมสีผ้า โรงงานสิ่งทอ",
+      "workplace_type_en": "Textile weaving, spinning, fabric dyeing and bleaching",
+      "standard_lux_min": 300.0,
+      "recommended_lux_range": "300 - 400 Lux",
+      "category_name_th": "งานอุตสาหกรรมปานกลาง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๔)"
+    },
+    {
+      "id": "LIGHT-MFG-F01",
+      "category": "manufacturing_fine",
+      "workplace_type_th": "งานที่ใช้สายตาละเอียด งานประกอบชิ้นส่วนอิเล็กทรอนิกส์ แผงวงจร SMT งานบัดกรีวงจร",
+      "workplace_type_en": "Fine tasks, electronic PCB assembly, SMT line, micro soldering",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "400 - 600 Lux",
+      "category_name_th": "งานอุตสาหกรรมละเอียด",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๕)"
+    },
+    {
+      "id": "LIGHT-MFG-F02",
+      "category": "manufacturing_fine",
+      "workplace_type_th": "งานเย็บผ้า ตัดเย็บเสื้อผ้าสำเร็จรูป งานปักผ้า งานทำรองเท้าหนัง",
+      "workplace_type_en": "Garment sewing, fabric cutting, embroidery, leather shoe stitching",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "400 - 600 Lux",
+      "category_name_th": "งานอุตสาหกรรมละเอียด",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๖)"
+    },
+    {
+      "id": "LIGHT-MFG-F03",
+      "category": "manufacturing_fine",
+      "workplace_type_th": "งานพิมพ์ระบบออฟเซต งานเรียงพิมพ์ งานตรวจสอบความคมชัดของตัวพิมพ์",
+      "workplace_type_en": "Offset printing press, typesetting, print sharpness verification",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "400 - 600 Lux",
+      "category_name_th": "งานอุตสาหกรรมละเอียด",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๗)"
+    },
+    {
+      "id": "LIGHT-MFG-F04",
+      "category": "manufacturing_fine",
+      "workplace_type_th": "งานกลึงละเอียด งานเจียระไนโลหะแม่นยำ งานผลิตแม่พิมพ์ (Tool & Die Making)",
+      "workplace_type_en": "Precision machining, fine grinding, tool and die manufacturing",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "500 - 750 Lux",
+      "category_name_th": "งานอุตสาหกรรมละเอียด",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๘)"
+    },
+    {
+      "id": "LIGHT-MFG-F05",
+      "category": "manufacturing_fine",
+      "workplace_type_th": "งานผสมยา บรรจุยาเม็ด/ยาแคปซูล ห้องคลีนรูมผลิตยาและเวชภัณฑ์",
+      "workplace_type_en": "Pharmaceutical compounding, tablet/capsule packaging, cleanroom",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "400 - 600 Lux",
+      "category_name_th": "งานอุตสาหกรรมละเอียด",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๑๙)"
+    },
+    {
+      "id": "LIGHT-MFG-X01",
+      "category": "manufacturing_extra_fine",
+      "workplace_type_th": "งานที่ใช้สายตาละเอียดเป็นพิเศษ งานประกอบนาฬิกา งานเจียระไนเพชรพลอยและอัญมณี",
+      "workplace_type_en": "Extra fine tasks, watchmaking, diamond cutting, gemstone polishing",
+      "standard_lux_min": 1000.0,
+      "recommended_lux_range": "1000 - 1500 Lux",
+      "category_name_th": "งานละเอียดเป็นพิเศษ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๐)"
+    },
+    {
+      "id": "LIGHT-MFG-X02",
+      "category": "manufacturing_extra_fine",
+      "workplace_type_th": "งานผลิตไมโครชิป เซมิคอนดักเตอร์ งานเชื่อมสายไมโครไวร์ (Wire Bonding)",
+      "workplace_type_en": "Semiconductor microchip fabrication, wire bonding, micro-optics",
+      "standard_lux_min": 1000.0,
+      "recommended_lux_range": "1000 - 2000 Lux",
+      "category_name_th": "งานละเอียดเป็นพิเศษ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๑)"
+    },
+    {
+      "id": "LIGHT-MFG-X03",
+      "category": "manufacturing_extra_fine",
+      "workplace_type_th": "งานแกะสลักลวดลายละเอียด งานฝังมุก งานจิตรกรรมประณีตศิลป์",
+      "workplace_type_en": "Fine micro-engraving, mother-of-pearl inlay, miniature artistic painting",
+      "standard_lux_min": 1000.0,
+      "recommended_lux_range": "1000 - 1500 Lux",
+      "category_name_th": "งานละเอียดเป็นพิเศษ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๒)"
+    },
+    {
+      "id": "LIGHT-INS-001",
+      "category": "inspection_high_contrast",
+      "workplace_type_th": "งานตรวจสอบคุณภาพชิ้นงานที่มีความเปรียบต่างสูง (High Contrast QC) การตรวจวัดขนาดด้วยเกจวัด",
+      "workplace_type_en": "High-contrast visual inspection, gauge measuring, dimensional QC",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "400 - 600 Lux",
+      "category_name_th": "งานตรวจสอบคุณภาพความเปรียบต่างสูง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๓)"
+    },
+    {
+      "id": "LIGHT-INS-002",
+      "category": "inspection_high_contrast",
+      "workplace_type_th": "งานตรวจสอบรอยแตกร้าวบนโลหะเงา การตรวจข้อบกพร่องผิวเคลือบเงา (Surface Defect Inspection)",
+      "workplace_type_en": "Shiny metal crack detection, polished coating defect checking",
+      "standard_lux_min": 600.0,
+      "recommended_lux_range": "600 - 800 Lux",
+      "category_name_th": "งานตรวจสอบคุณภาพความเปรียบต่างสูง",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๔)"
+    },
+    {
+      "id": "LIGHT-INS-003",
+      "category": "inspection_low_contrast",
+      "workplace_type_th": "งานตรวจสอบคุณภาพชิ้นงานที่มีความเปรียบต่างต่ำ (Low Contrast QC) งานเทียบสีผ้าสีเข้ม การตรวจรอยตำหนิบนหนังสีดำ",
+      "workplace_type_en": "Low-contrast inspection, dark fabric color matching, black leather flaw inspection",
+      "standard_lux_min": 600.0,
+      "recommended_lux_range": "600 - 1000 Lux",
+      "category_name_th": "งานตรวจสอบคุณภาพความเปรียบต่างต่ำ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๕)"
+    },
+    {
+      "id": "LIGHT-INS-004",
+      "category": "inspection_low_contrast",
+      "workplace_type_th": "งานตรวจสอบแผ่นเวเฟอร์ซิลิคอน การตรวจข้อบกพร่องขนาดไมครอนด้วยกล้องส่องตรวจ",
+      "workplace_type_en": "Silicon wafer defect inspection, microscopic flaw inspection",
+      "standard_lux_min": 1000.0,
+      "recommended_lux_range": "1000 - 1500 Lux",
+      "category_name_th": "งานตรวจสอบคุณภาพความเปรียบต่างต่ำ",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๖)"
+    },
+    {
+      "id": "LIGHT-MED-001",
+      "category": "specialized_medical",
+      "workplace_type_th": "ห้องปฏิบัติการทดสอบทางเคมีและชีวภาพ งานวิเคราะห์ทางวิทยาศาสตร์",
+      "workplace_type_en": "Chemical & biological testing laboratories, scientific analysis benches",
+      "standard_lux_min": 400.0,
+      "recommended_lux_range": "400 - 600 Lux",
+      "category_name_th": "งานห้องปฏิบัติการและการแพทย์",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๗)"
+    },
+    {
+      "id": "LIGHT-MED-002",
+      "category": "specialized_medical",
+      "workplace_type_th": "ห้องตรวจรักษาโรค ห้องทำหัตถการทันตกรรม ห้องฉุกเฉิน",
+      "workplace_type_en": "Medical examination rooms, dental clinic operatory, emergency triage",
+      "standard_lux_min": 600.0,
+      "recommended_lux_range": "600 - 1000 Lux",
+      "category_name_th": "งานห้องปฏิบัติการและการแพทย์",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๘)"
+    },
+    {
+      "id": "LIGHT-MED-003",
+      "category": "specialized_medical",
+      "workplace_type_th": "เตียงผ่าตัด โคมไฟผ่าตัดในห้องผ่าตัดใหญ่ (Operating Theatre)",
+      "workplace_type_en": "Operating table surgical field, major surgery overhead lighting",
+      "standard_lux_min": 1000.0,
+      "recommended_lux_range": "1000 - 2000 Lux (Field 10000+ Lux)",
+      "category_name_th": "งานห้องปฏิบัติการและการแพทย์",
+      "legal_reference": "ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง มาตรฐานความเข้มของแสงสว่าง พ.ศ. ๒๕๖๑ (ตารางที่ ๒ ข้อ ๒๙)"
+    }
+  ],
+  "noise_standards": {
+    "statutory_limit_8hr_twa_dba": 86.0,
+    "action_level_dba": 85.0,
+    "continuous_ceiling_max_dba": 115.0,
+    "peak_impact_max_db": 140.0,
+    "exchange_rate_q_db": 3.0,
+    "criterion_level_lc_dba": 86.0,
+    "hearing_conservation_mandate": "สถานประกอบกิจการที่มีระดับเสียงเฉลี่ยตลอดระยะเวลาการทำงาน ๘ ชั่วโมง ตั้งแต่ ๘๕ dBA ขึ้นไป หรือได้รับขนาดยินยอมเสียง (Noise Dose) เกิน ๗๙.๔% ต้องจัดทำโครงการอนุรักษ์การได้ยิน (ข้อ ๑๑ กฎกระทรวงฯ ๒๕๕๙)",
+    "permissible_duration_table": [
+      {"sound_level_dba": 80.0, "permissible_hours": 32.0, "formatted_th": "๓๒ ชั่วโมง"},
+      {"sound_level_dba": 83.0, "permissible_hours": 16.0, "formatted_th": "๑๖ ชั่วโมง"},
+      {"sound_level_dba": 85.0, "permissible_hours": 10.079, "formatted_th": "๑๐ ชั่วโมง ๕ นาที (Action Level)"},
+      {"sound_level_dba": 86.0, "permissible_hours": 8.0, "formatted_th": "๘ ชั่วโมง (มาตรฐานตามกฎหมาย)"},
+      {"sound_level_dba": 87.0, "permissible_hours": 6.349, "formatted_th": "๖ ชั่วโมง ๒๑ นาที"},
+      {"sound_level_dba": 88.0, "permissible_hours": 5.039, "formatted_th": "๕ ชั่วโมง ๒ นาที"},
+      {"sound_level_dba": 89.0, "permissible_hours": 4.0, "formatted_th": "๔ ชั่วโมง"},
+      {"sound_level_dba": 90.0, "permissible_hours": 3.175, "formatted_th": "๓ ชั่วโมง ๑๐ นาที"},
+      {"sound_level_dba": 92.0, "permissible_hours": 2.0, "formatted_th": "๒ ชั่วโมง"},
+      {"sound_level_dba": 95.0, "permissible_hours": 1.0, "formatted_th": "๑ ชั่วโมง (๖๐ นาที)"},
+      {"sound_level_dba": 98.0, "permissible_hours": 0.5, "formatted_th": "๓๐ นาที"},
+      {"sound_level_dba": 100.0, "permissible_hours": 0.397, "formatted_th": "๒๓ นาที ๔๙ วินาที"},
+      {"sound_level_dba": 101.0, "permissible_hours": 0.25, "formatted_th": "๑๕ นาที"},
+      {"sound_level_dba": 104.0, "permissible_hours": 0.125, "formatted_th": "๗ นาที ๓๐ วินาที"},
+      {"sound_level_dba": 105.0, "permissible_hours": 0.099, "formatted_th": "๕ นาที ๕๗ วินาที"},
+      {"sound_level_dba": 107.0, "permissible_hours": 0.0625, "formatted_th": "๓ นาที ๔๕ วินาที"},
+      {"sound_level_dba": 110.0, "permissible_hours": 0.03125, "formatted_th": "๑ นาที ๕๒ วินาที"},
+      {"sound_level_dba": 113.0, "permissible_hours": 0.015625, "formatted_th": "๕๖.๒๕ วินาที"},
+      {"sound_level_dba": 115.0, "permissible_hours": 0.0078125, "formatted_th": "๒๘.๑๒๕ วินาที (ขีดจำกัดสูงสุดต่อเนื่อง)"}
+    ]
+  },
+  "heat_wbgt_standards": {
+    "formulas": {
+      "indoor": {
+        "formula_expression": "WBGT = 0.7 * NWB + 0.3 * GT",
+        "description_th": "การทำงานในร่ม หรือนอกอาคารที่ไม่มีแสงแดดส่องถึง",
+        "description_en": "Indoor environment or outdoor without direct solar load",
+        "coefficients": {"nwb": 0.7, "gt": 0.3, "db": 0.0}
+      },
+      "outdoor": {
+        "formula_expression": "WBGT = 0.7 * NWB + 0.2 * GT + 0.1 * DB",
+        "description_th": "การทำงานกลางแจ้ง หรือบริเวณที่มีแสงแดดส่องถึง",
+        "description_en": "Outdoor environment with direct solar radiation",
+        "coefficients": {"nwb": 0.7, "gt": 0.2, "db": 0.1}
+      }
+    },
+    "workload_limits": [
+      {
+        "category": "light",
+        "name_th": "งานเบา",
+        "name_en": "Light Work",
+        "metabolic_rate_range_kcal_hr": "<= 200 kcal/hr",
+        "metabolic_rate_max": 200.0,
+        "standard_wbgt_limit_c": 34.0,
+        "description_th": "งานที่ใช้แรงน้อย นั่งทำงานเป็นส่วนใหญ่ เช่น งานเขียนหนังสือ งานพิมพ์ดีด งานประกอบชิ้นส่วนขนาดเล็ก งานขับขี่รถยนต์/รถยก งานควบคุมสวิตช์เครื่องจักรอัตโนมัติ",
+        "legal_reference": "กฎกระทรวงความร้อน แสงสว่าง และเสียง พ.ศ. ๒๕๕๙ (ข้อ ๒ (๑))"
+      },
+      {
+        "category": "moderate",
+        "name_th": "งานปานกลาง",
+        "name_en": "Moderate Work",
+        "metabolic_rate_range_kcal_hr": "200 < M <= 350 kcal/hr",
+        "metabolic_rate_min": 200.0,
+        "metabolic_rate_max": 350.0,
+        "standard_wbgt_limit_c": 32.0,
+        "description_th": "งานที่ใช้แรงปานกลาง มีการเดินหรือเคลื่อนไหวยกของ เช่น งานกลึง ไส เจาะ งานก่ออิฐฉาบปูน งานกวาดพื้น/ขัดพื้น งานประกอบรถยนต์ งานยกของหนัก 5-15 กก.",
+        "legal_reference": "กฎกระทรวงความร้อน แสงสว่าง และเสียง พ.ศ. ๒๕๕๙ (ข้อ ๒ (๒))"
+      },
+      {
+        "category": "heavy",
+        "name_th": "งานหนัก",
+        "name_en": "Heavy Work",
+        "metabolic_rate_range_kcal_hr": "> 350 kcal/hr",
+        "metabolic_rate_min": 350.0,
+        "standard_wbgt_limit_c": 30.0,
+        "description_th": "งานที่ใช้แรงมาก ใช้กล้ามเนื้อแขน ลำตัว ขา อย่างต่อเนื่อง เช่น งานแบกหามของหนัก (> 15 กก.) งานขุดเจาะดิน/ถนน งานใช้ค้อนปอนด์ตีเหล็ก งานเทโลหะหลอมเหลว งานดับเพลิง",
+        "legal_reference": "กฎกระทรวงความร้อน แสงสว่าง และเสียง พ.ศ. ๒๕๕๙ (ข้อ ๒ (๓))"
+      }
+    ]
+  },
+  "subcontractor_standards": {
+    "section_9_individual": {
+      "type_code": "SECTION_9_INDIVIDUAL",
+      "title_th": "บุคคลธรรมดาผู้ขึ้นทะเบียนตามมาตรา ๙",
+      "prefix": "นบ.",
+      "regex_pattern": "^(?:นบ\\.?\\s*|NB-?)?\\d{1,5}(?:[-/]\\d{1,4})*(?:/\\d{4})?$",
+      "description_th": "ผู้เชี่ยวชาญด้านความปลอดภัย บุคคลธรรมดาที่ขึ้นทะเบียนต่อกรมสวัสดิการและคุ้มครองแรงงาน มีเลขทะเบียนขึ้นต้นด้วย 'นบ.'",
+      "authority": "พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔ มาตรา ๙ และมาตรา ๕๖"
+    },
+    "section_11_juristic": {
+      "type_code": "SECTION_11_JURISTIC",
+      "title_th": "นิติบุคคลผู้ได้รับใบอนุญาตตามมาตรา ๑๑",
+      "prefix": "บ.",
+      "regex_pattern": "^(?:บ\\.?\\s*|B-?)?\\d{1,5}(?:[-/]\\d{1,4})*(?:/\\d{4})?$",
+      "description_th": "นิติบุคคลที่ได้รับใบอนุญาตให้บริการตรวจวัดและรับรองสภาพแวดล้อมในการทำงาน มีเลขที่ใบอนุญาตขึ้นต้นด้วย 'บ.'",
+      "authority": "พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔ มาตรา ๑๑ และมาตรา ๕๖"
+    }
+  },
+  "laws_catalog": [
+    {
+      "law_id": "LAW-ENV-01",
+      "law_code": "OSH-ACT-2554",
+      "title_th": "พระราชบัญญัติ ความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน พ.ศ. ๒๕๕๔",
+      "gazette_volume": "เล่ม ๑๒๘ ตอนที่ ๔ ก",
+      "gazette_date": "๑๗ มกราคม ๒๕๕๔",
+      "enforcement_articles": [
+        {
+          "article": "มาตรา ๘",
+          "title": "หน้าที่นายจ้างในการปฏิบัติตามมาตรฐานสภาพแวดล้อม",
+          "summary": "ให้นายจ้างบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน ให้เป็นไปตามมาตรฐานที่กำหนดในกฎกระทรวง",
+          "penalty": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ (มาตรา ๕๓)"
+        },
+        {
+          "article": "มาตรา ๙",
+          "title": "การขึ้นทะเบียนบุคคลธรรมดาผู้ให้บริการตรวจวัด",
+          "summary": "ผู้ใดประสงค์จะให้บริการตรวจวัด ทดสอบ รับรอง ประเมินความเสี่ยง ฝึกอบรม หรือให้คำปรึกษา ต้องขึ้นทะเบียนต่ออธิบดีกรมสวัสดิการและคุ้มครองแรงงาน (เลขทะเบียน นบ.)",
+          "penalty": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ (มาตรา ๕๖)"
+        },
+        {
+          "article": "มาตรา ๑๑",
+          "title": "การขอรับใบอนุญาตของนิติบุคคลผู้ให้บริการตรวจวัด",
+          "summary": "นิติบุคคลใดประสงค์จะให้บริการตรวจวัด ทดสอบ รับรอง หรือประเมินสภาพแวดล้อม ต้องได้รับใบอนุญาตจากอธิบดี (เลขใบอนุญาต บ.)",
+          "penalty": "ระวางโทษจำคุกไม่เกิน ๖ เดือน หรือปรับไม่เกิน ๒๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ (มาตรา ๕๖)"
+        },
+        {
+          "article": "มาตรา ๑๕",
+          "title": "การปิดประกาศผลการตรวจวัดและการส่งรายงานต่อพนักงานตรวจ",
+          "summary": "นายจ้างต้องปิดประกาศผลการตรวจวัดสภาพแวดล้อมในที่เปิดเผยให้ลูกจ้างทราบภายใน ๑๕ วันนับแต่วันที่ได้รับรายงาน และส่งรายงานให้อธิบดีภายใน ๓๐ วันนับแต่วันตรวจวัด",
+          "penalty": "ระวางโทษปรับไม่เกิน ๕๐,๐๐๐ บาท (มาตรา ๕๕)"
+        },
+        {
+          "article": "มาตรา ๓๒",
+          "title": "คำสั่งให้จัดทำแผนปรับปรุงสภาพแวดล้อม (CAPA)",
+          "summary": "พนักงานตรวจความปลอดภัยมีอำนาจสั่งให้นายจ้างจัดทำแผนการปรับปรุงแก้ไขสภาพแวดล้อมการทำงานและรายงานผลตามกำหนดเวลา",
+          "penalty": "ระวางโทษจำคุกไม่เกิน ๑ ปี หรือปรับไม่เกิน ๔๐๐,๐๐๐ บาท หรือทั้งจำทั้งปรับ (มาตรา ๕๓)"
+        }
+      ]
+    },
+    {
+      "law_id": "LAW-ENV-02",
+      "law_code": "MIN-REG-ENV-2559",
+      "title_th": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับความร้อน แสงสว่าง และเสียง พ.ศ. ๒๕๕๙",
+      "gazette_volume": "เล่ม ๑๓๓ ตอนที่ ๙๑ ก",
+      "gazette_date": "๑๗ ตุลาคม ๒๕๕๙",
+      "enforcement_articles": [
+        {
+          "article": "ข้อ ๒",
+          "title": "มาตรฐานระดับความร้อน WBGT",
+          "summary": "นายจ้างต้องควบคุมระดับความร้อนมิให้เกินมาตรฐาน: งานเบา <= 34°C, งานปานกลาง <= 32°C, งานหนัก <= 30°C",
+          "penalty": "บังคับใช้ตาม พ.ร.บ. มาตรา ๘ (โทษตามมาตรา ๕๓)"
+        },
+        {
+          "article": "ข้อ ๔",
+          "title": "มาตรฐานความเข้มของแสงสว่าง",
+          "summary": "นายจ้างต้องควบคุมความเข้มของแสงสว่าง ณ จุดทำงานและบริเวณโดยรอบมิให้ต่ำกว่ามาตรฐานที่อธิบดีประกาศกำหนด",
+          "penalty": "บังคับใช้ตาม พ.ร.บ. มาตรา ๘ (โทษตามมาตรา ๕๓)"
+        },
+        {
+          "article": "ข้อ ๗-๘",
+          "title": "มาตรฐานระดับเสียงเฉลี่ยและเสียงสูงสุด",
+          "summary": "ควบคุมระดับเสียงเฉลี่ย 8 ชั่วโมงไม่เกิน 86 dBA, เสียงต่อเนื่องสูงสุดไม่เกิน 115 dBA, เสียงกระทบกระแทกไม่เกิน 140 dB",
+          "penalty": "บังคับใช้ตาม พ.ร.บ. มาตรา ๘ (โทษตามมาตรา ๕๓)"
+        },
+        {
+          "article": "ข้อ ๑๐",
+          "title": "ป้ายเตือนการสวมใส่อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคลลดเสียง",
+          "summary": "ในบริเวณที่มีระดับเสียงเกินมาตรฐาน ต้องติดป้ายเตือนให้สวมใส่อุปกรณ์ลดเสียง (Earplugs/Earmuffs) ให้เห็นชัดเจน",
+          "penalty": "บังคับใช้ตาม พ.ร.บ. มาตรา ๘ (โทษตามมาตรา ๕๓)"
+        },
+        {
+          "article": "ข้อ ๑๑",
+          "title": "การจัดทำโครงการอนุรักษ์การได้ยิน (Hearing Conservation Program)",
+          "summary": "สถานประกอบการที่มีระดับเสียงเฉลี่ยตลอดการทำงาน ๘ ชั่วโมง ตั้งแต่ ๘๕ dBA ขึ้นไป ต้องจัดทำโครงการอนุรักษ์การได้ยินเป็นลายลักษณ์อักษร",
+          "penalty": "บังคับใช้ตาม พ.ร.บ. มาตรา ๘ (โทษตามมาตรา ๕๓)"
+        },
+        {
+          "article": "ข้อ ๑๔",
+          "title": "การตรวจวัดและประเมินสภาวะการทำงานประจำปี",
+          "summary": "นายจ้างต้องจัดให้มีการตรวจวัดและประเมินระดับความร้อน แสงสว่าง หรือเสียง อย่างน้อยปีละ ๑ ครั้ง โดย จป.วิชาชีพ หรือผู้ขึ้นทะเบียน ม.๙ หรือผู้รับใบอนุญาต ม.๑๑",
+          "penalty": "บังคับใช้ตาม พ.ร.บ. มาตรา ๘ (โทษตามมาตรา ๕๓)"
+        },
+        {
+          "article": "ข้อ ๑๕",
+          "title": "การจัดทำแบบรายงานผลและการเก็บรักษา",
+          "summary": "จัดทำรายงานตามแบบอธิบดีกำหนด ส่งสำเนารายงานต่ออธิบดีภายใน ๓๐ วันนับแต่วันตรวจวัด และเก็บรักษาเอกสารไว้ ณ สถานประกอบกิจการไม่น้อยกว่า ๕ ปี",
+          "penalty": "ระวางโทษปรับไม่เกิน ๕๐,๐๐๐ บาท (พ.ร.บ. มาตรา ๕๕)"
+        }
+      ]
+    }
+  ],
+  "sample_session": {
+    "session_id": "ENV-2026-S01",
+    "survey_year": 2569,
+    "survey_date": "2026-08-20",
+    "workplace_name": "บริษัท สยาม แอดวานซ์ ออโตโมทีฟ พาร์ทส์ จำกัด",
+    "workplace_address": "นิคมอุตสาหกรรมบางปู อ.เมือง จ.สมุทรปราการ",
+    "subcontractor": {
+      "provider_name": "บริษัท เซฟตี้ แอนด์ เอ็นไวรอนเมนทอล เทคโนโลยี จำกัด",
+      "license_type": "SECTION_11_JURISTIC",
+      "license_no": "บ. 0145-02/2564",
+      "assessor_name": "นายสมเกียรติ ตรวจวัดชำนาญ",
+      "assessor_reg_no": "นบ. 0321-88/2565",
+      "expiry_date": "2027-12-31"
+    },
+    "points": [
+      {
+        "point_id": "PT-LIGHT-01",
+        "factor_type": "LIGHT",
+        "department": "แผนกประกอบชิ้นส่วนอิเล็กทรอนิกส์ SMT",
+        "location_name": "โต๊ะตรวจงาน QC Line 1",
+        "standard_id": "LIGHT-MFG-F01",
+        "measured_lux": 450.0,
+        "surrounding_lux": 220.0
+      },
+      {
+        "point_id": "PT-LIGHT-02",
+        "factor_type": "LIGHT",
+        "department": "แผนกประกอบชิ้นส่วนอิเล็กทรอนิกส์ SMT",
+        "location_name": "โต๊ะบัดกรีแผงวงจร Station 3",
+        "standard_id": "LIGHT-MFG-F01",
+        "measured_lux": 350.0,
+        "surrounding_lux": 150.0
+      },
+      {
+        "point_id": "PT-LIGHT-03",
+        "factor_type": "LIGHT",
+        "department": "แผนกสำนักงานธุรการ",
+        "location_name": "โต๊ะทำงานพิมพ์เอกสาร ฝ่ายบัญชี",
+        "standard_id": "LIGHT-OFF-001",
+        "measured_lux": 420.0,
+        "surrounding_lux": 200.0
+      },
+      {
+        "point_id": "PT-LIGHT-04",
+        "factor_type": "LIGHT",
+        "department": "คลังสินค้าสำเร็จรูป",
+        "location_name": "ช่องทางเดินเบิกจ่ายสินค้า Aisle 2",
+        "standard_id": "LIGHT-STO-002",
+        "measured_lux": 230.0,
+        "surrounding_lux": 110.0
+      },
+      {
+        "point_id": "PT-LIGHT-05",
+        "factor_type": "LIGHT",
+        "department": "ทางสัญจรในโรงงาน",
+        "location_name": "ทางเดินหลักระหว่างอาคารผลิต 1 และ 2",
+        "standard_id": "LIGHT-GEN-003",
+        "measured_lux": 120.0,
+        "surrounding_lux": 60.0
+      },
+      {
+        "point_id": "PT-NOISE-01",
+        "factor_type": "NOISE",
+        "department": "แผนกปั๊มขึ้นรูปโลหะ",
+        "location_name": "เครื่องปั๊มโลหะ 200T Press-01",
+        "measured_dba": 89.5,
+        "duration_hours": 8.0,
+        "peak_db": 132.0,
+        "noise_type": "continuous"
+      },
+      {
+        "point_id": "PT-NOISE-02",
+        "factor_type": "NOISE",
+        "department": "แผนกกลึง CNC",
+        "location_name": "กลุ่มเครื่องกลึง CNC Lathe Line 2",
+        "measured_dba": 85.5,
+        "duration_hours": 8.0,
+        "peak_db": 118.0,
+        "noise_type": "continuous"
+      },
+      {
+        "point_id": "PT-NOISE-03",
+        "factor_type": "NOISE",
+        "department": "แผนกบรรจุภัณฑ์",
+        "location_name": "เครื่องปิดเทปกล่องอัตโนมัติ Pack-02",
+        "measured_dba": 81.0,
+        "duration_hours": 8.0,
+        "peak_db": 105.0,
+        "noise_type": "continuous"
+      },
+      {
+        "point_id": "PT-NOISE-04",
+        "factor_type": "NOISE",
+        "department": "แผนกเจียรแต่งผิวโลหะ",
+        "location_name": "แท่นเจียร Hand Grinding Station",
+        "measured_dba": 87.0,
+        "duration_hours": 6.0,
+        "peak_db": 122.0,
+        "noise_type": "continuous"
+      },
+      {
+        "point_id": "PT-HEAT-01",
+        "factor_type": "HEAT_WBGT",
+        "department": "แผนกหล่อโลหะและเตาอบชุบ",
+        "location_name": "หน้าเตาอบชุบความร้อน Furnace-01",
+        "nwb": 29.5,
+        "gt": 42.0,
+        "db": 35.0,
+        "is_outdoor": false,
+        "workload": "moderate"
+      },
+      {
+        "point_id": "PT-HEAT-02",
+        "factor_type": "HEAT_WBGT",
+        "department": "แผนกหล่อโลหะและเตาอบชุบ",
+        "location_name": "จุดเทน้ำโลหะลงแบบทราย Pouring-02",
+        "nwb": 30.5,
+        "gt": 46.0,
+        "db": 38.0,
+        "is_outdoor": false,
+        "workload": "heavy"
+      },
+      {
+        "point_id": "PT-HEAT-03",
+        "factor_type": "HEAT_WBGT",
+        "department": "ลานขนถ่ายสินค้ากลางแจ้ง",
+        "location_name": "ลานโหลดตู้คอนเทนเนอร์ Outdoor Dock",
+        "nwb": 27.0,
+        "gt": 39.0,
+        "db": 34.0,
+        "is_outdoor": true,
+        "workload": "moderate"
+      },
+      {
+        "point_id": "PT-HEAT-04",
+        "factor_type": "HEAT_WBGT",
+        "department": "แผนกประกอบทั่วไป",
+        "location_name": "สายประกอบ Assembly Line 1",
+        "nwb": 24.0,
+        "gt": 31.0,
+        "db": 29.0,
+        "is_outdoor": false,
+        "workload": "light"
+      }
+    ]
+  }
+}

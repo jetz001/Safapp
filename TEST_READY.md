@@ -1,38 +1,41 @@
-# E2E Test Suite Ready
+# E2E Test Suite Ready — Environmental Monitoring Module & Agent Skill
 
-## Test Runner
-- **Flutter Test Suite**:
-  ```powershell
-  flutter test test/chemical_management_test.dart test/chemical_adversarial_challenge_test.dart
-  ```
-- **Python Agent Skill Test Suite**:
-  ```powershell
-  python skills/thai-chemical-safety-law/tests/test_thai_chem_skill.py
-  python skills/thai-chemical-safety-law/tests/test_thai_chem_stress.py
-  ```
-- **Expected**: All test suites execute with 0 failures and exit code 0.
+## Test Runners
+1. **Flutter Test Suite**:
+   - Command: `flutter test test/features/environment/`
+   - Test files:
+     - `test/features/environment/environmental_evaluator_test.dart`
+     - `test/features/environment/environment_models_test.dart`
+     - `test/features/environment/environment_repository_test.dart`
+     - `test/features/environment/environment_exporters_test.dart`
+     - `test/features/environment/environment_page_widget_test.dart`
+     - `test/features/environment/environmental_adversarial_stress_test.dart`
+   - Expected: 100% tests pass with exit code 0.
+
+2. **Python Agent Skill & Helper Test Suite**:
+   - Command: `python skills/thai-environmental-safety-law/tests/test_thai_env_skill.py`
+   - Adversarial Command: `python skills/thai-environmental-safety-law/tests/test_adversarial_skill.py`
+   - Expected: 14 primary + 12 adversarial test cases pass with exit code 0.
 
 ## Coverage Summary
 | Tier | Count | Description |
 |------|------:|-------------|
-| 1. Feature Coverage | 49 | 23 core tests + 26 stress tests covering 1,516 search, 324 TLVs, สอ.๑ 16 GHS headings, สอ.๓ ๒๕๖๕ |
-| 2. Boundary & Corner | 37 | Extreme molecular weights, leap-year expiry rollovers, zero/null limits, Thai UTF-8 |
-| 3. Cross-Feature | 18 | Mixture additivity index Em, multi-point atmospheric surveys, Sec 9/11 registration |
-| 4. Real-World Application | 5 | Factory solvent registration, annual air survey, legal library search, AI safety audit |
-| **Total** | **109** | 100% Passing |
+| 1. Feature Coverage | 40+ | Happy path tests for Light Lux, Noise TWA/HCP, Heat WBGT, Subcontractor, Exporters |
+| 2. Boundary & Corner | 25+ | Zero Lux, 85.0/86.0 dBA, 115.0/140.0 limits, WBGT 30/32/34°C boundaries, indoor vs outdoor |
+| 3. Cross-Feature | 15+ | Auto-CAPA generation, Session & Points cascade deletion, Subcontractor cert linking |
+| 4. Real-World Workload | 8+ | 30-point annual factory survey, multi-stage TWA-WBGT, batch CLI evaluation (1,000+ points) |
+| 5. Adversarial Hardening | 18+ | Fuzzing, floating point extremes, NaN immunity, empty sessions, large datasets |
+| **Total Test Cases** | **106+** | 100% Pass Rate across Dart & Python Suites |
 
 ## Feature Checklist
-| Feature | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Status |
-|---------|:------:|:------:|:------:|:------:|:------:|
-| 1. Master Data 1,516 Search & Autocomplete | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 2. Master Data 324 TLVs & Exposure Limits | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 3. Chemical Possession & SDS Expiry Tracking | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 4. Form สอ.๑ (SDS 16 GHS Sections) | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 5. GHS Pictograms & NFPA 704 Diamond | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 6. Form สอ.๑ Official PDF Generation | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 7. Form สอ.๓ (2022) Air Measurement & TLV Eval | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 8. Section 9/11 Registered Surveyor Management | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 9. Form สอ.๓ Official PDF Generation | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 10. Legal Reference Library & Document Preview | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 11. Agent Skill CLI (search, get-tlv, get-law, verify-sds) | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
-| 12. AgentResearch Integration (thai_chem_helper, SK-RES-09) | ✓ | ✓ | ✓ | ✓ | **VERIFIED** |
+| Feature | Tier 1 | Tier 2 | Tier 3 | Tier 4 | Tier 5 | Status |
+|---------|:------:|:------:|:------:|:------:|:------:|:------:|
+| F1: Master Standards Catalog | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |
+| F2: Data Models & DB v7 | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |
+| F3: Sessions & Subcontractor | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |
+| F4: Point Auto-Evaluation Engine | 10 | 10 | ✓ | ✓ | ✓ | **DONE** |
+| F5: CAPA & Hearing Conservation | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |
+| F6: UI EnvironmentPage (4 Tabs) | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |
+| F7: Official PDF/Excel Exporters | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |
+| F8: Agent Skill & CLI Helper | 6 | 6 | ✓ | ✓ | ✓ | **DONE** |
+| F9: E2E Integration & Audit | 5 | 5 | ✓ | ✓ | ✓ | **DONE** |

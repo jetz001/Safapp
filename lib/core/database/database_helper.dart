@@ -4,6 +4,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../features/legal_register/data/safety_legal_8_categories_data.dart';
+import '../../features/environment/data/environmental_standards_data.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -39,7 +40,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 6,
+        version: 7,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -96,6 +97,7 @@ class DatabaseHelper {
     await _createRiskAssessmentTables(db);
     await _createChemicalTables(db);
     await _createLegalTables(db);
+    await _createEnvironmentTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -133,12 +135,16 @@ class DatabaseHelper {
     if (oldVersion < 6) {
       await _createLegalTables(db);
     }
+    if (oldVersion < 7) {
+      await _createEnvironmentTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
     await _createRiskAssessmentTables(db);
     await _createChemicalTables(db);
     await _createLegalTables(db);
+    await _createEnvironmentTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -937,6 +943,170 @@ class DatabaseHelper {
       final defaultAssessments = SafetyLegal8CategoriesData.generateDefaultAssessments();
       for (final a in defaultAssessments) {
         await db.insert('safety_legal_assessments', a.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    }
+  }
+
+  Future<void> _createEnvironmentTables(Database db) async {
+    // 1. ตาราง Master Environmental Standards (มาตรฐานความเข้มแสง เสียง ความร้อน WBGT)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS environment_standards_master (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        standard_id TEXT NOT NULL UNIQUE,
+        factor_type TEXT NOT NULL,
+        category_code TEXT NOT NULL,
+        category_name_th TEXT NOT NULL,
+        category_name_en TEXT NOT NULL,
+        task_description TEXT NOT NULL,
+        min_lux REAL,
+        max_lux REAL,
+        surrounding_lux_ratio REAL,
+        noise_twa_limit_dba REAL,
+        noise_action_level_dba REAL,
+        noise_ceiling_limit_dba REAL,
+        noise_peak_limit_db REAL,
+        workload_type TEXT,
+        metabolic_rate_kcal_hr REAL,
+        wbgt_limit_celsius REAL,
+        reference_law_title TEXT NOT NULL,
+        reference_article TEXT NOT NULL,
+        notes TEXT,
+        sort_order INTEGER DEFAULT 0
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_std_id ON environment_standards_master(standard_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_std_factor ON environment_standards_master(factor_type)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_std_cat ON environment_standards_master(category_code)');
+
+    // 2. ตารางรอบการตรวจวัดประจำปี & ข้อมูล Subcontractor ม.๙ / ม.๑๑ (Environment Sessions)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS environment_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT NOT NULL UNIQUE,
+        session_title TEXT NOT NULL,
+        session_year_be INTEGER NOT NULL,
+        session_year_ad INTEGER NOT NULL,
+        measurement_date TEXT NOT NULL,
+        report_received_date TEXT,
+        posting_deadline TEXT,
+        submission_deadline TEXT,
+        location_plant TEXT NOT NULL,
+        workplace_name TEXT NOT NULL,
+        workplace_address TEXT,
+        objective TEXT NOT NULL,
+        subcontractor_type TEXT NOT NULL,
+        subcontractor_id TEXT,
+        subcontractor_company_name TEXT NOT NULL,
+        subcontractor_reg_number TEXT NOT NULL,
+        surveyor_name TEXT NOT NULL,
+        surveyor_license_no TEXT,
+        certifier_name TEXT NOT NULL,
+        certifier_reg_no TEXT,
+        pdf_report_path TEXT,
+        calibration_cert_paths TEXT,
+        subcontractor_license_path TEXT,
+        site_photo_paths TEXT,
+        status TEXT NOT NULL DEFAULT 'PLANNED',
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_sess_id ON environment_sessions(session_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_sess_year ON environment_sessions(session_year_be)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_sess_status ON environment_sessions(status)');
+
+    // 3. ตารางผลการตรวจวัดรายจุด (Sampling Points: Light, Noise, Heat)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS environment_measurement_points (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        point_id TEXT NOT NULL UNIQUE,
+        session_id TEXT NOT NULL,
+        factor_type TEXT NOT NULL,
+        department TEXT NOT NULL,
+        location_name TEXT NOT NULL,
+        task_or_machine_name TEXT,
+        evaluation_status TEXT NOT NULL DEFAULT 'PASS',
+        notes TEXT,
+        capa_id TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        light_category_code TEXT,
+        light_task_description TEXT,
+        light_measured_lux REAL,
+        light_standard_min_lux REAL,
+        light_surrounding_lux REAL,
+        light_is_compliant INTEGER,
+        noise_measurement_type TEXT,
+        noise_measured_dba REAL,
+        noise_peak_db REAL,
+        noise_exposure_duration_hours REAL,
+        noise_dose_percent REAL,
+        noise_standard_twa_limit REAL DEFAULT 86.0,
+        noise_action_level_threshold REAL DEFAULT 85.0,
+        noise_continuous_ceiling_limit REAL DEFAULT 115.0,
+        noise_peak_limit REAL DEFAULT 140.0,
+        noise_is_hcp_required INTEGER DEFAULT 0,
+        noise_evaluation_tier TEXT,
+        heat_solar_exposure TEXT,
+        heat_nwb_celsius REAL,
+        heat_gt_celsius REAL,
+        heat_db_celsius REAL,
+        heat_calculated_wbgt REAL,
+        heat_workload_type TEXT,
+        heat_metabolic_rate_kcal_hr REAL,
+        heat_standard_limit_wbgt REAL,
+        heat_is_compliant INTEGER,
+        FOREIGN KEY (session_id) REFERENCES environment_sessions(session_id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_pt_id ON environment_measurement_points(point_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_pt_session ON environment_measurement_points(session_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_pt_factor ON environment_measurement_points(factor_type)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_pt_status ON environment_measurement_points(evaluation_status)');
+
+    // 4. ตารางแผนปฏิบัติการแก้ไข CAPA และโครงการอนุรักษ์การได้ยิน (Hearing Conservation)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS environment_capa (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        capa_id TEXT NOT NULL UNIQUE,
+        point_id TEXT,
+        session_id TEXT NOT NULL,
+        factor_type TEXT NOT NULL,
+        action_title TEXT NOT NULL,
+        hazard_description TEXT NOT NULL,
+        root_cause TEXT NOT NULL,
+        engineering_control TEXT,
+        administrative_control TEXT,
+        ppe_control TEXT,
+        pic_name TEXT NOT NULL,
+        pic_department TEXT,
+        target_date TEXT NOT NULL,
+        completed_date TEXT,
+        status TEXT NOT NULL DEFAULT 'PENDING',
+        hearing_program_enrolled INTEGER DEFAULT 0,
+        evidence_file_path TEXT,
+        supervisor_acknowledged_date TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (session_id) REFERENCES environment_sessions(session_id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_capa_id ON environment_capa(capa_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_capa_session ON environment_capa(session_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_env_capa_status ON environment_capa(status)');
+
+    // Seed master environmental standards if empty
+    await _seedDefaultEnvironmentData(db);
+  }
+
+  static Future<void> _seedDefaultEnvironmentData(Database db) async {
+    final countRes = await db.rawQuery('SELECT COUNT(*) as count FROM environment_standards_master');
+    final count = countRes.isNotEmpty ? (countRes.first['count'] as int? ?? 0) : 0;
+    if (count == 0) {
+      for (final item in EnvironmentalStandardsData.masterStandards) {
+        await db.insert('environment_standards_master', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
       }
     }
   }

@@ -1,0 +1,11 @@
+[project]
+name = "thai-environmental-safety-law"
+version = "1.0.0"
+description = "Thai environmental safety law query, lighting standards search, noise exposure & Hearing Conservation evaluation, WBGT heat stress calculation, Subcontractor validation, and monitoring session evaluation engine."
+readme = "SKILL.md"
+requires-python = ">=3.10"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
