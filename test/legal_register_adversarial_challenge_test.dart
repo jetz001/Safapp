@@ -383,9 +383,9 @@ void main() {
   });
 
   group('CHALLENGE SUITE 5: Master Dataset Integrity & Thai Legal Categories', () {
-    test('All 32 master items have valid risk levels, penalties, and gazette citations', () {
+    test('All 34 master items have valid risk levels, penalties, and gazette citations', () {
       final items = SafetyLegal8CategoriesData.masterItems;
-      expect(items.length, 32);
+      expect(items.length, 34);
 
       for (final item in items) {
         expect(item.itemId.isNotEmpty, isTrue);

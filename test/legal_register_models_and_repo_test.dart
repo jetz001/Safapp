@@ -9,8 +9,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('1. Master Legal Catalog (32 Items & 8 Laws) Tests', () {
-    test('Catalog contains exactly 32 statutory items', () {
-      expect(SafetyLegal8CategoriesData.masterItems.length, 32);
+    test('Catalog contains exactly 34 statutory items (8 laws)', () {
+      expect(SafetyLegal8CategoriesData.masterItems.length, 34);
     });
 
     test('All 8 statutory categories are present with correct item distributions', () {
