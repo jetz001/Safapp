@@ -4,6 +4,8 @@ import '../../domain/models/risk_assessment_models.dart';
 import '../../domain/models/risk_matrix_criteria.dart';
 import '../providers/risk_assessment_providers.dart';
 import 'interactive_risk_matrix_widget.dart';
+import '../../../ppe_asl/domain/models/ppe_item_model.dart';
+import '../../../ppe_asl/presentation/widgets/ppe_quick_picker_dialog.dart';
 
 class HazardItemEditorDialog extends ConsumerStatefulWidget {
   final int stepId;
@@ -80,6 +82,22 @@ class _HazardItemEditorDialogState extends ConsumerState<HazardItemEditorDialog>
     _responsiblePersonController.dispose();
     _supervisorMonitorController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickPpeFor(TextEditingController controller) async {
+    final selected = await showDialog<List<PpeItem>>(
+      context: context,
+      builder: (ctx) => const PpeQuickPickerDialog(),
+    );
+    if (selected != null && selected.isNotEmpty) {
+      final ppeNames = selected.map((e) => '${e.name} (${e.standardCert})').join(', ');
+      final current = controller.text.trim();
+      if (current.isEmpty) {
+        controller.text = 'สวมใส่อุปกรณ์ PPE: $ppeNames';
+      } else {
+        controller.text = '$current, สวมใส่ PPE: $ppeNames';
+      }
+    }
   }
 
   Future<void> _save() async {
@@ -226,11 +244,16 @@ class _HazardItemEditorDialogState extends ConsumerState<HazardItemEditorDialog>
                           Expanded(
                             child: TextFormField(
                               controller: _existingMeasuresController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'มาตรการป้องกันและควบคุมอันตรายที่มีอยู่เดิม',
                                 hintText: 'เช่น มี Guard ครอบ, สวมแว่นนิรภัย, มี WI การทำงาน',
-                                border: OutlineInputBorder(),
+                                border: const OutlineInputBorder(),
                                 isDense: true,
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.shield_outlined, color: Color(0xFF2563EB), size: 18),
+                                  tooltip: 'เลือกอุปกรณ์ PPE จากคลัง (ม.๒๒)',
+                                  onPressed: () => _pickPpeFor(_existingMeasuresController),
+                                ),
                               ),
                             ),
                           ),
@@ -238,15 +261,32 @@ class _HazardItemEditorDialogState extends ConsumerState<HazardItemEditorDialog>
                           Expanded(
                             child: TextFormField(
                               controller: _recommendationController,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
                                 labelText: 'ข้อเสนอแนะ / มาตรการที่เสนอแนะเพิ่ม',
                                 hintText: 'เช่น ติดตั้ง Interlock Switch, เปลี่ยนชนิดถุงมือ',
-                                border: OutlineInputBorder(),
+                                border: const OutlineInputBorder(),
                                 isDense: true,
+                                suffixIcon: IconButton(
+                                  icon: const Icon(Icons.shield_outlined, color: Color(0xFF2563EB), size: 18),
+                                  tooltip: 'เลือกอุปกรณ์ PPE จากคลัง (ม.๒๒)',
+                                  onPressed: () => _pickPpeFor(_recommendationController),
+                                ),
                               ),
                             ),
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 6),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton.icon(
+                          onPressed: () => _pickPpeFor(_existingMeasuresController),
+                          icon: const Icon(Icons.add_moderator, size: 16, color: Color(0xFF2563EB)),
+                          label: const Text(
+                            '+ เลือกอุปกรณ์ PPE ตามมาตรฐาน ม.๒๒ ใส่ในมาตรการควบคุม',
+                            style: TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 20),
 

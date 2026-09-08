@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../features/legal_register/data/safety_legal_8_categories_data.dart';
 import '../../features/environment/data/environmental_standards_data.dart';
+import '../../features/ppe_asl/data/datasources/ppe_statutory_master_data.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -40,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 9,
+        version: 10,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -99,6 +100,8 @@ class DatabaseHelper {
     await _createLegalTables(db);
     await _createEnvironmentTables(db);
     await _createPtwTables(db);
+    await _createCpoTables(db);
+    await _createPpeTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -145,6 +148,9 @@ class DatabaseHelper {
     if (oldVersion < 9) {
       await _createCpoTables(db);
     }
+    if (oldVersion < 10) {
+      await _createPpeTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -154,6 +160,7 @@ class DatabaseHelper {
     await _createEnvironmentTables(db);
     await _createPtwTables(db);
     await _createCpoTables(db);
+    await _createPpeTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -1551,6 +1558,112 @@ class DatabaseHelper {
       )
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_dist_meet ON cpo_distribution_logs(meeting_id)');
+  }
+
+  // ====================================================
+  // PPE & Approved Supplier List (ASL) Tables - Version 10
+  // ตาม พ.ร.บ. ความปลอดภัยฯ พ.ศ. ๒๕๕๔ มาตรา ๒๒
+  // ====================================================
+  Future<void> _createPpeTables(Database db) async {
+    // 1. ทะเบียนอุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE Items)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ppe_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        standard_cert TEXT NOT NULL,
+        description TEXT,
+        unit TEXT NOT NULL DEFAULT 'ชิ้น',
+        current_stock INTEGER NOT NULL DEFAULT 0,
+        min_stock INTEGER NOT NULL DEFAULT 5,
+        unit_cost REAL DEFAULT 0.0,
+        storage_location TEXT,
+        replacement_cycle_days INTEGER,
+        preferred_supplier_id INTEGER,
+        preferred_supplier_name TEXT,
+        image_path TEXT,
+        status TEXT NOT NULL DEFAULT 'ACTIVE',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ppe_code ON ppe_items(code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ppe_category ON ppe_items(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ppe_status ON ppe_items(status)');
+
+    // 2. บันทึกความเคลื่อนไหวสต็อกการ์ด (Stock Card / Transactions)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ppe_stock_transactions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        transaction_no TEXT NOT NULL UNIQUE,
+        ppe_id INTEGER NOT NULL,
+        ppe_code TEXT NOT NULL,
+        ppe_name TEXT NOT NULL,
+        transaction_type TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        balance_after INTEGER NOT NULL,
+        transaction_date TEXT NOT NULL,
+        recipient_type TEXT,
+        recipient_id TEXT,
+        recipient_name TEXT,
+        department TEXT,
+        cpo_meeting_ref TEXT,
+        ptw_ref TEXT,
+        supplier_id INTEGER,
+        supplier_name TEXT,
+        notes TEXT,
+        recorded_by TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ppe_id) REFERENCES ppe_items(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ppe_tx_no ON ppe_stock_transactions(transaction_no)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ppe_tx_ppe_id ON ppe_stock_transactions(ppe_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ppe_tx_date ON ppe_stock_transactions(transaction_date)');
+
+    // 3. ทะเบียนคู่ค้าที่ผ่านการรับรอง (Approved Supplier List - ASL)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ppe_suppliers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        code TEXT NOT NULL UNIQUE,
+        company_name TEXT NOT NULL,
+        tax_id TEXT,
+        contact_person TEXT,
+        phone TEXT,
+        email TEXT,
+        address TEXT,
+        supplied_categories TEXT NOT NULL,
+        standard_certificates TEXT,
+        rating REAL DEFAULT 5.0,
+        evaluation_status TEXT NOT NULL DEFAULT 'APPROVED',
+        approved_date TEXT,
+        valid_until TEXT,
+        notes TEXT,
+        status TEXT NOT NULL DEFAULT 'ACTIVE',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_asl_code ON ppe_suppliers(code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_asl_status ON ppe_suppliers(evaluation_status)');
+
+    // Seed Master PPE items & ASL Suppliers if empty
+    final ppeCountRes = await db.rawQuery('SELECT COUNT(*) as count FROM ppe_items');
+    final ppeCount = ppeCountRes.isNotEmpty ? (ppeCountRes.first['count'] as int? ?? 0) : 0;
+    if (ppeCount == 0) {
+      for (final item in PpeStatutoryMasterData.defaultPpeItems) {
+        await db.insert('ppe_items', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    }
+
+    final aslCountRes = await db.rawQuery('SELECT COUNT(*) as count FROM ppe_suppliers');
+    final aslCount = aslCountRes.isNotEmpty ? (aslCountRes.first['count'] as int? ?? 0) : 0;
+    if (aslCount == 0) {
+      for (final sup in PpeStatutoryMasterData.defaultSuppliers) {
+        await db.insert('ppe_suppliers', sup.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    }
   }
 }
 

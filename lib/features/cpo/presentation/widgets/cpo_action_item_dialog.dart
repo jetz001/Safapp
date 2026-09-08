@@ -4,6 +4,8 @@ import '../../data/models/cpo_action_item_model.dart';
 import '../../domain/enums/cpo_action_status.dart';
 import '../providers/cpo_providers.dart';
 import '../../../employee/presentation/providers/employee_providers.dart';
+import '../../../ppe_asl/domain/models/ppe_item_model.dart';
+import '../../../ppe_asl/presentation/widgets/ppe_quick_picker_dialog.dart';
 
 class CpoActionItemDialog extends ConsumerStatefulWidget {
   final int? meetingId;
@@ -160,6 +162,34 @@ class _CpoActionItemDialogState extends ConsumerState<CpoActionItemDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Quick Action Chip for PPE
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    ActionChip(
+                      avatar: const Icon(Icons.shield, size: 16, color: Color(0xFF2563EB)),
+                      label: const Text('มติสั่งจัดหา/เปลี่ยน PPE (ม.๒๒)', style: TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.bold)),
+                      backgroundColor: const Color(0xFFEFF6FF),
+                      side: const BorderSide(color: Color(0xFFBFDBFE)),
+                      onPressed: () async {
+                        final selected = await showDialog<List<PpeItem>>(
+                          context: context,
+                          builder: (ctx) => const PpeQuickPickerDialog(),
+                        );
+                        if (selected != null && selected.isNotEmpty) {
+                          final names = selected.map((e) => e.name).join(', ');
+                          final details = selected.map((e) => '• ${e.name} [${e.code}] มาตรฐาน ${e.standardCert}').join('\n');
+                          setState(() {
+                            _titleCtrl.text = 'จัดหา/เปลี่ยนอุปกรณ์ PPE ตามมติ คปอ.: $names';
+                            _detailCtrl.text = 'ที่ประชุม คปอ. มีมติให้จัดหาและเปลี่ยนอุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE) ตามมาตรฐาน ม.๒๒ ดังนี้:\n$details\nเพื่อแจกจ่ายให้แก่พนักงาน และบันทึกลงทะเบียน Stock Card';
+                            _priority = 'HIGH';
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
                 TextFormField(
                   controller: _titleCtrl,
                   decoration: const InputDecoration(
