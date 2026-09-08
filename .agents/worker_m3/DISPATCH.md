@@ -1,31 +1,26 @@
-## 2026-08-31T15:24:54Z
-You are Worker M3: Statutory PDF & Multi-Sheet Excel Export Services for SAFAPP Legal Register.
-Your working directory is: d:\DEV\SAFAPP\.agents\worker_m3
-Original user request path: d:\DEV\SAFAPP\.agents\ORIGINAL_REQUEST.md
-Project specification path: d:\DEV\SAFAPP\PROJECT.md
-Reference models and existing services:
-- lib/features/legal_register/domain/models/
-- lib/features/chemicals/services/chemical_sor1_pdf_service.dart (for PDF Thai font and layout patterns)
-- lib/features/risk_assessment/services/por1_por2_excel_service.dart (for Excel creation patterns)
+## 2026-09-01T14:54:58Z
+
+You are Worker M3: PTW 4-Tab UI, Wizard, Live Site Controls, Legal Library & Dialogs Specialist.
+Your working directory is: d:\DEV\SAFAPP\.agents\worker_m3\
+Original request path: d:\DEV\SAFAPP\.agents\ORIGINAL_REQUEST.md
 
 MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A teamwork_preview_auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-Your Exclusive Write Ownership:
-- lib/features/legal_register/services/legal_compliance_pdf_service.dart
-- lib/features/legal_register/services/legal_compliance_excel_service.dart
-
-Tasks:
-1. Implement `legal_compliance_pdf_service.dart`:
-   - Generate official statutory Legal Compliance Evaluation Report (รายงานผลการประเมินความสอดคล้องตามกฎหมายความปลอดภัย).
-   - Use `PdfGoogleFonts.sarabunRegular()`, `PdfGoogleFonts.sarabunBold()`, and `PdfGoogleFonts.sarabunItalic()` with `pdf/widgets.dart` for authentic Thai rendering.
-   - Include: Header with enterprise info, date, assessment period, KPI Compliance summary box (% Basic & % Weighted), Executive Summary breakdown by 8 law categories, Detailed Compliance Evaluation Table (Law Category, Requirement, Compliance Status, Actual Practice, Assessor, Review Date), CAPA Action Plan Table, and Assessor / Safety Committee (คปอ.) / Management Signature Blocks.
-   - Support `Printing.sharePdf` / `Printing.layoutPdf` or file saving.
-2. Implement `legal_compliance_excel_service.dart`:
-   - Generate multi-sheet `.xlsx` workbook using `excel` package:
-     - Sheet 1: "Legal Register & Assessment" (All master items + facility evaluations, category, requirement code, statutory article, status, actual practice, assessor, date).
-     - Sheet 2: "CAPA Action Plan" (All corrective actions, root cause, action, PIC, target date, completion date, status).
-     - Sheet 3: "Category KPI Summary" (8 categories, total items, applicable, compliant, non-compliant, in-progress, % compliance, risk score).
-   - Style headers with appropriate colors, borders, and clean text formatting.
-   - Support saving to user document directory and opening with `open_file` or sharing.
-3. Write your handoff report to d:\DEV\SAFAPP\.agents\worker_m3\handoff.md and report back to parent (bedb8118-4836-4c4c-a9fb-ce9e5b6459df).
+Context & Instructions:
+1. Read d:\DEV\SAFAPP\.agents\ORIGINAL_REQUEST.md and d:\DEV\SAFAPP\PROJECT.md.
+2. Review M1 and M2 files in `lib/features/ptw/`.
+3. Implement:
+   - `lib/features/ptw/presentation/widgets/ptw_kpi_card.dart`
+   - `lib/features/ptw/presentation/widgets/ptw_status_chip.dart`
+   - `lib/features/ptw/presentation/widgets/gas_test_logger_card.dart`
+   - `lib/features/ptw/presentation/widgets/fire_watch_timer_card.dart`
+   - `lib/features/ptw/presentation/widgets/ptw_detail_dialog.dart`
+   - `lib/features/ptw/presentation/tabs/ptw_dashboard_tab.dart` (Tab 1: KPI grid, filter bar, responsive data table, action buttons)
+   - `lib/features/ptw/presentation/tabs/ptw_wizard_tab.dart` (Tab 2: 6-Step guided wizard form: Info -> Risk -> Checklist -> Workers/LOTO -> Emergency -> Signatures)
+   - `lib/features/ptw/presentation/tabs/ptw_live_controls_tab.dart` (Tab 3: Live Gas Logger, 30-min Fire Watch Timer, LOTO Verification, Handover)
+   - `lib/features/ptw/presentation/tabs/ptw_legal_library_tab.dart` (Tab 4: Searchable viewer for 5 key Thai safety regulations from Royal Gazette)
+   - `lib/features/ptw/presentation/pages/ptw_page.dart` (Main page with 4 tabs, TabBar, action buttons, glassmorphic UI matching SAFAPP theme)
+4. Write widget tests in `test/features/ptw/ptw_page_widget_test.dart`.
+5. Write your handoff report to d:\DEV\SAFAPP\.agents\worker_m3\handoff.md.
+6. Send completion message to parent.

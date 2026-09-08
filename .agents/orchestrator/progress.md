@@ -1,31 +1,27 @@
 # Orchestrator Progress
 
+Last visited: 2026-09-01T14:55:00Z
+
 ## Current Status
-Last visited: 2026-08-31T14:10:10Z
+- [x] Received user request and recorded in ORIGINAL_REQUEST.md & DISPATCH.md
+- [x] Initialized BRIEFING.md and progress.md
+- [x] Scheduled recurring heartbeat cron (task-15)
+- [x] Phase 0: Survey Codebase and Architecture (3 Explorers completed)
+  - [x] Explorer 1: Domain Models, Enums, Gas/LOTO logic, Legal Standards in SAFAPP
+  - [x] Explorer 2: UI Architecture, Navigation, State Management, and Export Tools in SAFAPP
+  - [x] Explorer 3: Agent Skill ecosystem, existing skills, and Python helper script requirements
+- [x] Phase 1: Synthesize Survey into PROJECT.md & TEST_INFRA.md
+- [/] Phase 2: Milestone Execution & E2E Testing Dual Track
+  - [x] Milestone 1: Core Models, Evaluators & DB v8 Migration + Repository (Gate: PASS)
+  - [x] Milestone 2: State Machine, Riverpod Layer, Signature Pad & Live Controllers (Worker M2 Completed)
+  - [/] Milestone 3: PtwPage 4-Tab UI, Wizard, Live Site Controls, Legal Library & Dialogs (Worker: 920366b9-53e8-4b59-9ae4-54d9e0c24d54)
+  - [/] Milestone 4: Official Government PDF with QR Code & Excel Exporter (Worker: 534c0571-275a-430b-844d-65c5b8eea545)
+  - [x] Milestone 5: Agent Skill 'thai-ptw-safety-law' & Python Helper (Gate: PASS)
+  - [ ] Milestone 6: 4-Tier E2E Testing Suite, Adversarial Hardening (Tier 5), Final Verification
+- [ ] Phase 3: Final E2E Test Suite Pass (100%) and Adversarial Hardening
+- [ ] Phase 4: Final Handover & Report to User
 
 ## Iteration Status
 Current iteration: 3 / 32
-
-## Checklist
-- [x] Initialized BRIEFING.md, DISPATCH.md, and progress.md
-- [x] Step 0: Survey & Specification Mining (3 Explorers / Spec Miners)
-- [x] Step 1: Decomposition & PROJECT.md / TEST_INFRA.md creation
-- [x] Step 2: Implementation Track & E2E Testing Track dispatch
-  - [x] M1: Master Data 1,516 & 324 TLVs + Schema v5 (COMPLETED)
-  - [x] M2: Chemical Register, SDS Tracking & Tab 1/Tab 4 UI (COMPLETED)
-  - [x] M3: Form สอ.๑ (SDS 16 GHS Headings & Statutory PDF) (COMPLETED)
-  - [x] M4: Form สอ.๓ ๒๕๖๕ (Atmospheric Measurement, Sec 9/11 & Statutory PDF) (COMPLETED)
-  - [x] M5: Agent Skill 'thai-chemical-safety-law' & AgentResearch Integration (COMPLETED)
-- [x] Step 3: Milestone Gates, Review, Challenge & Forensic Audit
-  - [x] Reviewer 1 (SAFAPP Reviewer) — APPROVE
-  - [x] Reviewer 2 (Agent Skill Reviewer) — APPROVE
-  - [x] Challenger 1 (Logic & Stress Challenger) — APPROVE (Remediated)
-  - [x] Challenger 2 (Skill Challenger) — APPROVE
-  - [x] Forensic Auditor — CLEAN (NO INTEGRITY VIOLATIONS DETECTED)
-  - [x] Gate 2 Result: PASS
-- [x] Step 4: Verification, Adversarial Hardening, and Delivery
-  - [x] TEST_READY.md published (109/109 tests passing)
-  - [x] PROJECT.md updated (All milestones DONE)
-  - [x] Final handoff report written to handoff.md
-  - [x] Completion message sent to parent agent
-  - [x] Heartbeat task canceled cleanly
+Spawn count: 11 / 16
+Active Subagents: 2 (Worker M3, Worker M4)

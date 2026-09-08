@@ -697,11 +697,18 @@ class LandingPage extends ConsumerWidget {
             targetIndex: 15,
           ),
           _ModuleItem(
+            name: 'คณะกรรมการ คปอ.',
+            desc: 'เลือกตั้ง กกต. โครงสร้าง ประชุม ๖ วาระ ติดตามมติ',
+            icon: Icons.diversity_3_rounded,
+            color: const Color(0xFF0D9488),
+            targetIndex: 16,
+          ),
+          _ModuleItem(
             name: 'ตั้งค่าระบบ (Settings)',
             desc: 'กำหนดสิทธิ์ สำรองฐานข้อมูล ปรับแต่งแอป',
             icon: Icons.settings_rounded,
             color: const Color(0xFF64748B),
-            targetIndex: 16,
+            targetIndex: 17,
           ),
         ],
       ),
@@ -722,7 +729,7 @@ class LandingPage extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             const Text(
-              'ระบบโมดูลความปลอดภัยทั้งหมด (15 Modules Directory)',
+              'ระบบโมดูลความปลอดภัยทั้งหมด (16 Modules Directory)',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
             ),
           ],

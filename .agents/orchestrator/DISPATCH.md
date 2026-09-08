@@ -1,16 +1,21 @@
-## 2026-08-31T13:41:15Z
+# Dispatch Log
 
-You are the Project Orchestrator for developing the Chemical & SDS Management module on SAFAPP and the 'thai-chemical-safety-law' Agent Skill, strictly compliant with Thai Royal Gazette laws (กฎกระทรวงฯ ๒๕๕๖, ประกาศบัญชีสารเคมีอันตราย ๑,๕๑๖ รายการ, ประกาศขีดจำกัดความเข้มข้น TLV ๓๒๔ รายการ, แบบ สอ.๑ และ แบบ สอ.๓ ฉบับแก้ไข ๒๕๖๕).
+## 2026-09-01T14:34:51Z
+**From**: User / Sentinel
+**Message**:
+You are the Project Orchestrator for the Permit to Work (PTW) module on SAFAPP and Agent Skill 'thai-ptw-safety-law'.
 
-Working Directory: d:\DEV\SAFAPP\.agents\orchestrator\
-Project Workspace: d:\DEV\SAFAPP
-Original Request File: d:\DEV\SAFAPP\.agents\ORIGINAL_REQUEST.md
+Working directory: d:\DEV\SAFAPP
+Your agent directory: d:\DEV\SAFAPP\.agents\orchestrator
+Original request: d:\DEV\SAFAPP\.agents\ORIGINAL_REQUEST.md
 
-Please read the full user request and acceptance criteria in d:\DEV\SAFAPP\.agents\ORIGINAL_REQUEST.md.
-Execute all requirements R1 to R5 with acceptance criteria A1 to A4:
-- R1: Chemical Register & SDS Tracking (Master Data 1,516 chemicals, Autocomplete, possession tracking, SDS expiry calculation/alerts, document attachment & preview)
-- R2: Safety Data Sheet Form (แบบ สอ.๑ - 16 GHS sections, GHS pictograms/classification/hazard statements, export/print)
-- R3: Atmospheric Measurement Report (แบบ สอ.๓ พ.ศ. ๒๕๖๕ - matching with 324 TLV standards [TWA, STEL, Ceiling], pass/fail evaluation, Section 9/11 registered service providers, export สอ.๓)
-- R4: Legal Reference Library & Original Document Previews
-- R5: Agent Skill 'thai-chemical-safety-law' in .gemini/config/skills/thai-chemical-safety-law with SKILL.md, CLI script, JSON support, and integration with D:\DEV\AgentResearch
-- Complete unit tests (TLV calculations, pass/fail evaluation, SDS expiry) and ensure Flutter build/test pass cleanly.
+Please review the full requirements in ORIGINAL_REQUEST.md and coordinate the implementation across:
+1. PTW High-Risk Models & Enums (Hot Work, Confined Space, Height, Electrical & LOTO, Excavation & Lifting).
+2. 5-State Approval & Lifecycle Workflow (Draft, Pending Approval, Active, Extended/Handover, Closed/Cancelled) + Digital Signature Pad.
+3. Specialized Safety Control Modules (Continuous Gas Testing Tracker, Confined Space 4-Role Registry, Fire Watch 30-min Counter, LOTO Isolation Log).
+4. PtwPage with 4 Tabs (Dashboard & Register, Create/Edit Wizard, Live Site Safety Controls, Legal Reference Library).
+5. Official Government PDF generation with QR Code & Excel export.
+6. Agent Skill 'thai-ptw-safety-law' in C:\Users\jetsa\.gemini\config\skills\thai-ptw-safety-law and helper script in D:\DEV\AgentResearch\Scripts\thai_ptw_helper.py.
+7. Unit tests for all business logic, gas testing evaluation, workflow transitions, LOTO, and KPI calculations, ensuring flutter test passes 100%.
+
+Create your plan.md, progress.md, and dispatch tasks to your specialist subagents. Keep progress.md regularly updated.

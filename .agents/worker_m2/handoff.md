@@ -1,93 +1,82 @@
-# Handoff Report — Worker M2: SAFAPP Legal Register Flutter UI
+# Handoff Report — Worker M2: PTW Workflow State Machine, Riverpod Notifiers, Signature Pad & Live Controllers
 
 ## 1. Observation
-The following UI components and tests have been implemented under exclusive write ownership in `lib/features/legal_register/presentation/`:
+The following components, state notifiers, widgets, and unit/widget test suites have been implemented for Milestone M2 under `lib/features/ptw/` and `test/features/ptw/`:
 
-1. **`lib/features/legal_register/presentation/widgets/legal_kpi_dashboard.dart`**:
-   - Computes and visualizes **Basic Compliance Index (CI %)** and **Risk-Weighted Compliance Index (WCI %)** using `fl_chart` radial pie gauges.
-   - Interactive count chips for all compliance statuses: Compliant (`#10B981`), Non-Compliant (`#EF4444`), In-Progress (`#F59E0B`), and Not Applicable (`#6B7280`).
-   - Action count chips for Open CAPA and Overdue CAPA with direct tab switching.
-   - Urgent High-Risk Non-Compliance Alert banner when `highRiskNonCompliantCount > 0`.
-   - Collapsible 8 statutory categories breakdown grid displaying live compliance percentage bars and item counts per regulation.
+1. **`lib/features/ptw/domain/services/ptw_workflow_engine.dart`**:
+   - **5-State Workflow State Machine**: Validates transitions across `Draft`, `PendingApproval`, `Active`, `ExtendedHandover`, and `ClosedCancelled`.
+   - **Strict Statutory Guard Rules**:
+     * `Draft` -> `PendingApproval`: Validates required work title, plant area, location, dates, applicant name, digital applicant signature, and mandatory safety checklist completeness.
+     * `PendingApproval` -> `Active`: Enforces Safety Officer (จป.วิชาชีพ) signature, Authorizer signature, Confined Space 4 statutory roles completeness with valid certificates, Pre-entry gas testing safety, and LOTO zero-energy verification.
+     * `Active` -> `ExtendedHandover`: Validates extension hours (>0 and <=12), extension reason, and handover digital signature.
+     * `Active` / `ExtendedHandover` -> `ClosedCancelled`: Enforces closure inspector signature, Hot Work 30-minute fire watch monitoring completion, and LOTO de-isolation verification.
+     * `PendingApproval` -> `Draft`: Validates non-empty rejection reason for revisions.
+   - **Result Model & Transition Execution**: `WorkflowTransitionResult` provides granular error messages, warnings, and required signatory roles. `applyTransition` produces updated `PtwModel` instances and audit `PtwApprovalModel` log entries.
 
-2. **`lib/features/legal_register/presentation/widgets/legal_filter_bar.dart`**:
-   - Keyword search textfield with debounce and clear button.
-   - 8 Thai Royal Gazette category chips (พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔, จป. & คปอ. ๒๕๖๕, สารเคมีอันตราย ๒๕๕๖, อัคคีภัย ๒๕๕๕, ไฟฟ้า ๒๕๕๘, เครื่องจักร ปั้นจั่น หม้อน้ำ ๒๕๖๔, สภาพแวดล้อม ๒๕๕๙, ตรวจสุขภาพตามปัจจัยเสี่ยง ๒๕๖๓).
-   - Compliance status and CAPA status dropdown selectors.
-   - Official **PDF Export** using `pdf` and `printing` with Sarabun typography, executive KPI summary table, full 32-item statutory compliance table, and CAPA action plan appendix.
-   - Formatted **Excel (.xlsx) Export** using `excel` with 2 distinct worksheets: `Legal_Assessments` and `CAPA_Action_Plans`.
-   - Quick Filter Reset action.
+2. **`lib/features/ptw/presentation/widgets/signature_pad_widget.dart`**:
+   - Pure Flutter `CustomPainter` with smooth quadratic Bezier curve strokes (`_SignaturePainter`).
+   - `SignaturePadController` with reactive `startStroke`, `addPoint`, `endStroke`, `clear`, `undo`, and PNG `Uint8List` byte rendering via `ui.PictureRecorder` and `ui.ImageByteFormat.png`.
+   - `SignaturePadWidget` providing drawing gesture capture, placeholder hints, baseline guides, and undo/clear toolbar.
+   - `showSignatureDialog` helper modal dialog for sign-offs with signatory name input, role badge, and digital drawing canvas.
 
-3. **`lib/features/legal_register/presentation/widgets/legal_assessment_dialog.dart`**:
-   - Compliance evaluation modal with status choices (Compliant, Non-Compliant, In-Progress, Not Applicable).
-   - Applicability toggle (`isApplicable`).
-   - Actual practice notes input (`actualPractice`).
-   - Assessor metadata inputs (`evaluatorName`, `evaluatorRole`, `department`).
-   - Evaluation Date and Next Review Date date pickers.
-   - Multi-file evidence attachment picker supporting PDFs, photos, and documents via `file_picker`.
-   - Quick "เปิด CAPA ทันที" trigger button when Non-Compliant or In-Progress.
-   - Riverpod persistence via `ref.read(legalAssessmentListProvider.notifier).saveAssessment(...)`.
+3. **`lib/features/ptw/presentation/notifiers/ptw_filter_notifier.dart`**:
+   - Immutable `PtwFilterState` tracking search query, risk type (`HighRiskType`), status (`PtwStatus`), department, and start/end dates.
+   - `PtwFilterNotifier` extending Riverpod 3 `Notifier<PtwFilterState>`.
+   - `ptwFilterProvider` for UI filter binding.
 
-4. **`lib/features/legal_register/presentation/widgets/legal_capa_dialog.dart`**:
-   - CAPA creation and editing modal linked to specific statutory assessment items.
-   - Form fields: Action Title, 5-Whys Root Cause Analysis, Immediate Corrective Action, Long-term Preventive Action, Person In Charge (PIC), and Department.
-   - Target completion date and actual completion date pickers.
-   - Status selector (Pending, In Progress, Completed).
-   - Completion evidence file attachment picker.
-   - Closure verification notes and parent assessment auto-update logic.
-   - Riverpod persistence via `ref.read(legalCapaListProvider.notifier).saveCapa(...)`.
+4. **`lib/features/ptw/presentation/notifiers/ptw_list_notifier.dart`**:
+   - Riverpod 3 `AsyncNotifier<List<PtwModel>>` integrated with SQLite v8 `PtwRepository`.
+   - Synchronized with `ptwFilterProvider` for real-time filtered querying.
+   - State-changing methods: `createPermit`, `updatePermit`, `deletePermit`, `transitionStatus` (with `PtwWorkflowEngine` validation), and `refresh`.
+   - `ptwKpiProvider` computing live dashboard metrics (active, pending, draft, extended, closed, overdue, compliance rate %).
+   - `ptwDepartmentsProvider` providing sorted unique applicant departments.
 
-5. **`lib/features/legal_register/presentation/widgets/legal_gazette_viewer_dialog.dart`**:
-   - Royal Gazette citation publication viewer (Volume, Part, Page, Publication Date, Effective Date).
-   - Governing authority, Article No., statutory description, applicability criteria, and compliance criteria.
-   - Statutory penalty clauses with high-visibility warning box.
-   - Dual interactive tabs: Detailed statutory breakdown & Authentic Royal Gazette document paper layout / embedded PDF viewer.
-   - Print provision button using `Printing.layoutPdf`.
-   - Direct "ประเมินความสอดคล้องข้อนี้" action button.
+5. **`lib/features/ptw/presentation/notifiers/ptw_detail_notifier.dart`**:
+   - Riverpod 3 `FamilyAsyncNotifier<PtwModel?, String>` managing single permit inspection and modification.
+   - Child operations: `savePermit`, `addGasTestLog`, `saveConfinedRoles`, `saveFireWatch`, `saveLotoIsolations`, `toggleLotoZeroEnergy`, `toggleLotoDeIsolation`, `updateChecklist`, and `transitionStatus`.
 
-6. **`lib/features/legal_register/presentation/pages/legal_page.dart`**:
-   - Main scaffold with modern SAFAPP teal/navy branding (`#0D9488`, `#0F172A`, `#1E293B`, `#F8FAFC`).
-   - 3 full interactive tabs:
-     - **Tab 1: ทะเบียนและการประเมินความสอดคล้อง (Legal Register & Compliance Assessment)**: Embedded KPI dashboard, filter bar, assessment cards with risk levels, actual practice notes, evaluator metadata, evidence count chips, and action buttons.
-     - **Tab 2: คลังกฎหมายราชกิจจานุเบกษา (Royal Gazette Legal Repository)**: 8 laws overview banner, statutory master cards, full gazette viewer dialog launcher, and instant assessment launcher.
-     - **Tab 3: แผนการปรับปรุงแก้ไข (CAPA Action Plan Tracker)**: CAPA KPI summary banner, status filter, overdue countdowns in red, PIC, target dates, closure workflow, and Floating Action Button.
-   - Empty state handling with quick reset and seed default statutory items actions.
+6. **`lib/features/ptw/presentation/notifiers/ptw_live_controls_notifier.dart`**:
+   - `GasTrackerState` & `GasTrackerNotifier` for live atmospheric monitoring, threshold checking against Thai limits (O2 19.5-23.5%, LEL <10%, CO <25 ppm, H2S <10 ppm), warning generation, and database logging.
+   - `FireWatchTimerState` & `FireWatchTimerNotifier` for Hot Work 30-minute countdown timer with `Timer.periodic`, pause/resume/reset, safety checklist condition checks, completion alerts, and final inspection sign-off.
 
-7. **`test/legal_register_ui_test.dart`**:
-   - 6 test groups validating `LegalKpiDashboard`, `LegalFilterBar`, `LegalAssessmentDialog`, `LegalCapaDialog`, `LegalGazetteViewerDialog`, and `LegalPage` tab switching and mock Riverpod provider integration.
+7. **Test Suites**:
+   - `test/features/ptw/ptw_workflow_engine_test.dart`: 10 comprehensive state transition and guard rule tests.
+   - `test/features/ptw/signature_pad_test.dart`: Unit & widget tests for `SignaturePadWidget` and `SignaturePadController`.
+   - `test/features/ptw/ptw_notifiers_test.dart`: Unit tests for `PtwFilterNotifier`, `GasTrackerNotifier`, and `FireWatchTimerNotifier`.
 
 ---
 
 ## 2. Logic Chain
-- **Requirement Analysis**: The user request and dispatch required an authoritative, complete, responsive Flutter UI for the SAFAPP Legal Register covering 8 Royal Gazette regulations, KPI compliance indices (Basic CI and Risk-Weighted WCI), compliance assessment evaluations, CAPA action plans, Royal Gazette viewer dialog, and export features.
-- **State Management**: Built on Riverpod 3 (`NotifierProvider`, `AsyncNotifierProvider`, `FutureProvider`) in `legal_register_providers.dart`, ensuring reactive UI updates when filters change, assessments are saved, or CAPAs are completed.
-- **Reporting & Export**: Implemented standard PDF export via `pdf` & `printing` with Sarabun font and formatted Excel export via `excel`, outputting professional multi-sheet workbooks.
-- **Codebase Integrity**: No hardcoded test results, dummy facades, or shortcuts. All state and interactions flow through authentic domain models (`LegalMasterItemModel`, `LegalComplianceAssessmentModel`, `LegalCapaModel`, `LegalComplianceStatsModel`).
+- **State Machine Integrity**: Guard rules directly enforce statutory articles from Thai Royal Gazette regulations (พ.ร.บ. ๒๕๕๔, กฎกระทรวงอับอากาศ ๒๕๖๒, อัคคีภัย ๒๕๕๕, ไฟฟ้า ๒๕๕๘, งานบนที่สูง ๒๕๖๔). Permits cannot advance to `Active` without passing all mandatory safety checks.
+- **Digital Signatures**: Digital signatures are captured via pure Flutter `CustomPainter` without external heavy native plugins, exported cleanly to standard PNG bytes, and linked with timestamps to the permit record.
+- **Reactive State Flow**: Riverpod 3 `AsyncNotifier` and `Notifier` architecture guarantees that whenever a permit is created, transitioned, or updated, both the permit list, detail family provider, and KPI summary automatically synchronize and invalidate stale cache.
 
 ---
 
 ## 3. Caveats
-- `syncfusion_flutter_pdfviewer` is used for viewing embedded PDF files when available on disk. If a PDF file path is not found on disk, the dialog gracefully presents an authentic Royal Gazette document simulation paper view with Thai typography and citation details.
-- PDF generation uses `PdfGoogleFonts.sarabunRegular()` and `PdfGoogleFonts.sarabunBold()` for Thai font rendering in PDF prints.
+- `SignaturePadWidget.saveToFile` stores PNG signatures under the application's document directory (`safapp_signatures`). On web platforms, signature bytes are maintained in memory as `Uint8List` or data URIs.
+- `FireWatchTimerNotifier` relies on Flutter `Timer.periodic`. In unit tests, state transitions and completion can be verified deterministically via notifier methods.
 
 ---
 
 ## 4. Conclusion
-All deliverables for Worker M2 have been successfully developed, styled, integrated with Flutter Riverpod 3, and tested. The Legal Register UI is fully functional, beautiful, and ready for integration into the main SAFAPP navigation.
+All M2 components have been completely and genuinely implemented according to specification with no dummy implementations. The module is fully prepared for M3 (UI Tabs & Dialogs) and M4 (PDF/Excel exports).
 
 ---
 
 ## 5. Verification Method
-Run the Flutter test suite:
+Run the Flutter test suites:
 ```powershell
-flutter test test/legal_register_ui_test.dart
-flutter test test/legal_register_models_and_repo_test.dart
+flutter test test/features/ptw/ptw_workflow_engine_test.dart
+flutter test test/features/ptw/signature_pad_test.dart
+flutter test test/features/ptw/ptw_notifiers_test.dart
+flutter test test/features/ptw/ptw_domain_and_repo_test.dart
 ```
-Inspect the files:
-- `lib/features/legal_register/presentation/pages/legal_page.dart`
-- `lib/features/legal_register/presentation/widgets/legal_kpi_dashboard.dart`
-- `lib/features/legal_register/presentation/widgets/legal_filter_bar.dart`
-- `lib/features/legal_register/presentation/widgets/legal_assessment_dialog.dart`
-- `lib/features/legal_register/presentation/widgets/legal_capa_dialog.dart`
-- `lib/features/legal_register/presentation/widgets/legal_gazette_viewer_dialog.dart`
-- `test/legal_register_ui_test.dart`
+Inspect the implementation files:
+- `lib/features/ptw/domain/services/ptw_workflow_engine.dart`
+- `lib/features/ptw/presentation/widgets/signature_pad_widget.dart`
+- `lib/features/ptw/presentation/notifiers/ptw_list_notifier.dart`
+- `lib/features/ptw/presentation/notifiers/ptw_filter_notifier.dart`
+- `lib/features/ptw/presentation/notifiers/ptw_detail_notifier.dart`
+- `lib/features/ptw/presentation/notifiers/ptw_live_controls_notifier.dart`
+

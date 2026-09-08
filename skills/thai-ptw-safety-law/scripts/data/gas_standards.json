@@ -1,0 +1,154 @@
+{
+  "standard_name": "Thai Confined Space Atmospheric Safety Standard",
+  "legal_basis": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานในสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๗",
+  "statutory_reference": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๗",
+  "parameters": {
+    "oxygen": {
+      "name_th": "ก๊าซออกซิเจน (Oxygen - O2)",
+      "symbol": "O2",
+      "unit": "%",
+      "min_safe": 19.5,
+      "max_safe": 23.5,
+      "normal_ambient": 20.9,
+      "standard_range_text": "19.5% - 23.5% โดยปริมาตร",
+      "thresholds": [
+        {
+          "condition": "value < 19.5",
+          "status": "FAIL",
+          "code": "OXYGEN_DEFICIENT",
+          "alarm_level": "CRITICAL",
+          "description_th": "ภาวะขาดออกซิเจน (Oxygen Deficiency) อันตรายถึงชีวิต ห้ามเข้าทำงานโดยเด็ดขาด",
+          "required_actions": [
+            "สั่งระงับการเข้าทำงานทันทีและอพยพผู้ปฏิบัติงานออกภายนอก",
+            "เปิดพัดลมระบายอากาศแบบกลไก (Forced Mechanical Blower) ต่อเนื่อง",
+            "ตรวจวัดสภาพอากาศซ้ำจนกว่าค่าออกซิเจนจะอยู่ในช่วง 19.5 - 23.5%"
+          ]
+        },
+        {
+          "condition": "19.5 <= value <= 23.5",
+          "status": "PASS",
+          "code": "OXYGEN_NORMAL",
+          "alarm_level": "NONE",
+          "description_th": "ปริมาณออกซิเจนอยู่ในเกณฑ์มาตรฐานความปลอดภัย",
+          "required_actions": [
+            "อนุญาตให้เข้าปฏิบัติงานได้",
+            "ระบายอากาศบริสุทธิ์ต่อเนื่องตลอดเวลาการทำงาน"
+          ]
+        },
+        {
+          "condition": "value > 23.5",
+          "status": "FAIL",
+          "code": "OXYGEN_ENRICHED",
+          "alarm_level": "HIGH",
+          "description_th": "ภาวะออกซิเจนเกิน (Oxygen Enriched) เสี่ยงต่อการลุกไหม้รุนแรงและการระเบิดอย่างฉับพลัน",
+          "required_actions": [
+            "ห้ามเข้าทำงานและห้ามก่อให้เกิดประกายไฟโดยเด็ดขาด",
+            "ตรวจสอบแหล่งรั่วไหลของออกซิเจน (สายท่อออกซิเจน ถังก๊าซ)",
+            "ระบายอากาศด้วยอากาศบริสุทธิ์และตรวจวัดซ้ำ"
+          ]
+        }
+      ]
+    },
+    "combustible_gas": {
+      "name_th": "ก๊าซ/ไอระเหยไวไฟ (Flammable Gas / LEL)",
+      "symbol": "LEL",
+      "unit": "% LEL",
+      "max_safe": 10.0,
+      "standard_limit_text": "< 10.0% LEL (Lower Explosive Limit)",
+      "thresholds": [
+        {
+          "condition": "value < 10.0",
+          "status": "PASS",
+          "code": "LEL_SAFE",
+          "alarm_level": "NONE",
+          "description_th": "ระดับก๊าซไวไฟต่ำกว่า 10% LEL อยู่ในเกณฑ์ปลอดภัย",
+          "required_actions": [
+            "อนุญาตให้เข้าทำงานได้",
+            "เปิดพัดลมระบายอากาศชนิดป้องกันการระเบิด (Explosion-Proof Blower) ต่อเนื่อง"
+          ]
+        },
+        {
+          "condition": "value >= 10.0",
+          "status": "FAIL",
+          "code": "EXPLOSIVE_HAZARD",
+          "alarm_level": "CRITICAL",
+          "description_th": "บรรยากาศไวไฟ (Flammable Atmosphere) เกินร้อยละ 10 LEL เสี่ยงต่อการระเบิด ห้ามเข้าเด็ดขาด",
+          "required_actions": [
+            "สั่งระงับการเข้าทำงานทันทีและตัดแหล่งกำเนิดประกายไฟทั้งหมด",
+            "ระบายอากาศด้วยพัดลมและอุปกรณ์ป้องกันการระเบิด (Intrinsically Safe / Explosion Proof)",
+            "ตรวจหาสาเหตุการสะสมของก๊าซไวไฟและล้างระบาย (Purging)"
+          ]
+        }
+      ]
+    },
+    "carbon_monoxide": {
+      "name_th": "ก๊าซคาร์บอนมอนอกไซด์ (Carbon Monoxide - CO)",
+      "symbol": "CO",
+      "unit": "ppm",
+      "max_safe": 25.0,
+      "ceiling_limit": 200.0,
+      "standard_limit_text": "< 25.0 ppm (TWA 8-Hour)",
+      "thresholds": [
+        {
+          "condition": "value < 25.0",
+          "status": "PASS",
+          "code": "CO_SAFE",
+          "alarm_level": "NONE",
+          "description_th": "ปริมาณก๊าซคาร์บอนมอนอกไซด์อยู่ในเกณฑ์ปลอดภัย",
+          "required_actions": [
+            "อนุญาตให้เข้าทำงานได้"
+          ]
+        },
+        {
+          "condition": "value >= 25.0",
+          "status": "FAIL",
+          "code": "TOXIC_CO_EXCEEDED",
+          "alarm_level": "HIGH",
+          "description_th": "ก๊าซคาร์บอนมอนอกไซด์เกินค่ามาตรฐาน 25 ppm อันตรายต่อระบบทางเดินหายใจและการลำเลียงออกซิเจน",
+          "required_actions": [
+            "ห้ามเข้าทำงาน หรืออพยพผู้ปฏิบัติงานทันที",
+            "ตรวจสอบแหล่งกำเนิดไอเสีย เครื่องยนต์ดีเซล หรือการเผาไหม้ไม่สมบูรณ์ใกล้เคียง",
+            "ระบายอากาศด้วยเครื่องเป่าลมแรงดันบวก"
+          ]
+        }
+      ]
+    },
+    "hydrogen_sulfide": {
+      "name_th": "ก๊าซไฮโดรเจนซัลไฟด์ หรือ ก๊าซไข่เน่า (Hydrogen Sulfide - H2S)",
+      "symbol": "H2S",
+      "unit": "ppm",
+      "max_safe": 10.0,
+      "ceiling_limit": 15.0,
+      "standard_limit_text": "< 10.0 ppm (TWA 8-Hour)",
+      "thresholds": [
+        {
+          "condition": "value < 10.0",
+          "status": "PASS",
+          "code": "H2S_SAFE",
+          "alarm_level": "NONE",
+          "description_th": "ไม่พบก๊าซไข่เน่า หรือมีปริมาณต่ำกว่าเกณฑ์มาตรฐานความปลอดภัย",
+          "required_actions": [
+            "อนุญาตให้เข้าทำงานได้"
+          ]
+        },
+        {
+          "condition": "value >= 10.0",
+          "status": "FAIL",
+          "code": "TOXIC_H2S_EXCEEDED",
+          "alarm_level": "CRITICAL",
+          "description_th": "ก๊าซไฮโดรเจนซัลไฟด์เกินค่ามาตรฐาน 10 ppm เป็นก๊าซพิษร้ายแรง อัมพาตระบบประสาทการดมกลิ่น และหยุดหายใจฉับพลัน",
+          "required_actions": [
+            "สั่งอพยพผู้ปฏิบัติงานทันที ห้ามเข้าเด็ดขาด",
+            "ผู้ช่วยเหลือห้ามเข้าโดยไม่มีชุด SCBA เด็ดขาด",
+            "ระบายอากาศและล้างระบบบ่อบำบัด/ท่อระบายน้ำจนกว่าค่าจะปลอดภัย"
+          ]
+        }
+      ]
+    }
+  },
+  "monitoring_rules": {
+    "pre_entry_requirement": "ต้องตรวจวัดสภาพอากาศครบ ๔ ชนิด (O2, LEL, CO, H2S) ก่อนอนุญาตให้บุคคลใดเข้าไปในสถานที่อับอากาศ",
+    "continuous_monitoring_requirement": "ต้องตรวจวัดอย่างต่อเนื่องตลอดเวลาการทำงาน หรือตรวจวัดซ้ำทุก ๑-๒ ชั่วโมง และบันทึกลงใน Permit Log",
+    "ventilation_requirement": "ต้องเปิดพัดลมระบายอากาศแบบกลไก (Forced Mechanical Ventilation) เป่าอากาศบริสุทธิ์จากภายนอกเข้าสู่ก้นบ่อ/พื้นที่อับอากาศต่อเนื่องตลอดเวลา"
+  }
+}

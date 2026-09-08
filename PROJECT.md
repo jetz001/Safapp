@@ -1,133 +1,217 @@
-# Project: SAFAPP Environmental Monitoring & Thai Environmental Safety Law
+# Project: High-Risk Permit to Work (PTW) System & Thai Safety Law Agent Skill
 
 ## Architecture
-- **Layering**: Clean Architecture / Feature-First Domain-Driven Design under `lib/features/environment/`
-  - `domain/`: Models (`EnvironmentStandardModel`, `SubcontractorModel`, `EnvironmentSessionModel`, `EnvironmentPointModel`, `EnvironmentCapaModel`), Enums, Interfaces, Evaluation Calculators.
-  - `data/`: SQLite Database migration (v6 -> v7 in `database_helper.dart`), Repositories, Master Data Catalogs (`environmental_standards_data.dart`, `environmental_gazette_data.dart`).
-  - `presentation/`: Riverpod State Notifiers (`environment_providers.dart`), `EnvironmentPage`, 4 Tabs (`EnvironmentDashboardTab`, `EnvironmentPointsTab`, `EnvironmentCapaTab`, `EnvironmentGazetteTab`), Dialogs/Modals, KPI Widgets.
-  - `services/`: `EnvironmentPdfExporter`, `EnvironmentExcelExporter`, `EnvironmentAttachmentManager`.
-- **Navigation**: Registered in `AppShell` at navigation index 11 (`Icons.thermostat_outlined` / `Icons.thermostat`, label "สิ่งแวดล้อม").
-- **Agent Skill & Multi-Agent Helper**:
-  - Agent Skill: `skills/thai-environmental-safety-law/` (`SKILL.md`, `pyproject.toml`, `scripts/thai_env_cli.py`, `scripts/thai_env_engine.py`, `scripts/thai_env_helper.py`, `tests/test_thai_env_skill.py`, `tests/test_adversarial_skill.py`).
-  - AgentResearch Helper: `D:\DEV\AgentResearch\Scripts\thai_env_helper.py`.
+The PTW module in SAFAPP is architected around a layered, reactive, clean-architecture pattern powered by **Flutter Riverpod 3**, persistent **SQLite v8**, statutory **Thai Safety Legal Evaluators**, pure Flutter **Signature Canvas**, vector **QR Code generation**, official **DLPW A4 PDF & Excel Exporters**, and an external **Agent Skill (`thai-ptw-safety-law`)** for multi-agent safety reasoning.
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   SAFAPP UI LAYER                                      │
+│  PtwPage (AppShell Index 5)                                                            │
+│  ├── Tab 1: PtwDashboardTab (KPI Cards, Filter Bar, Responsive Data Table, Actions)   │
+│  ├── Tab 2: PtwWizardTab (6-Step Guided Creation: Info -> Risk -> Check -> Sign)       │
+│  ├── Tab 3: PtwLiveControlsTab (Gas Tracker, 30-min Fire Watch, LOTO Verify, Handover) │
+│  └── Tab 4: PtwLegalLibraryTab (5 Royal Gazette Regulations Viewer & Search)           │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                           STATE MANAGEMENT & CONTROLLER LAYER                          │
+│  - ptwListProvider (AsyncNotifier)         - ptwFilterProvider (Notifier)              │
+│  - ptwDetailProvider (Family AsyncNotifier) - ptwKpiProvider (Provider)                │
+│  - liveGasLogsProvider (Notifier)          - fireWatchTimerProvider (StateNotifier)   │
+│  - PtwWorkflowEngine (5-State Guarded State Machine)                                   │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                           DOMAIN & BUSINESS LOGIC LAYER                                │
+│  - PtwModel, GasTestLogModel, ConfinedRoleModel, FireWatchModel, LotoIsolationModel    │
+│  - Enums: HighRiskType (5), PtwStatus (5), EnergyType (5), ConfinedRoleType (4)        │
+│  - PtwSafetyEvaluator: O2 (19.5-23.5%), LEL (<10%), CO (<25ppm), H2S (<10ppm)         │
+│                        Fire Watch (>=30m), LOTO Zero Energy, 4-Role Completeness       │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                           DATA ACCESS & EXPORT SERVICES                                │
+│  - DatabaseHelper (SQLite v8 Migration: 6 Relational Tables with Foreign Keys)         │
+│  - PtwRepository (CRUD, Transactional Child Updates, Filters, Relational Joins)        │
+│  - PtwPdfExporter (Official DLPW A4 Format, Signature Images, Vector QR Code)          │
+│  - PtwExcelExporter (5-Sheet Analytics Workbook)                                       │
+│  - SignaturePadWidget (CustomPainter -> Uint8List PNG Bytes)                           │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│                       MULTI-AGENT SKILL & PYTHON TOOLING LAYER                         │
+│  - C:\Users\jetsa\.gemini\config\skills\thai-ptw-safety-law\ (SKILL.md, CLI, Engine)   │
+│  - D:\DEV\AgentResearch\Scripts\thai_ptw_helper.py (Dual-Mode Python API)              │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Feature Inventory
-| # | Feature | Description | Milestone | Source | Status |
-|---|---------|-------------|-----------|--------|:------:|
-| 1 | F1: Master Environmental Standards | Complete lighting Lux, noise 86 dBA/85 dBA, heat WBGT 34/32/30°C catalog | M1 | Survey / Law | **DONE** |
-| 2 | F2: Data Models & SQLite v7 | Domain models, JSON serialization, SQLite v6->v7 migration & repository | M1 | Codebase | **DONE** |
-| 3 | F3: Sessions & Subcontractor | Annual sessions, Subcontractor Sec 9 (นบ.) / Sec 11 (บ.), multi-attachments | M2 | Requirements | **DONE** |
-| 4 | F4: Point Auto-Evaluation Engine | Calculation & evaluation engine for Light, Noise (TWA/Action level), Heat WBGT | M2 | Law / Formulas | **DONE** |
-| 5 | F5: CAPA & Hearing Conservation | Auto-CAPA creation, 3-tier controls (Eng/Admin/PPE), Hearing Conservation tracking | M3 | Requirements | **DONE** |
-| 6 | F6: UI EnvironmentPage & 4 Tabs | Flutter UI with 4 tabs, KPI cards, sampling tables, modals, AppShell index 11 | M3 | UX / Figma | **DONE** |
-| 7 | F7: Official PDF/Excel Exporters | DLPW 6-section PDF report with Sarabun font & multi-sheet Excel exporter | M4 | Requirements | **DONE** |
-| 8 | F8: Agent Skill & AgentResearch | `thai-environmental-safety-law` skill & `thai_env_helper.py` with 14 tests | M5 | Agent Research | **DONE** |
-| 9 | F9: E2E Testing & Forensic Audit | Unit, widget, E2E tests, Challenger stress test & Forensic Integrity Audit | M6 | Acceptance | **DONE** |
+| # | Feature | Description | Milestone | Source |
+|---|---------|-------------|-----------|--------|
+| 1 | High-Risk PTW Models & Enums | 5 high-risk types, 5 workflow statuses, domain entities with JSON/DB mapping | M1 | ORIGINAL_REQUEST §R1 |
+| 2 | Statutory Safety Evaluator | Gas safety (O2, LEL, CO, H2S), 4-role check, 30m fire watch, zero-energy rules | M1 | ORIGINAL_REQUEST §R1, R3 |
+| 3 | SQLite Schema v8 Migration | 6 relational tables with foreign keys and index optimization | M1 | Explorer 1 Survey |
+| 4 | PtwRepository & Data Access | Complete CRUD and reactive query integration with SQLite v8 | M1 | Explorer 1 Survey |
+| 5 | 5-State Workflow State Machine | Guarded transitions (Draft -> Pending -> Active -> Extended -> Closed) | M2 | ORIGINAL_REQUEST §R2 |
+| 6 | Digital Signature Canvas | Pure Flutter CustomPainter signature pad exporting PNG bytes | M2 | ORIGINAL_REQUEST §R2 |
+| 7 | Riverpod 3 State Layer | AsyncNotifier providers for list, filters, details, KPIs, live controls | M2 | Explorer 1 & 2 Survey |
+| 8 | Live Site Safety Controls | Continuous Gas Tracker, 30-min Fire Watch Timer, LOTO zero-energy logger | M3 | ORIGINAL_REQUEST §R3 |
+| 9 | PtwPage 4-Tab Interface | Dashboard, Create/Edit Wizard, Live Controls, Legal Library | M3 | ORIGINAL_REQUEST §R4 |
+| 10 | Interactive Dialogs & Details | Comprehensive detail modal, approval sign-off, live tool modal | M3 | Explorer 2 Survey |
+| 11 | Official DLPW PDF Generator | A4 certificate conforming to Labor Department standard with QR Code | M4 | ORIGINAL_REQUEST §R5 |
+| 12 | Screen QR Code Component | Vector QR Code renderer for on-site mobile audit | M4 | ORIGINAL_REQUEST §R5 |
+| 13 | Multi-Sheet Excel Exporter | 5-sheet analytics workbook for PTW registers and safety audits | M4 | ORIGINAL_REQUEST §R5 |
+| 14 | Agent Skill `thai-ptw-safety-law` | SKILL.md, CLI script with 5 subcommands, rule engine, unit tests | M5 | ORIGINAL_REQUEST §R6 |
+| 15 | Multi-Agent Helper Script | `thai_ptw_helper.py` in `D:\DEV\AgentResearch\Scripts\` | M5 | ORIGINAL_REQUEST §R6 |
+| 16 | E2E 4-Tier Test Suite | Tier 1-4 tests (Flutter & Python) ensuring 100% test pass rate | M6 | ORIGINAL_REQUEST §A4 |
+| 17 | Adversarial Hardening (Tier 5) | Stress tests, boundary attacks, and forensic audit verification | M6 | Project Pattern |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
-|---|------|-------|-------------|:------:|
-| M1 | Master Standards & Models | Domain models, JSON serialization, Master static catalog, SQLite v7 migration | none | **DONE** |
-| M2 | Core Evaluation & Services | Evaluation calculators (Light, Noise, WBGT), KPI Aggregator, Repository & Services | M1 | **DONE** |
-| M3 | UI Presentation & CAPA | EnvironmentPage (4 Tabs), Riverpod providers, Modals, Forms, AppShell | M2 | **DONE** |
-| M4 | Attachments & PDF/Excel Export | Multi-category attachment manager, PDF Sarabun generator, Excel exporter | M2, M3 | **DONE** |
-| M5 | Agent Skill & CLI Helper | SKILL.md, CLI engine/scripts, AgentResearch helper, 14 Python unit tests | M1, M2 | **DONE** |
-| M6 | E2E Testing & Audit Hardening | Full Flutter test suite (100% pass), Challenger verification, Forensic Audit | M1-M5 | **DONE** |
+|---|------|-------|-------------|--------|
+| M1 | Core Models, Evaluators & DB v8 | Domain models, enums, `PtwSafetyEvaluator`, SQLite v8 schema, `PtwRepository` | none | DONE |
+| M2 | State Machine, Riverpod & Signatures | `PtwWorkflowEngine`, Riverpod notifiers, `SignaturePadWidget`, Live controllers | M1 | IN_PROGRESS |
+| M3 | PtwPage 4-Tab UI & Live Controls | Dashboard, 6-Step Wizard, Live Controls, Legal Reference Library, Dialogs | M2 | PLANNED |
+| M4 | Official PDF with QR & Excel Export | DLPW A4 PDF generator, embedded QR code, `PtwExcelExporter` | M3 | PLANNED |
+| M5 | Thai PTW Agent Skill & Python Helper | `thai-ptw-safety-law` skill, CLI subcommands, `thai_ptw_helper.py`, Python tests | none | DONE |
+| M6 | E2E Testing & Final Verification | 4-Tier Flutter/Python test suites, adversarial stress tests, 100% pass | M1, M2, M3, M4, M5 | PLANNED |
 
 ## Interface Contracts
-### 1. Evaluation Engine Contract
+
+### 1. HighRiskType & PtwStatus Enums
 ```dart
-class EnvironmentalEvaluator {
-  static LightEvaluationResult evaluateLighting({
-    required double measuredLux,
-    required String standardId,
-    double? surroundingLux,
-  });
+enum HighRiskType {
+  hotWork('Hot Work (งานประกายไฟ/ความร้อน)', Icons.local_fire_department, Color(0xFFEA580C)),
+  confinedSpace('Confined Space (งานในที่อับอากาศ)', Icons.compress, Color(0xFF7C3AED)),
+  workingAtHeight('Working at Height (งานบนที่สูง)', Icons.height, Color(0xFF0284C7)),
+  electricalLoto('Electrical & LOTO (งานไฟฟ้าและการตัดแยกพลังงาน)', Icons.bolt, Color(0xFFEAB308)),
+  excavationLifting('Excavation & Lifting (งานขุดเจาะและยกเคลื่อนย้าย)', Icons.construction, Color(0xFF16A34A));
+}
 
-  static NoiseEvaluationResult evaluateNoise({
-    required double measuredDba,
-    required NoiseMeasurementType type, // area, personalTwa, peak
-    double durationHours = 8.0,
-    double? peakDb,
-  });
-
-  static HeatEvaluationResult evaluateHeat({
-    required double nwb,
-    required double gt,
-    double? db,
-    required bool isOutdoor,
-    required WorkloadLevel workload, // light, moderate, heavy
-  });
-
-  static EnvironmentKpiSummary calculateKpi(List<EnvironmentPointModel> points, [List<EnvironmentCapaModel>? capas]);
+enum PtwStatus {
+  draft('Draft (ร่างคำขอ)', Color(0xFF64748B)),
+  pendingApproval('Pending Approval (รออนุมัติ)', Color(0xFFD97706)),
+  active('Active (กำลังปฏิบัติงาน)', Color(0xFF059669)),
+  extendedHandover('Extended / Handover (ต่อเวลา/ส่งมอบ)', Color(0xFF2563EB)),
+  closedCancelled('Closed / Cancelled (ปิดงาน/ยกเลิก)', Color(0xFF475569));
 }
 ```
 
-### 2. Subcontractor Verification Contract
+### 2. PtwSafetyEvaluator Contract
 ```dart
-class SubcontractorVerifier {
-  static SubcontractorValidationResult validate({
-    required SubcontractorType type, // section9Individual, section11Juristic
-    required String licenseNumber,
-    DateTime? expirationDate,
+class PtwSafetyEvaluator {
+  static GasEvaluationResult evaluateGasLevels({
+    required double oxygenPercent, // 19.5% - 23.5%
+    required double combustibleLelPercent, // < 10.0%
+    required double carbonMonoxidePpm, // < 25.0 ppm
+    required double hydrogenSulfidePpm, // < 10.0 ppm
+  });
+
+  static ConfinedRoleEvaluationResult evaluateConfinedSpaceRoles(
+    List<ConfinedRoleModel> roles,
+  );
+
+  static FireWatchEvaluationResult evaluateFireWatch({
+    required DateTime hotWorkEndTime,
+    required DateTime fireWatchCheckedTime,
+    required bool hasFireExtinguisher,
+  });
+
+  static LotoEvaluationResult evaluateLotoIsolations(
+    List<LotoIsolationModel> isolations,
+  );
+
+  static bool isOverdue(PtwModel permit, {DateTime? currentTime});
+}
+```
+
+### 3. PtwWorkflowEngine Contract
+```dart
+class PtwWorkflowEngine {
+  static WorkflowTransitionResult validateTransition({
+    required PtwModel currentPermit,
+    required PtwStatus targetStatus,
+    String? rejectionReason,
+    String? signatoryName,
+    Uint8List? signatureBytes,
   });
 }
 ```
 
-### 3. Agent Skill CLI Contract
+### 4. Agent Skill CLI Interface
 ```bash
-python thai_env_cli.py search-light [--category CAT] [--query QUERY] [-v LUX] [-s SURROUNDING_LUX]
-python thai_env_cli.py eval-noise -v MEASURED_DBA [-t DURATION_HOURS] [--peak-db PEAK_DB]
-python thai_env_cli.py calc-wbgt --nwb NWB --gt GT [--db DB] [--outdoor] -w {light|moderate|heavy}
-python thai_env_cli.py eval-session [--input-file JSON_FILE] [--format {json|table}]
-python thai_env_cli.py verify-subcontractor -t {section_9_individual|section_11_juristic} -n LICENSE_NO [-e EXP_DATE]
-python thai_env_cli.py get-env-law [-t LAW_TYPE] [-s SECTION]
+python thai_ptw_cli.py validate-ptw --input-json <path>
+python thai_ptw_cli.py eval-gas --o2 <val> --lel <val> --co <val> --h2s <val>
+python thai_ptw_cli.py verify-confined-roles --roles-json <path>
+python thai_ptw_cli.py get-checklist --risk-type <hot_work|confined_space|height|loto|excavation>
+python thai_ptw_cli.py get-ptw-law --query <law_name>
 ```
 
 ## Code Layout
-- `lib/features/environment/domain/models/`:
-  - `environment_standard_model.dart`
-  - `subcontractor_model.dart`
-  - `environment_session_model.dart`
-  - `environment_point_model.dart`
-  - `environment_capa_model.dart`
-  - `environment_kpi_summary.dart`
-- `lib/features/environment/domain/services/`:
-  - `environmental_evaluator.dart`
-  - `subcontractor_verifier.dart`
-- `lib/features/environment/data/`:
-  - `environmental_standards_data.dart`
-  - `environmental_gazette_data.dart`
-  - `environment_repository.dart`
-- `lib/features/environment/presentation/`:
-  - `providers/environment_providers.dart`
-  - `pages/environment_page.dart`
-  - `screens/environment_page.dart`
-  - `tabs/environment_dashboard_tab.dart`
-  - `tabs/environment_points_tab.dart`
-  - `tabs/environment_capa_tab.dart`
-  - `tabs/environment_gazette_tab.dart`
-  - `widgets/`: KPI cards, point dialogs, session dialogs, attachment list, preview dialogs.
-- `lib/features/environment/services/`:
-  - `environment_pdf_exporter.dart`
-  - `environment_excel_exporter.dart`
-- `lib/core/database/database_helper.dart` (migration to v7)
-- `lib/core/widgets/app_shell.dart` (navigation item index 11)
-- `test/features/environment/`:
-  - `environmental_evaluator_test.dart`
-  - `environment_models_test.dart`
-  - `environment_repository_test.dart`
-  - `environment_exporters_test.dart`
-  - `environment_page_widget_test.dart`
-  - `environmental_adversarial_stress_test.dart`
-- Agent Skill:
-  - `skills/thai-environmental-safety-law/SKILL.md`
-  - `skills/thai-environmental-safety-law/pyproject.toml`
-  - `skills/thai-environmental-safety-law/scripts/thai_env_cli.py`
-  - `skills/thai-environmental-safety-law/scripts/thai_env_engine.py`
-  - `skills/thai-environmental-safety-law/scripts/thai_env_helper.py`
-  - `skills/thai-environmental-safety-law/scripts/data/standards.json`
-  - `skills/thai-environmental-safety-law/tests/test_thai_env_skill.py`
-  - `skills/thai-environmental-safety-law/tests/test_adversarial_skill.py`
-- AgentResearch:
-  - `D:\DEV\AgentResearch\Scripts\thai_env_helper.py`
+```
+lib/
+├── core/
+│   └── database/
+│       └── database_helper.dart                      [Modified: v7 -> v8 upgrade]
+└── features/
+    └── ptw/
+        ├── data/
+        │   ├── models/
+        │   │   ├── ptw_model.dart                    [M1: Core permit entity]
+        │   │   ├── gas_test_log_model.dart           [M1: Gas testing records]
+        │   │   ├── confined_role_model.dart          [M1: 4-role registry entity]
+        │   │   ├── fire_watch_model.dart             [M1: Hot work monitoring log]
+        │   │   ├── loto_isolation_model.dart         [M1: Energy isolation record]
+        │   │   ├── ptw_checklist_model.dart          [M1: Safety checklist entity]
+        │   │   └── ptw_kpi_summary_model.dart        [M1: Analytics summary model]
+        │   └── repositories/
+        │       └── ptw_repository.dart               [M1: SQLite CRUD & queries]
+        ├── domain/
+        │   ├── enums/
+        │   │   ├── high_risk_type.dart               [M1: 5 High-risk categories]
+        │   │   ├── ptw_status.dart                   [M1: 5 Workflow statuses]
+        │   │   ├── energy_type.dart                  [M1: LOTO energy classifications]
+        │   │   └── confined_role_type.dart           [M1: 4 Statutory roles]
+        │   └── services/
+        │       ├── ptw_safety_evaluator.dart         [M1: Statutory rule engine]
+        │       └── ptw_workflow_engine.dart          [M2: State machine guards]
+        ├── presentation/
+        │   ├── notifiers/
+        │   │   ├── ptw_list_notifier.dart            [M2: Riverpod list provider]
+        │   │   ├── ptw_filter_notifier.dart          [M2: Search/Filter state]
+        │   │   └── ptw_live_controls_notifier.dart   [M2: Gas & Timer state]
+        │   ├── pages/
+        │   │   └── ptw_page.dart                     [M3: 4-Tab Main Host Page]
+        │   ├── tabs/
+        │   │   ├── ptw_dashboard_tab.dart            [M3: Tab 1: KPI & Register]
+        │   │   ├── ptw_wizard_tab.dart               [M3: Tab 2: 6-Step Wizard]
+        │   │   ├── ptw_live_controls_tab.dart        [M3: Tab 3: Site Controls]
+        │   │   └── ptw_legal_library_tab.dart        [M3: Tab 4: Legal Reference]
+        │   └── widgets/
+        │       ├── signature_pad_widget.dart         [M2: CustomPainter Pad]
+        │       ├── ptw_kpi_card.dart                 [M3: Summary Metrics]
+        │       ├── ptw_status_chip.dart              [M3: Colored Badge]
+        │       ├── ptw_detail_dialog.dart            [M3: Full View Dialog]
+        │       ├── gas_test_logger_card.dart         [M3: Gas Level Input]
+        │       ├── fire_watch_timer_card.dart        [M3: 30-min Countdown]
+        │       └── ptw_qr_viewer_widget.dart         [M4: Vector QR Display]
+        └── services/
+            ├── ptw_pdf_exporter.dart                 [M4: Official DLPW A4 PDF]
+            └── ptw_excel_exporter.dart               [M4: 5-Sheet Excel Exporter]
+
+skills/thai-ptw-safety-law/ (and C:\Users\jetsa\.gemini\config\skills\thai-ptw-safety-law\)
+├── SKILL.md                                          [M5: Skill Metadata & Instructions]
+├── pyproject.toml                                    [M5: Python Packaging]
+├── scripts/
+│   ├── thai_ptw_cli.py                              [M5: CLI Subcommands]
+│   ├── thai_ptw_engine.py                           [M5: Legal Rule Engine]
+│   └── thai_ptw_helper.py                           [M5: Local Helper]
+└── tests/
+    └── test_thai_ptw_skill.py                        [M5: 15+ Automated Unit Tests]
+
+D:\DEV\AgentResearch\Scripts/
+└── thai_ptw_helper.py                                [M5: Multi-Agent Dual-Mode Helper]
+
+test/
+└── features/
+    └── ptw/
+        ├── ptw_models_test.dart                      [M6: Domain entity unit tests]
+        ├── ptw_safety_evaluator_test.dart            [M6: Statutory threshold tests]
+        ├── ptw_workflow_engine_test.dart             [M6: State machine transition tests]
+        ├── ptw_repository_test.dart                  [M6: Database CRUD & join tests]
+        ├── ptw_notifiers_test.dart                   [M6: Riverpod state tests]
+        ├── ptw_export_test.dart                      [M6: PDF & Excel generator tests]
+        └── ptw_page_widget_test.dart                 [M6: Full UI & 4-Tab Widget tests]
+```

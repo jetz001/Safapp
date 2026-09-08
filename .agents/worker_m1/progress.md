@@ -1,17 +1,25 @@
-# Progress Log — Worker M1
+# Progress Log — Worker M1 (PTW Core Models, Safety Evaluator, SQLite v8 & Repo)
 
-Last visited: 2026-08-31T15:25:30Z
+Last visited: 2026-09-01T21:47:00Z
 
 - [x] Initial dispatch received and analyzed
-- [x] Survey reports & legal specs reviewed (32 items, 8 Thai Royal Gazette laws, KPI formulas)
+- [x] Original request & explorer survey reviewed
 - [x] BRIEFING.md initialized
-- [x] Implement Domain Model 1: `legal_master_item_model.dart`
-- [x] Implement Domain Model 2: `legal_compliance_assessment_model.dart`
-- [x] Implement Domain Model 3: `legal_capa_model.dart`
-- [x] Implement Domain Model 4: `legal_compliance_stats_model.dart`
-- [x] Implement Master Seed Data: `safety_legal_8_categories_data.dart` (32 items across 8 categories)
-- [x] Update `DatabaseHelper`: SQLite schema upgrade (v6), tables `safety_legal_master`, `safety_legal_assessments`, `safety_legal_capa`, indexes, seed insertion
-- [x] Implement Data Repository: `legal_register_repository.dart`
-- [x] Implement Riverpod 3 State Management: `legal_register_providers.dart`
-- [x] Write unit tests in `test/legal_register_models_and_repo_test.dart`
-- [x] Write handoff report in `handoff.md` and report back to parent
+- [x] 1. Implement Enums: `high_risk_type.dart`, `ptw_status.dart`, `energy_type.dart`, `confined_role_type.dart`
+- [x] 2. Implement Domain Models:
+  - `gas_test_log_model.dart`
+  - `confined_role_model.dart`
+  - `fire_watch_model.dart`
+  - `loto_isolation_model.dart`
+  - `ptw_checklist_model.dart`
+  - `ptw_kpi_summary_model.dart`
+  - `ptw_approval_model.dart`
+  - `ptw_model.dart`
+- [x] 3. Implement Domain Service: `ptw_safety_evaluator.dart`
+- [x] 4. Update SQLite database in `lib/core/database/database_helper.dart` (v8 migration + 7 PTW tables & indexes)
+- [x] 5. Implement Repository: `lib/features/ptw/data/repositories/ptw_repository.dart`
+- [x] 6. Implement Master Seed Data: `lib/features/ptw/data/datasources/ptw_statutory_master_data.dart`
+- [x] 7. Implement comprehensive unit tests in `test/features/ptw/ptw_domain_and_repo_test.dart`
+- [x] 8. Write `handoff.md` and report completion to parent
+
+

@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:safety_superapp/core/widgets/app_shell.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Disable runtime HTTP fetching for 100% offline standalone execution
+  GoogleFonts.config.allowRuntimeFetching = false;
   runApp(
     const ProviderScope(
       child: SafetySuperapp(),

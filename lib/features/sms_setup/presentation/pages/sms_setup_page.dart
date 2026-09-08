@@ -17,8 +17,9 @@ class SmsSetupPage extends ConsumerStatefulWidget {
   ConsumerState<SmsSetupPage> createState() => _SmsSetupPageState();
 }
 
-class _SmsSetupPageState extends ConsumerState<SmsSetupPage> {
+class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  late TabController _tabController;
 
   // 1. General & Employer
   late TextEditingController _companyNameController;
@@ -94,6 +95,7 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> {
     _safetyOfficerPhoneController = TextEditingController();
 
     _safetyPolicyController = TextEditingController();
+    _tabController = TabController(length: 3, vsync: this);
 
     _loadData();
   }
@@ -178,6 +180,7 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> {
     _safetyOfficerPhoneController.dispose();
 
     _safetyPolicyController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -229,6 +232,33 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> {
   }
 
   Future<void> _save() async {
+    // Smart Cross-Tab Validation
+    if (_companyNameController.text.trim().isEmpty) {
+      _tabController.animateTo(0);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณากรอกชื่อบริษัท / สถานประกอบการ ในแท็บ "๑. ข้อมูลทั่วไป & ประเภทกิจการ"'),
+          backgroundColor: Colors.amber,
+        ),
+      );
+      _formKey.currentState?.validate();
+      return;
+    }
+
+    if (_provinceController.text.trim().isEmpty ||
+        _districtController.text.trim().isEmpty ||
+        _subdistrictController.text.trim().isEmpty) {
+      _tabController.animateTo(1);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('กรุณาระบุที่ตั้งสถานประกอบการ (จังหวัด, อำเภอ, ตำบล) ในแท็บ "๒. ที่ตั้ง & ข้อมูลติดต่อ"'),
+          backgroundColor: Colors.amber,
+        ),
+      );
+      _formKey.currentState?.validate();
+      return;
+    }
+
     if (!_formKey.currentState!.validate()) return;
 
     final updatedProfile = CompanyProfile(
@@ -300,6 +330,28 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> {
         foregroundColor: Colors.black87,
         elevation: 0,
         scrolledUnderElevation: 0,
+        actions: [
+          TextButton.icon(
+            onPressed: () => _loadData(),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('รีเซ็ตข้อมูลเดิม'),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFF64748B)),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: _save,
+            icon: const Icon(Icons.save_rounded, size: 18),
+            label: const Text('บันทึกข้อมูลองค์กร', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E3A8A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 2,
+            ),
+          ),
+          const SizedBox(width: 32),
+        ],
       ),
       body: profileAsync.when(
         data: (profile) {
@@ -309,433 +361,528 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> {
 
           return Form(
             key: _formKey,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 4.0),
+                  child: const Text(
                     'ตั้งค่าระบบการจัดการความปลอดภัย (Safety Management System) - ฐานข้อมูลกลางเชื่อมต่อการประเมินความเสี่ยง ปอ.๑ และ ปอ.๒ ทุกโมดูล',
-                    style: TextStyle(fontSize: 15, color: Color(0xFF64748B)),
+                    style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
                   ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 12),
 
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 960;
-
-                      final leftColumn = Column(
-                        children: [
-                          // 1. ข้อมูลทั่วไปและโลโก้
-                          _buildSectionCard(
-                            title: '๑. ข้อมูลทั่วไปของสถานประกอบการ & นายจ้าง',
-                            icon: Icons.business,
-                            children: [
-                              Center(
-                                child: Stack(
-                                  children: [
-                                    InkWell(
-                                      onTap: _pickLogo,
-                                      borderRadius: BorderRadius.circular(60),
-                                      child: Container(
-                                        width: 110,
-                                        height: 110,
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          shape: BoxShape.circle,
-                                          border: Border.all(color: Colors.grey.shade300, width: 2),
-                                        ),
-                                        child: _logoPath != null && File(_logoPath!).existsSync()
-                                            ? ClipOval(
-                                                child: Image.file(
-                                                  File(_logoPath!),
-                                                  width: 110,
-                                                  height: 110,
-                                                  fit: BoxFit.cover,
-                                                ),
-                                              )
-                                            : const Icon(Icons.domain, size: 44, color: Colors.grey),
-                                      ),
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: Container(
-                                        decoration: const BoxDecoration(color: Color(0xFF1E3A8A), shape: BoxShape.circle),
-                                        child: IconButton(
-                                          icon: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
-                                          tooltip: 'เลือกรูปโลโก้',
-                                          onPressed: _pickLogo,
-                                        ),
-                                      ),
-                                    ),
-                                    if (_logoPath != null && File(_logoPath!).existsSync())
-                                      Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: Container(
-                                          decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
-                                          child: IconButton(
-                                            icon: const Icon(Icons.close, color: Colors.white, size: 14),
-                                            tooltip: 'ลบโลโก้',
-                                            constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
-                                            padding: EdgeInsets.zero,
-                                            onPressed: _removeLogo,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Center(
-                                child: TextButton.icon(
-                                  onPressed: _pickLogo,
-                                  icon: const Icon(Icons.image, size: 14),
-                                  label: Text(
-                                    _logoPath == null ? 'คลิกเพื่อเลือกไฟล์โลโก้' : 'เปลี่ยนรูปโลโก้',
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              _buildTextField(
-                                'ชื่อบริษัท / สถานประกอบการ *',
-                                Icons.business_center,
-                                controller: _companyNameController,
-                                validator: (v) => v == null || v.trim().isEmpty ? 'กรุณากรอกชื่อสถานประกอบการ' : null,
-                              ),
-                              const SizedBox(height: 12),
-                              _buildTextField(
-                                'ชื่อ-นามสกุล นายจ้าง / ผู้มีอำนาจลงนาม',
-                                Icons.person_pin,
-                                controller: _employerNameController,
-                              ),
-                              const SizedBox(height: 12),
-                              _buildTextField(
-                                'เลขประจำตัวผู้เสียภาษี / เลขทะเบียนนิติบุคคล',
-                                Icons.tag,
-                                controller: _taxIdController,
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'จำนวนลูกจ้างรวม (คน)',
-                                      Icons.people,
-                                      controller: _employeeCountController,
-                                      keyboardType: TextInputType.number,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'พื้นที่ (ตารางเมตร)',
-                                      Icons.square_foot,
-                                      controller: _areaSqmController,
-                                      keyboardType: TextInputType.number,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 2. บัญชีประเภทกิจการตามประกาศกระทรวงแรงงาน
-                          _buildSectionCard(
-                            title: '๒. ประเภทกิจการตามประกาศกระทรวงแรงงาน (๒๕๖๗)',
-                            icon: Icons.category_rounded,
-                            children: [
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  ChoiceChip(
-                                    label: const Text('บัญชี ๑ (๕ ประเภท - ๒ คนขึ้นไป)'),
-                                    selected: _selectedSchedule == 1,
-                                    onSelected: (sel) {
-                                      if (sel) {
-                                        setState(() {
-                                          _selectedSchedule = 1;
-                                          _selectedCategoryTitle = null;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                  ChoiceChip(
-                                    label: const Text('บัญชี ๒ (๔๙ ประเภท - ๒๐ คนขึ้นไป)'),
-                                    selected: _selectedSchedule == 2,
-                                    onSelected: (sel) {
-                                      if (sel) {
-                                        setState(() {
-                                          _selectedSchedule = 2;
-                                          _selectedCategoryTitle = null;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              DropdownButtonFormField<String>(
-                                isExpanded: true,
-                                value: categories.contains(_selectedCategoryTitle) ? _selectedCategoryTitle : null,
-                                decoration: InputDecoration(
-                                  labelText: 'เลือกประเภทอุตสาหกรรม/กิจการ ตามบัญชีท้ายประกาศ',
-                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                                  filled: true,
-                                  fillColor: Colors.white.withValues(alpha: 0.5),
-                                  isDense: true,
-                                ),
-                                items: categories.map((c) {
-                                  return DropdownMenuItem<String>(
-                                    value: c,
-                                    child: Text(c, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
-                                  );
-                                }).toList(),
-                                onChanged: (val) {
-                                  setState(() {
-                                    _selectedCategoryTitle = val;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-
-                      final rightColumn = Column(
-                        children: [
-                          // 3. ที่ตั้งสถานประกอบกิจการ
-                          _buildSectionCard(
-                            title: '๓. ที่ตั้งสถานประกอบกิจการ & ข้อมูลติดต่อ',
-                            icon: Icons.location_on,
-                            children: [
-                              ThaiAddressCascadeWidget(
-                                addressNumberController: _addressNumberController,
-                                mooController: _mooController,
-                                soiController: _soiController,
-                                roadController: _roadController,
-                                subdistrictController: _subdistrictController,
-                                districtController: _districtController,
-                                provinceController: _provinceController,
-                                postalCodeController: _postalCodeController,
-                                phoneController: _phoneController,
-                                faxController: _faxController,
-                                mobileController: _mobileController,
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 4. ผู้ชำนาญการด้านความปลอดภัยฯ (มาตรา ๓๓)
-                          _buildSectionCard(
-                            title: '๔. ผู้ชำนาญการด้านความปลอดภัยฯ ที่ได้รับใบอนุญาต (ม.๓๓)',
-                            icon: Icons.verified_user_rounded,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: _buildTextField(
-                                      'ชื่อ-นามสกุล ผู้ชำนาญการฯ',
-                                      Icons.badge,
-                                      controller: _safetyExpertNameController,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildTextField(
-                                      'เลขที่ใบอนุญาต (กสร.)',
-                                      Icons.card_membership,
-                                      controller: _safetyExpertLicenseNoController,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'วันที่ได้รับอนุญาต (วัน/เดือน/ปี เช่น 01/01/2567)',
-                                      Icons.calendar_today,
-                                      controller: _safetyExpertValidFromController,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'วันที่สิ้นสุดใบอนุญาต (วัน/เดือน/ปี เช่น 31/12/2569)',
-                                      Icons.event_busy,
-                                      controller: _safetyExpertValidToController,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 5. เจ้าหน้าที่ความปลอดภัยในการทำงาน (จป.)
-                          _buildSectionCard(
-                            title: '๕. เจ้าหน้าที่ความปลอดภัยในการทำงาน (จป.) ประจำสถานประกอบการ',
-                            icon: Icons.health_and_safety_rounded,
-                            children: [
-                              Row(
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: _buildTextField(
-                                      'ชื่อ-นามสกุล จป. (ผู้ประเมินหลัก)',
-                                      Icons.person,
-                                      controller: _safetyOfficerNameController,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    flex: 2,
-                                    child: DropdownButtonFormField<String>(
-                                      isExpanded: true,
-                                      value: _safetyOfficerLevel,
-                                      decoration: InputDecoration(
-                                        labelText: 'ระดับ จป.',
-                                        prefixIcon: const Icon(Icons.stars, color: Colors.amber, size: 18),
-                                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                                        filled: true,
-                                        fillColor: Colors.white.withValues(alpha: 0.6),
-                                        isDense: true,
-                                      ),
-                                      items: const [
-                                        DropdownMenuItem(value: 'จป.วิชาชีพ', child: Text('จป.วิชาชีพ', style: TextStyle(fontSize: 13))),
-                                        DropdownMenuItem(value: 'จป.เทคนิคขั้นสูง', child: Text('จป.เทคนิคขั้นสูง', style: TextStyle(fontSize: 13))),
-                                        DropdownMenuItem(value: 'จป.เทคนิค', child: Text('จป.เทคนิค', style: TextStyle(fontSize: 13))),
-                                        DropdownMenuItem(value: 'จป.บริหาร', child: Text('จป.บริหาร', style: TextStyle(fontSize: 13))),
-                                        DropdownMenuItem(value: 'จป.หัวหน้างาน', child: Text('จป.หัวหน้างาน', style: TextStyle(fontSize: 13))),
-                                      ],
-                                      onChanged: (val) {
-                                        if (val != null) setState(() => _safetyOfficerLevel = val);
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'เลขที่ขึ้นทะเบียน / เลขที่ใบประกาศนียบัตร จป.',
-                                      Icons.badge_outlined,
-                                      controller: _safetyOfficerCertNoController,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _buildTextField(
-                                      'เบอร์โทรศัพท์ติดต่อ จป.',
-                                      Icons.phone_in_talk,
-                                      controller: _safetyOfficerPhoneController,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-
-                          // 6. นโยบายและเป้าหมายความปลอดภัย
-                          _buildSectionCard(
-                            title: '๖. นโยบายและเป้าหมายความปลอดภัย',
-                            icon: Icons.policy,
-                            children: [
-                              _buildTextField(
-                                'คำประกาศนโยบายความปลอดภัย (Safety Policy)',
-                                Icons.article,
-                                controller: _safetyPolicyController,
-                                maxLines: 3,
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'เป้าหมายด้านความปลอดภัย (Safety Objectives)',
-                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF334155)),
-                              ),
-                              const SizedBox(height: 8),
-                              _buildGoalItem('เป้าหมายอุบัติเหตุถึงขั้นหยุดงาน (LTI)', '0 ครั้ง/ปี'),
-                              const SizedBox(height: 8),
-                              _buildGoalItem('เป้าหมายการฝึกอบรม', '100% ของพนักงาน'),
-                              const SizedBox(height: 8),
-                              _buildGoalItem('ความถี่ในการตรวจพื้นที่ (Audit)', 'สัปดาห์ละ 1 ครั้ง'),
-                            ],
-                          ),
-                        ],
-                      );
-
-                      if (isWide) {
-                        return Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(flex: 6, child: leftColumn),
-                            const SizedBox(width: 24),
-                            Expanded(flex: 6, child: rightColumn),
-                          ],
-                        );
-                      } else {
-                        return Column(
-                          children: [
-                            leftColumn,
-                            const SizedBox(height: 20),
-                            rightColumn,
-                          ],
-                        );
-                      }
-                    },
+                // ── Tab Bar ─────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32.0),
+                  child: GlassContainer(
+                    borderRadius: BorderRadius.circular(14),
+                    padding: const EdgeInsets.all(4),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicator: BoxDecoration(
+                        color: const Color(0xFF1E3A8A),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      labelColor: Colors.white,
+                      unselectedLabelColor: const Color(0xFF64748B),
+                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+                      tabs: const [
+                        Tab(
+                          icon: Icon(Icons.business_rounded, size: 18),
+                          text: '๑. ข้อมูลทั่วไป & ประเภทกิจการ',
+                        ),
+                        Tab(
+                          icon: Icon(Icons.location_on_rounded, size: 18),
+                          text: '๒. ที่ตั้ง & ข้อมูลติดต่อ',
+                        ),
+                        Tab(
+                          icon: Icon(Icons.shield_rounded, size: 18),
+                          text: '๓. จป., ผู้ชำนาญการ & นโยบาย',
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 32),
+                ),
+                const SizedBox(height: 12),
 
-                  // Bottom Save Action Bar
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                // ── Tab Views ────────────────────────────────────────────
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
                     children: [
-                      Wrap(
-                        spacing: 16,
-                        runSpacing: 12,
-                        alignment: WrapAlignment.end,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          TextButton(
-                            onPressed: () => _loadData(),
-                            style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16)),
-                            child: const Text('รีเซ็ตข้อมูลเดิม', style: TextStyle(fontSize: 15, color: Colors.grey)),
-                          ),
-                          ElevatedButton.icon(
-                            onPressed: _save,
-                            icon: const Icon(Icons.save_rounded, size: 20),
-                            label: const Text('บันทึกข้อมูลองค์กรทั้งหมด', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E3A8A),
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 18),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 3,
-                            ),
-                          ),
-                        ],
+                      // Tab 1: ข้อมูลทั่วไป & ประเภทกิจการ
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 8.0),
+                        child: _buildGeneralAndCategoryTab(categories),
+                      ),
+                      // Tab 2: ที่ตั้ง & ข้อมูลติดต่อ
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 8.0),
+                        child: _buildAddressAndContactTab(),
+                      ),
+                      // Tab 3: จป., ผู้ชำนาญการ & นโยบาย
+                      SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 8.0),
+                        child: _buildPersonnelAndPolicyTab(),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('เกิดข้อผิดพลาด: $e')),
       ),
+    );
+  }
+
+  // ── Tab 1: ข้อมูลทั่วไป & ประเภทกิจการ ────────────────────────────────────
+  Widget _buildGeneralAndCategoryTab(List<String> categories) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 1. ข้อมูลทั่วไปและโลโก้
+        _buildSectionCard(
+          title: '๑. ข้อมูลทั่วไปของสถานประกอบการ & นายจ้าง',
+          icon: Icons.business,
+          children: [
+            Center(
+              child: Stack(
+                children: [
+                  InkWell(
+                    onTap: _pickLogo,
+                    borderRadius: BorderRadius.circular(60),
+                    child: Container(
+                      width: 110,
+                      height: 110,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey.shade300, width: 2),
+                      ),
+                      child: _logoPath != null && File(_logoPath!).existsSync()
+                          ? ClipOval(
+                              child: Image.file(
+                                File(_logoPath!),
+                                width: 110,
+                                height: 110,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                          : const Icon(Icons.domain, size: 44, color: Colors.grey),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      decoration: const BoxDecoration(color: Color(0xFF1E3A8A), shape: BoxShape.circle),
+                      child: IconButton(
+                        icon: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                        tooltip: 'เลือกรูปโลโก้',
+                        onPressed: _pickLogo,
+                      ),
+                    ),
+                  ),
+                  if (_logoPath != null && File(_logoPath!).existsSync())
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        decoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                        child: IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white, size: 14),
+                          tooltip: 'ลบโลโก้',
+                          constraints: const BoxConstraints(minWidth: 26, minHeight: 26),
+                          padding: EdgeInsets.zero,
+                          onPressed: _removeLogo,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: TextButton.icon(
+                onPressed: _pickLogo,
+                icon: const Icon(Icons.image, size: 14),
+                label: Text(
+                  _logoPath == null ? 'คลิกเพื่อเลือกไฟล์โลโก้' : 'เปลี่ยนรูปโลโก้',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildTextField(
+              'ชื่อบริษัท / สถานประกอบการ *',
+              Icons.business_center,
+              controller: _companyNameController,
+              validator: (v) => v == null || v.trim().isEmpty ? 'กรุณากรอกชื่อสถานประกอบการ' : null,
+            ),
+            const SizedBox(height: 12),
+            _buildTextField(
+              'ชื่อ-นามสกุล นายจ้าง / ผู้มีอำนาจลงนาม',
+              Icons.person_pin,
+              controller: _employerNameController,
+            ),
+            const SizedBox(height: 12),
+            _buildTextField(
+              'เลขประจำตัวผู้เสียภาษี / เลขทะเบียนนิติบุคคล',
+              Icons.tag,
+              controller: _taxIdController,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    'จำนวนลูกจ้างรวม (คน)',
+                    Icons.people,
+                    controller: _employeeCountController,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    'พื้นที่ (ตารางเมตร)',
+                    Icons.square_foot,
+                    controller: _areaSqmController,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // 2. บัญชีประเภทกิจการตามประกาศกระทรวงแรงงาน
+        _buildSectionCard(
+          title: '๒. ประเภทกิจการตามประกาศกระทรวงแรงงาน (๒๕๖๗)',
+          icon: Icons.category_rounded,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                ChoiceChip(
+                  label: const Text('บัญชี ๑ (๕ ประเภท - ๒ คนขึ้นไป)'),
+                  selected: _selectedSchedule == 1,
+                  onSelected: (sel) {
+                    if (sel) {
+                      setState(() {
+                        _selectedSchedule = 1;
+                        _selectedCategoryTitle = null;
+                      });
+                    }
+                  },
+                ),
+                ChoiceChip(
+                  label: const Text('บัญชี ๒ (๔๙ ประเภท - ๒๐ คนขึ้นไป)'),
+                  selected: _selectedSchedule == 2,
+                  onSelected: (sel) {
+                    if (sel) {
+                      setState(() {
+                        _selectedSchedule = 2;
+                        _selectedCategoryTitle = null;
+                      });
+                    }
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              isExpanded: true,
+              value: categories.contains(_selectedCategoryTitle) ? _selectedCategoryTitle : null,
+              decoration: InputDecoration(
+                labelText: 'เลือกประเภทอุตสาหกรรม/กิจการ ตามบัญชีท้ายประกาศ',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.5),
+                isDense: true,
+              ),
+              items: categories.map((c) {
+                return DropdownMenuItem<String>(
+                  value: c,
+                  child: Text(c, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12)),
+                );
+              }).toList(),
+              onChanged: (val) {
+                setState(() {
+                  _selectedCategoryTitle = val;
+                });
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Navigation to Next Tab
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () => _tabController.animateTo(1),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+              label: const Text('ถัดไป: ที่ตั้ง & ข้อมูลติดต่อ', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  // ── Tab 2: ที่ตั้ง & ข้อมูลติดต่อ ────────────────────────────────────────
+  Widget _buildAddressAndContactTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 3. ที่ตั้งสถานประกอบกิจการ
+        _buildSectionCard(
+          title: '๓. ที่ตั้งสถานประกอบกิจการ & ข้อมูลติดต่อ',
+          icon: Icons.location_on,
+          children: [
+            ThaiAddressCascadeWidget(
+              addressNumberController: _addressNumberController,
+              mooController: _mooController,
+              soiController: _soiController,
+              roadController: _roadController,
+              subdistrictController: _subdistrictController,
+              districtController: _districtController,
+              provinceController: _provinceController,
+              postalCodeController: _postalCodeController,
+              phoneController: _phoneController,
+              faxController: _faxController,
+              mobileController: _mobileController,
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Navigation Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _tabController.animateTo(0),
+              icon: const Icon(Icons.arrow_back_rounded, size: 18),
+              label: const Text('ก่อนหน้า: ข้อมูลทั่วไป'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: () => _tabController.animateTo(2),
+              icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+              label: const Text('ถัดไป: จป., ผู้ชำนาญการ & นโยบาย', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+      ],
+    );
+  }
+
+  // ── Tab 3: จป., ผู้ชำนาญการ & นโยบาย ──────────────────────────────────
+  Widget _buildPersonnelAndPolicyTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // 4. ผู้ชำนาญการด้านความปลอดภัยฯ (มาตรา ๓๓)
+        _buildSectionCard(
+          title: '๔. ผู้ชำนาญการด้านความปลอดภัยฯ ที่ได้รับใบอนุญาต (ม.๓๓)',
+          icon: Icons.verified_user_rounded,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: _buildTextField(
+                    'ชื่อ-นามสกุล ผู้ชำนาญการฯ',
+                    Icons.badge,
+                    controller: _safetyExpertNameController,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: _buildTextField(
+                    'เลขที่ใบอนุญาต (กสร.)',
+                    Icons.card_membership,
+                    controller: _safetyExpertLicenseNoController,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    'วันที่ได้รับอนุญาต (วัน/เดือน/ปี เช่น 01/01/2567)',
+                    Icons.calendar_today,
+                    controller: _safetyExpertValidFromController,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    'วันที่สิ้นสุดใบอนุญาต (วัน/เดือน/ปี เช่น 31/12/2569)',
+                    Icons.event_busy,
+                    controller: _safetyExpertValidToController,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // 5. เจ้าหน้าที่ความปลอดภัยในการทำงาน (จป.)
+        _buildSectionCard(
+          title: '๕. เจ้าหน้าที่ความปลอดภัยในการทำงาน (จป.) ประจำสถานประกอบการ',
+          icon: Icons.health_and_safety_rounded,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: _buildTextField(
+                    'ชื่อ-นามสกุล จป. (ผู้ประเมินหลัก)',
+                    Icons.person,
+                    controller: _safetyOfficerNameController,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: _safetyOfficerLevel,
+                    decoration: InputDecoration(
+                      labelText: 'ระดับ จป.',
+                      prefixIcon: const Icon(Icons.stars, color: Colors.amber, size: 18),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.6),
+                      isDense: true,
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'จป.วิชาชีพ', child: Text('จป.วิชาชีพ', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(value: 'จป.เทคนิคขั้นสูง', child: Text('จป.เทคนิคขั้นสูง', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(value: 'จป.เทคนิค', child: Text('จป.เทคนิค', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(value: 'จป.บริหาร', child: Text('จป.บริหาร', style: TextStyle(fontSize: 13))),
+                      DropdownMenuItem(value: 'จป.หัวหน้างาน', child: Text('จป.หัวหน้างาน', style: TextStyle(fontSize: 13))),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) setState(() => _safetyOfficerLevel = val);
+                    },
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTextField(
+                    'เลขที่ขึ้นทะเบียน / เลขที่ใบประกาศนียบัตร จป.',
+                    Icons.badge_outlined,
+                    controller: _safetyOfficerCertNoController,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildTextField(
+                    'เบอร์โทรศัพท์ติดต่อ จป.',
+                    Icons.phone_in_talk,
+                    controller: _safetyOfficerPhoneController,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+
+        // 6. นโยบายและเป้าหมายความปลอดภัย
+        _buildSectionCard(
+          title: '๖. นโยบายและเป้าหมายความปลอดภัย',
+          icon: Icons.policy,
+          children: [
+            _buildTextField(
+              'คำประกาศนโยบายความปลอดภัย (Safety Policy)',
+              Icons.article,
+              controller: _safetyPolicyController,
+              maxLines: 3,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'เป้าหมายด้านความปลอดภัย (Safety Objectives)',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF334155)),
+            ),
+            const SizedBox(height: 8),
+            _buildGoalItem('เป้าหมายอุบัติเหตุถึงขั้นหยุดงาน (LTI)', '0 ครั้ง/ปี'),
+            const SizedBox(height: 8),
+            _buildGoalItem('เป้าหมายการฝึกอบรม', '100% ของพนักงาน'),
+            const SizedBox(height: 8),
+            _buildGoalItem('ความถี่ในการตรวจพื้นที่ (Audit)', 'สัปดาห์ละ 1 ครั้ง'),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Navigation & Save Buttons
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            OutlinedButton.icon(
+              onPressed: () => _tabController.animateTo(1),
+              icon: const Icon(Icons.arrow_back_rounded, size: 18),
+              label: const Text('ก่อนหน้า: ที่ตั้ง & ข้อมูลติดต่อ'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+            ElevatedButton.icon(
+              onPressed: _save,
+              icon: const Icon(Icons.save_rounded, size: 18),
+              label: const Text('บันทึกข้อมูลองค์กรทั้งหมด', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                elevation: 3,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
+      ],
     );
   }
 

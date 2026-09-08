@@ -1,0 +1,7 @@
+[project]
+name = "thai-ptw-safety-law"
+version = "0.1.0"
+description = "Validate High-Risk Permit to Work (PTW) workflows, evaluate Confined Space gas testing (O2, LEL, CO, H2S), verify 4-role duty holders, audit Hot Work 30-min fire watch, inspect LOTO zero energy isolation, retrieve statutory safety checklists, and query Thai safety laws."
+readme = "SKILL.md"
+requires-python = ">=3.10"
+dependencies = []

@@ -1,54 +1,51 @@
-# BRIEFING — 2026-08-31T22:30:00+07:00
+# BRIEFING — 2026-09-01T15:00:00Z
 
 ## Mission
-Implement statutory PDF export (`legal_compliance_pdf_service.dart`) and multi-sheet Excel export (`legal_compliance_excel_service.dart`) for SAFAPP Legal Register feature with authentic Thai typography, complete statutory tables, KPI summaries, CAPA tracking, and signature blocks.
+Implement Worker M3: PTW 4-Tab UI, 6-Step Wizard, Live Site Controls, Legal Library, Dialogs & Widgets for SAFAPP.
 
 ## 🔒 My Identity
-- Archetype: worker
+- Archetype: Worker M3
 - Roles: implementer, qa, specialist
-- Working directory: d:\DEV\SAFAPP\.agents\worker_m3
-- Original parent: bedb8118-4836-4c4c-a9fb-ce9e5b6459df
-- Milestone: M3 (PDF & Excel Export Services)
+- Working directory: d:\DEV\SAFAPP\.agents\worker_m3\
+- Original parent: 38d8ec0b-4091-472e-9010-6d2bb11b29e0
+- Milestone: M3 (PTW 4-Tab UI & Live Controls)
 
 ## 🔒 Key Constraints
-- Exclusive write ownership:
-  - lib/features/legal_register/services/legal_compliance_pdf_service.dart
-  - lib/features/legal_register/services/legal_compliance_excel_service.dart
-- Genuine implementation with no hardcoding or facade
-- Authentic Thai font rendering (Google Sarabun Regular/Bold/Italic)
-- Follow existing patterns from `chemical_sor1_pdf_service.dart` and `por1_por2_excel_service.dart`
+- High-risk PTW module covering 5 core risk types under Thai OSH Legislation.
+- 4 Tabs in PtwPage: Dashboard & Register, 6-Step Wizard, Live Site Controls, Legal Reference Library.
+- High-fidelity glassmorphic UI matching SAFAPP theme and design patterns.
+- Pure Flutter components with Riverpod 3, SQLite v8 repository, and Digital Signature Canvas.
+- Genuine implementation with no hardcoded test shortcuts. Full test pass rate.
 
 ## Current Parent
-- Conversation ID: bedb8118-4836-4c4c-a9fb-ce9e5b6459df
-- Updated: 2026-08-31T22:30:00+07:00
+- Conversation ID: 38d8ec0b-4091-472e-9010-6d2bb11b29e0
+- Updated: 2026-09-01T15:00:00Z
 
 ## Task Summary
 - **What to build**:
-  1. `LegalCompliancePdfService` providing PDF evaluation reports with enterprise headers, KPI summary, 8-category executive summary, detailed compliance tables, CAPA action plan table, and 3-tier signature blocks.
-  2. `LegalComplianceExcelService` providing multi-sheet .xlsx workbook (Sheet 1: Legal Register & Assessment, Sheet 2: CAPA Action Plan, Sheet 3: Category KPI Summary) with styled headers, borders, and sharing/opening support.
-- **Success criteria**:
-  - Compiles cleanly without errors or warnings.
-  - Generates well-formatted PDF with Thai font support and proper pagination.
-  - Generates multi-sheet Excel with accurate formulas, columns, and styles.
-  - Tests pass with high coverage.
-
-## Key Decisions Made
-- Used A4 Landscape (`PdfPageFormat.a4.landscape`) for PDF generation to provide optimal width and legibility for multi-column statutory compliance registers.
-- Utilized Google Sarabun fonts (Regular, Bold, Italic) for official Thai legal document presentation.
-- Implemented 3 dedicated sheets in Excel: "Legal Register & Assessment", "CAPA Action Plan", and "Category KPI Summary", with complete metadata banners, 22-column evaluation records, 19-column CAPA action plans, and 14-column category KPI summaries.
-- Provided multiple integration endpoints: `generatePdf`, `printOrShare`, `sharePdf`, `savePdfToFile`, `exportToExcelBytes`, and `exportToExcelFile`.
+  - `lib/features/ptw/presentation/widgets/ptw_kpi_card.dart`
+  - `lib/features/ptw/presentation/widgets/ptw_status_chip.dart`
+  - `lib/features/ptw/presentation/widgets/gas_test_logger_card.dart`
+  - `lib/features/ptw/presentation/widgets/fire_watch_timer_card.dart`
+  - `lib/features/ptw/presentation/widgets/ptw_detail_dialog.dart`
+  - `lib/features/ptw/presentation/tabs/ptw_dashboard_tab.dart` (Tab 1)
+  - `lib/features/ptw/presentation/tabs/ptw_wizard_tab.dart` (Tab 2)
+  - `lib/features/ptw/presentation/tabs/ptw_live_controls_tab.dart` (Tab 3)
+  - `lib/features/ptw/presentation/tabs/ptw_legal_library_tab.dart` (Tab 4)
+  - `lib/features/ptw/presentation/pages/ptw_page.dart` (Main page with 4 tabs)
+  - `test/features/ptw/ptw_page_widget_test.dart` (Widget test suite)
+- **Success criteria**: All widgets and tabs render properly, interactive flows work, unit & widget tests pass 100%.
 
 ## Change Tracker
-- **Files modified**:
-  - `lib/features/legal_register/services/legal_compliance_pdf_service.dart`: Created statutory PDF generation service with Thai Sarabun fonts, executive KPI boxes, 8-category summary, detailed evaluation table, CAPA table, and 3-tier signature blocks.
-  - `lib/features/legal_register/services/legal_compliance_excel_service.dart`: Created multi-sheet .xlsx Excel generation service with 3 comprehensive sheets, metadata banners, and export file handlers.
-- **Build status**: Complete & ready
+- **Files modified**: Initializing M3 components
+- **Build status**: Ready to implement
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Verified code structure against domain models and project patterns
-- **Lint status**: Clean Dart code conforming to project style
-- **Tests added/modified**: Covered by export service tests
+- **Build/test result**: In progress
+- **Lint status**: 0 violations
+- **Tests added/modified**: `test/features/ptw/ptw_page_widget_test.dart`
 
 ## Loaded Skills
-- None required directly
+- **Source**: C:\Users\jetsa\.gemini\config\skills\thai-ptw-safety-law\SKILL.md
+- **Core methodology**: Thai PTW statutory rules, Confined Space 4 roles & gas testing limits, Hot work 30m fire watch, LOTO zero-energy verification.

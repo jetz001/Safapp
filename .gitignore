@@ -46,3 +46,7 @@ app.*.map.json
 
 # User added
 bin/
+
+asset/
+assets/
+

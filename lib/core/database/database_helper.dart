@@ -40,7 +40,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 7,
+        version: 9,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -98,6 +98,7 @@ class DatabaseHelper {
     await _createChemicalTables(db);
     await _createLegalTables(db);
     await _createEnvironmentTables(db);
+    await _createPtwTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -138,6 +139,12 @@ class DatabaseHelper {
     if (oldVersion < 7) {
       await _createEnvironmentTables(db);
     }
+    if (oldVersion < 8) {
+      await _createPtwTables(db);
+    }
+    if (oldVersion < 9) {
+      await _createCpoTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -145,6 +152,8 @@ class DatabaseHelper {
     await _createChemicalTables(db);
     await _createLegalTables(db);
     await _createEnvironmentTables(db);
+    await _createPtwTables(db);
+    await _createCpoTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -1110,4 +1119,438 @@ class DatabaseHelper {
       }
     }
   }
+
+  // ====================================================
+  // High-Risk Permit to Work (PTW) Tables - Version 8
+  // ====================================================
+  Future<void> _createPtwTables(Database db) async {
+    // 1. ตารางใบอนุญาตทำงานความเสี่ยงสูงหลัก (PTW Master Table)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_permits (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ptw_number TEXT NOT NULL UNIQUE,
+        work_title TEXT NOT NULL,
+        work_description TEXT NOT NULL,
+        primary_risk_type TEXT NOT NULL,
+        secondary_risk_types TEXT,
+        status TEXT NOT NULL DEFAULT 'DRAFT',
+        plant_area TEXT NOT NULL,
+        specific_location TEXT NOT NULL,
+        request_date TEXT NOT NULL,
+        work_start_date TEXT NOT NULL,
+        work_start_time TEXT NOT NULL,
+        work_end_date TEXT NOT NULL,
+        work_end_time TEXT NOT NULL,
+        extension_hours INTEGER DEFAULT 0,
+        extension_reason TEXT,
+        applicant_type TEXT NOT NULL DEFAULT 'INTERNAL_EMPLOYEE',
+        applicant_name TEXT NOT NULL,
+        applicant_department TEXT NOT NULL,
+        applicant_phone TEXT NOT NULL,
+        worker_count INTEGER DEFAULT 1,
+        worker_names TEXT,
+        jsa_reference_no TEXT,
+        emergency_rescue_plan TEXT NOT NULL,
+        required_ppe_list TEXT NOT NULL,
+        special_precautions TEXT,
+        applicant_signature_path TEXT,
+        applicant_signed_at TEXT,
+        safety_officer_signature_path TEXT,
+        safety_officer_name TEXT,
+        safety_officer_signed_at TEXT,
+        authorizer_signature_path TEXT,
+        authorizer_name TEXT,
+        authorizer_signed_at TEXT,
+        handover_signature_path TEXT,
+        handover_signed_at TEXT,
+        closure_signature_path TEXT,
+        closure_signed_at TEXT,
+        closure_remarks TEXT,
+        site_photo_paths TEXT,
+        qr_code_data TEXT,
+        official_pdf_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ptw_number ON ptw_permits(ptw_number)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ptw_status ON ptw_permits(status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ptw_risk ON ptw_permits(primary_risk_type)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_ptw_date ON ptw_permits(work_start_date)');
+
+    // 2. ตารางผลการตรวจวัดก๊าซในที่อับอากาศ (Gas Test Monitoring Logs)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_gas_test_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        log_id TEXT NOT NULL UNIQUE,
+        ptw_number TEXT NOT NULL,
+        test_stage TEXT NOT NULL,
+        test_timestamp TEXT NOT NULL,
+        location_point TEXT NOT NULL,
+        oxygen_percent REAL NOT NULL,
+        combustible_percent_lel REAL NOT NULL,
+        carbon_monoxide_ppm REAL NOT NULL,
+        hydrogen_sulfide_ppm REAL NOT NULL,
+        toxic_other_ppm REAL,
+        toxic_other_name TEXT,
+        tester_name TEXT NOT NULL,
+        tester_cert_no TEXT,
+        detector_model TEXT NOT NULL,
+        detector_serial_no TEXT NOT NULL,
+        last_calibration_date TEXT NOT NULL,
+        is_safe INTEGER NOT NULL DEFAULT 1,
+        safety_remarks TEXT,
+        signature_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ptw_number) REFERENCES ptw_permits(ptw_number) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_gas_ptw ON ptw_gas_test_logs(ptw_number)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_gas_stage ON ptw_gas_test_logs(test_stage)');
+
+    // 3. ตารางทะเบียนผู้มีหน้าที่ 4 ฝ่ายในที่อับอากาศ (Confined Space 4 Roles)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_confined_roles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        role_assignment_id TEXT NOT NULL UNIQUE,
+        ptw_number TEXT NOT NULL,
+        role_type TEXT NOT NULL,
+        person_name TEXT NOT NULL,
+        national_id TEXT,
+        employee_id TEXT,
+        company_name TEXT NOT NULL,
+        cert_number TEXT NOT NULL,
+        cert_institute TEXT NOT NULL,
+        cert_issue_date TEXT NOT NULL,
+        cert_expiry_date TEXT NOT NULL,
+        contact_phone TEXT NOT NULL,
+        is_trained_and_certified INTEGER NOT NULL DEFAULT 1,
+        signature_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ptw_number) REFERENCES ptw_permits(ptw_number) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cfr_ptw ON ptw_confined_roles(ptw_number)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cfr_role ON ptw_confined_roles(role_type)');
+
+    // 4. ตารางการเฝ้าระวังไฟและตรวจความปลอดภัยหลังงาน Hot Work 30 นาที (Fire Watch Logs)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_fire_watches (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        watch_id TEXT NOT NULL UNIQUE,
+        ptw_number TEXT NOT NULL UNIQUE,
+        fire_watcher_name TEXT NOT NULL,
+        fire_watcher_phone TEXT NOT NULL,
+        fire_extinguisher_type TEXT NOT NULL,
+        fire_extinguisher_serial TEXT NOT NULL,
+        extinguisher_inspected_ready INTEGER NOT NULL DEFAULT 1,
+        cleared_radius_meters REAL NOT NULL DEFAULT 11.0,
+        fire_blanket_installed INTEGER NOT NULL DEFAULT 1,
+        combustible_material_protected INTEGER NOT NULL DEFAULT 1,
+        sewer_covered INTEGER NOT NULL DEFAULT 1,
+        hot_work_end_time TEXT NOT NULL,
+        post_work_watch_start_time TEXT NOT NULL,
+        post_work_watch_end_time TEXT,
+        post_work_watch_duration_minutes INTEGER NOT NULL DEFAULT 30,
+        is_post_work_area_safe INTEGER NOT NULL DEFAULT 1,
+        final_inspector_name TEXT,
+        final_inspector_signature TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ptw_number) REFERENCES ptw_permits(ptw_number) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_fw_ptw ON ptw_fire_watches(ptw_number)');
+
+    // 5. ตารางจุดตัดแยกพลังงาน Lockout/Tagout (LOTO Isolation Logs)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_loto_isolations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        isolation_id TEXT NOT NULL UNIQUE,
+        ptw_number TEXT NOT NULL,
+        equipment_tag_no TEXT NOT NULL,
+        equipment_name TEXT NOT NULL,
+        location_area TEXT NOT NULL,
+        energy_type TEXT NOT NULL,
+        isolation_method TEXT NOT NULL,
+        padlock_tag_no TEXT NOT NULL,
+        lock_applied_by TEXT NOT NULL,
+        lock_applied_timestamp TEXT NOT NULL,
+        zero_energy_test_method TEXT NOT NULL,
+        is_zero_energy_verified INTEGER NOT NULL DEFAULT 1,
+        verified_by TEXT NOT NULL,
+        verified_timestamp TEXT,
+        is_de_isolated INTEGER NOT NULL DEFAULT 0,
+        de_isolated_by TEXT,
+        de_isolated_timestamp TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ptw_number) REFERENCES ptw_permits(ptw_number) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_loto_ptw ON ptw_loto_isolations(ptw_number)');
+
+    // 6. ตารางรายการตรวจสอบความปลอดภัย (PTW Checklists)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_checklists (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ptw_number TEXT,
+        item_id TEXT NOT NULL,
+        risk_type TEXT NOT NULL,
+        check_category TEXT NOT NULL,
+        question_th TEXT NOT NULL,
+        question_en TEXT NOT NULL,
+        is_mandatory INTEGER NOT NULL DEFAULT 1,
+        result TEXT NOT NULL DEFAULT 'NA',
+        remarks TEXT,
+        checked_by TEXT,
+        checked_at TEXT,
+        FOREIGN KEY (ptw_number) REFERENCES ptw_permits(ptw_number) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_chk_ptw ON ptw_checklists(ptw_number)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_chk_risk ON ptw_checklists(risk_type)');
+
+    // 7. ตารางประวัติการอนุมัติและ Audit Trail (PTW Approval Logs)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS ptw_approval_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        approval_id TEXT NOT NULL UNIQUE,
+        ptw_number TEXT NOT NULL,
+        approval_stage TEXT NOT NULL,
+        approver_role TEXT NOT NULL,
+        approver_name TEXT NOT NULL,
+        approver_position TEXT,
+        action TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        comments TEXT,
+        signature_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (ptw_number) REFERENCES ptw_permits(ptw_number) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_apr_ptw ON ptw_approval_logs(ptw_number)');
+  }
+
+  Future<void> _createCpoTables(Database db) async {
+    // 1. วาระ คปอ. (CPO Term)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_terms (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        term_code TEXT NOT NULL UNIQUE,
+        term_title TEXT NOT NULL,
+        start_date TEXT NOT NULL,
+        end_date TEXT NOT NULL,
+        employee_count INTEGER NOT NULL DEFAULT 0,
+        required_quota INTEGER NOT NULL DEFAULT 5,
+        employer_rep_count INTEGER NOT NULL DEFAULT 2,
+        employee_rep_count INTEGER NOT NULL DEFAULT 2,
+        secretary_count INTEGER NOT NULL DEFAULT 1,
+        appointment_doc_no TEXT,
+        appointment_date TEXT,
+        status TEXT NOT NULL DEFAULT 'ACTIVE',
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_term_code ON cpo_terms(term_code)');
+
+    // 2. รายชื่อกรรมการ คปอ. (CPO Members)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        term_id INTEGER NOT NULL,
+        employee_id INTEGER,
+        full_name TEXT NOT NULL,
+        employee_code TEXT,
+        department TEXT,
+        company_position TEXT,
+        cpo_role TEXT NOT NULL,
+        appointment_type TEXT NOT NULL DEFAULT 'APPOINTED',
+        votes_received INTEGER DEFAULT 0,
+        phone TEXT,
+        email TEXT,
+        status TEXT NOT NULL DEFAULT 'ACTIVE',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (term_id) REFERENCES cpo_terms(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_member_term ON cpo_members(term_id)');
+
+    // 3. รอบการเลือกตั้ง กกต. (CPO Elections)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_elections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        election_code TEXT NOT NULL UNIQUE,
+        election_title TEXT NOT NULL,
+        term_year TEXT NOT NULL,
+        announcement_date TEXT,
+        nomination_start_date TEXT,
+        nomination_end_date TEXT,
+        voting_date TEXT NOT NULL,
+        voting_start_time TEXT DEFAULT '08:00',
+        voting_end_time TEXT DEFAULT '17:00',
+        eligible_voters_count INTEGER DEFAULT 0,
+        total_ballots_cast INTEGER DEFAULT 0,
+        valid_ballots_count INTEGER DEFAULT 0,
+        invalid_ballots_count INTEGER DEFAULT 0,
+        no_vote_ballots_count INTEGER DEFAULT 0,
+        required_reps_count INTEGER NOT NULL DEFAULT 2,
+        status TEXT NOT NULL DEFAULT 'DRAFT',
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_elec_code ON cpo_elections(election_code)');
+
+    // 4. กรรมการดำเนินการเลือกตั้ง (Election Officers - กกต.)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_election_officers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        election_id INTEGER NOT NULL,
+        employee_id INTEGER,
+        officer_name TEXT NOT NULL,
+        department TEXT,
+        position_title TEXT,
+        officer_role TEXT NOT NULL DEFAULT 'MEMBER',
+        appointment_order_no TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (election_id) REFERENCES cpo_elections(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_off_elec ON cpo_election_officers(election_id)');
+
+    // 5. ผู้สมัครรับเลือกตั้ง (Election Candidates)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_election_candidates (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        election_id INTEGER NOT NULL,
+        candidate_no INTEGER NOT NULL,
+        employee_id INTEGER,
+        full_name TEXT NOT NULL,
+        department TEXT,
+        position_title TEXT,
+        campaign_policy TEXT,
+        votes_received INTEGER NOT NULL DEFAULT 0,
+        rank_order INTEGER DEFAULT 0,
+        is_elected INTEGER NOT NULL DEFAULT 0,
+        status TEXT NOT NULL DEFAULT 'QUALIFIED',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (election_id) REFERENCES cpo_elections(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_cand_elec ON cpo_election_candidates(election_id)');
+
+    // 6. การประชุม คปอ. (CPO Meetings)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_meetings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meeting_no INTEGER NOT NULL,
+        meeting_year TEXT NOT NULL,
+        meeting_title TEXT NOT NULL,
+        meeting_date TEXT NOT NULL,
+        start_time TEXT NOT NULL DEFAULT '09:00',
+        end_time TEXT NOT NULL DEFAULT '12:00',
+        location TEXT NOT NULL DEFAULT 'ห้องประชุมใหญ่',
+        term_id INTEGER,
+        chair_name TEXT NOT NULL,
+        secretary_name TEXT NOT NULL,
+        total_invited INTEGER DEFAULT 0,
+        total_attended INTEGER DEFAULT 0,
+        is_quorum_reached INTEGER DEFAULT 1,
+        status TEXT NOT NULL DEFAULT 'DRAFT',
+        overall_summary TEXT,
+        next_meeting_date TEXT,
+        pdf_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_meet_date ON cpo_meetings(meeting_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_meet_year ON cpo_meetings(meeting_year)');
+
+    // 7. ผู้เข้าร่วมประชุม (Meeting Attendees)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_meeting_attendees (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meeting_id INTEGER NOT NULL,
+        employee_id INTEGER,
+        attendee_name TEXT NOT NULL,
+        role_label TEXT NOT NULL,
+        department TEXT,
+        is_present INTEGER NOT NULL DEFAULT 1,
+        absence_reason TEXT,
+        signature_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (meeting_id) REFERENCES cpo_meetings(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_att_meet ON cpo_meeting_attendees(meeting_id)');
+
+    // 8. ระเบียบวาระการประชุม 6 วาระ (Meeting Agendas)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_meeting_agendas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meeting_id INTEGER NOT NULL,
+        agenda_no INTEGER NOT NULL,
+        agenda_title TEXT NOT NULL,
+        discussion_content TEXT,
+        resolution_content TEXT,
+        presenter_name TEXT,
+        is_approved INTEGER DEFAULT 1,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (meeting_id) REFERENCES cpo_meetings(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_agn_meet ON cpo_meeting_agendas(meeting_id)');
+
+    // 9. รายการติดตามมติที่ประชุม (Action Items / Task Tracking)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_action_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        item_code TEXT NOT NULL UNIQUE,
+        meeting_id INTEGER NOT NULL,
+        agenda_id INTEGER,
+        agenda_no INTEGER DEFAULT 5,
+        title TEXT NOT NULL,
+        action_detail TEXT NOT NULL,
+        responsible_person TEXT NOT NULL,
+        department TEXT,
+        due_date TEXT NOT NULL,
+        priority TEXT NOT NULL DEFAULT 'MEDIUM',
+        status TEXT NOT NULL DEFAULT 'PENDING',
+        progress_percent INTEGER NOT NULL DEFAULT 0,
+        resolution_notes TEXT,
+        completed_date TEXT,
+        evidence_photo_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (meeting_id) REFERENCES cpo_meetings(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_act_meet ON cpo_action_items(meeting_id)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_act_status ON cpo_action_items(status)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_act_due ON cpo_action_items(due_date)');
+
+    // 10. ประวัติการแจกจ่าย/แจ้งเวียนรายงานการประชุม (Meeting Distribution Logs)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS cpo_distribution_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meeting_id INTEGER NOT NULL,
+        distribution_date TEXT NOT NULL,
+        distribution_method TEXT NOT NULL,
+        recipient_group TEXT NOT NULL,
+        sender_name TEXT NOT NULL,
+        proof_document_path TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (meeting_id) REFERENCES cpo_meetings(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cpo_dist_meet ON cpo_distribution_logs(meeting_id)');
+  }
 }
+

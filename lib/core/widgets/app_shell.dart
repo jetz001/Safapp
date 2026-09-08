@@ -22,6 +22,7 @@ import 'package:safety_superapp/features/legal_register/presentation/pages/legal
 import 'package:safety_superapp/features/audit_inspection/presentation/pages/audit_page.dart';
 import 'package:safety_superapp/features/contractor/presentation/pages/contractor_page.dart';
 import 'package:safety_superapp/features/health_hygiene/presentation/pages/health_page.dart';
+import 'package:safety_superapp/features/cpo/presentation/pages/cpo_main_page.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({Key? key}) : super(key: key);
@@ -61,7 +62,8 @@ class _AppShellState extends State<AppShell> {
       const EmergencyPage(), // 13: แผนฉุกเฉิน
       const ManualsPage(), // 14: คู่มือ SOPs
       const LegalPage(), // 15: กฎหมาย
-      const SettingsPage(), // 16: ตั้งค่า
+      const CpoMainPage(), // 16: คณะกรรมการ คปอ.
+      const SettingsPage(), // 17: ตั้งค่า
     ];
   }
 
@@ -152,6 +154,7 @@ class _AppShellState extends State<AppShell> {
                                     NavigationRailDestination(icon: Icon(Icons.local_hospital_outlined), selectedIcon: Icon(Icons.local_hospital), label: Text('ฉุกเฉิน')),
                                     NavigationRailDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book), label: Text('SOPs')),
                                     NavigationRailDestination(icon: Icon(Icons.gavel_outlined), selectedIcon: Icon(Icons.gavel), label: Text('กฎหมาย')),
+                                    NavigationRailDestination(icon: Icon(Icons.diversity_3_outlined), selectedIcon: Icon(Icons.diversity_3), label: Text('คปอ.')),
                                     NavigationRailDestination(icon: Icon(Icons.settings_outlined), selectedIcon: Icon(Icons.settings), label: Text('ตั้งค่า')),
                                   ],
                                 ),

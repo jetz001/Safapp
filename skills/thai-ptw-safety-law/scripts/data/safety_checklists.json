@@ -1,0 +1,429 @@
+{
+  "catalog_version": "2026.1",
+  "total_categories": 5,
+  "checklists": {
+    "hot_work": {
+      "type_id": "hot_work",
+      "name_th": "งานประกายไฟและความร้อน (Hot Work)",
+      "name_en": "Hot Work & Fire Safety",
+      "statutory_law": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับการป้องกันและระงับอัคคีภัย พ.ศ. ๒๕๕๕ ข้อ ๓๐ - ๓๔",
+      "total_items": 8,
+      "items": [
+        {
+          "item_id": "HW-CHK-01",
+          "category": "combustible_clearance",
+          "title_th": "การเคลียร์พื้นที่รัศมี ๑๑ เมตร",
+          "description_th": "เคลื่อนย้ายวัสดุติดไฟ สารไวไฟ เศษขยะ หรือสารเคมี ออกจากรัศมี ๑๑ เมตร (๓๕ ฟุต) หรือคลุมด้วยผ้ากันไฟ (Fire Blanket) อย่างมิดชิด",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕ ข้อ ๓๑",
+          "hazard_type": "Fire & Explosion"
+        },
+        {
+          "item_id": "HW-CHK-02",
+          "category": "fire_extinguisher",
+          "title_th": "การจัดเตรียมเครื่องดับเพลิงพร้อมใช้งาน",
+          "description_th": "จัดเตรียมเครื่องดับเพลิงชนิดและขนาดเหมาะสม (เช่น ชนิดผงเคมีแห้ง หรือ CO2) พร้อมใช้งานอย่างน้อย ๒ ถัง ประจำจุดทำงานในระยะหยิบใช้ทันที",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕ ข้อ ๓๒",
+          "hazard_type": "Fire Extinguishment"
+        },
+        {
+          "item_id": "HW-CHK-03",
+          "category": "fire_watcher",
+          "title_th": "การแต่งตั้งผู้เฝ้าระวังไฟ (Fire Watcher)",
+          "description_th": "แต่งตั้งผู้เฝ้าระวังไฟที่ผ่านการฝึกอบรมดับเพลิงเบื้องต้น ประจำเฝ้าระวังตลอดเวลาการทำงานที่มีประกายไฟ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕ ข้อ ๓๓",
+          "hazard_type": "Continuous Fire Monitoring"
+        },
+        {
+          "item_id": "HW-CHK-04",
+          "category": "equipment_inspection",
+          "title_th": "การตรวจสอบอุปกรณ์เชื่อมตัดและกันไฟย้อน",
+          "description_th": "ตรวจสอบสายก๊าซ สายเชื่อม หัวตัด เกจวัดแรงดัน และติดตั้งอุปกรณ์ป้องกันไฟย้อนกลับ (Flashback Arrestor) ทั้งด้านชุดตัดและด้านถังก๊าซ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕",
+          "hazard_type": "Flashback & Explosion"
+        },
+        {
+          "item_id": "HW-CHK-05",
+          "category": "flammable_vapor_check",
+          "title_th": "การตรวจวัดไอระเหยไวไฟ (LEL Testing)",
+          "description_th": "ตรวจวัดก๊าซหรือไอระเหยไวไฟในบรรยากาศบริเวณจุดทำงาน Hot Work ต้องได้ค่า LEL ต่ำกว่า 10% (แนะนำ LEL = 0%) ก่อนเริ่มจุดประกายไฟ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕",
+          "hazard_type": "Explosion Hazard"
+        },
+        {
+          "item_id": "HW-CHK-06",
+          "category": "floor_opening_seal",
+          "title_th": "การปิดคลุมช่องเปิดและท่อระบายน้ำ",
+          "description_th": "ทำการปิดคลุมช่องเปิด ท่อระบายน้ำ รูเจาะบนพื้น หรือรอยต่อในรัศมีสะเก็ดไฟตกเพื่อป้องกันสะเก็ดไฟหล่นไปชั้นล่าง",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕",
+          "hazard_type": "Spread of Sparks"
+        },
+        {
+          "item_id": "HW-CHK-07",
+          "category": "ppe_welding",
+          "title_th": "อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคลงานเชื่อม",
+          "description_th": "ผู้ปฏิบัติงานสวมใส่หน้ากากเชื่อม (Welding Helmet) ถุงมือหนัง แว่นตานิรภัย เสื้อหนังกันสะเก็ดไฟ และรองเท้าหัวเหล็ก",
+          "is_mandatory": true,
+          "legal_basis": "พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔ มาตรา ๒๒",
+          "hazard_type": "Burn & Optical Radiation"
+        },
+        {
+          "item_id": "HW-CHK-08",
+          "category": "post_work_monitoring",
+          "title_th": "การเฝ้าระวังอัคคีภัยหลังเลิกงานไม่น้อยกว่า ๓๐ นาที",
+          "description_th": "ผู้เฝ้าระวังไฟทำการตรวจตราพื้นที่และบริเวณโดยรอบต่อเนื่องเป็นเวลาไม่น้อยกว่า ๓๐ นาที หลังเสร็จสิ้นงาน Hot Work และลงนามปิดงาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงอัคคีภัย พ.ศ. ๒๕๕๕ ข้อ ๓๔",
+          "hazard_type": "Smoldering Fire"
+        }
+      ]
+    },
+    "confined_space": {
+      "type_id": "confined_space",
+      "name_th": "งานในสถานที่อับอากาศ (Confined Space)",
+      "name_en": "Confined Space Entry & Safety",
+      "statutory_law": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานในสถานที่อับอากาศ พ.ศ. ๒๕๖๒",
+      "total_items": 10,
+      "items": [
+        {
+          "item_id": "CS-CHK-01",
+          "category": "gas_testing_pre_entry",
+          "title_th": "การตรวจวัดและบันทึกผลก๊าซก่อนเข้าทำงาน (Pre-entry Gas Test)",
+          "description_th": "ตรวจวัดค่า O2 (19.5-23.5%), LEL (< 10%), CO (< 25 ppm), H2S (< 10 ppm) ด้วยเครื่องตรวจวัดที่ผ่านการ Calibrate",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๗",
+          "hazard_type": "Atmospheric Toxicity & Asphyxiation"
+        },
+        {
+          "item_id": "CS-CHK-02",
+          "category": "four_roles_verification",
+          "title_th": "การแต่งตั้งผู้มีหน้าที่ ๔ ฝ่ายพร้อมใบรับรองการอบรม",
+          "description_th": "มีผู้อนุญาต, ผู้ควบคุมงาน, ผู้ช่วยเหลือ, และผู้ปฏิบัติงานครบถ้วน ทุกคนผ่านการอบรมตามหลักเกณฑ์ และผู้ช่วยเหลือห้ามเป็นผู้ปฏิบัติงาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๙, ๑๐, ๑๑, ๑๒",
+          "hazard_type": "Operational Governance Failure"
+        },
+        {
+          "item_id": "CS-CHK-03",
+          "category": "mechanical_ventilation",
+          "title_th": "การระบายอากาศแบบกลไกอย่างต่อเนื่อง (Forced Ventilation)",
+          "description_th": "ติดตั้งพัดลมเป่าอากาศบริสุทธิ์ (Blower) ลงสู่ก้นบ่อ/พื้นที่อับอากาศ และเปิดทำงานอย่างต่อเนื่องตลอดเวลาการทำงาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๑๔",
+          "hazard_type": "Oxygen Depletion & Fume Accumulation"
+        },
+        {
+          "item_id": "CS-CHK-04",
+          "category": "rescue_equipment",
+          "title_th": "อุปกรณ์ช่วยเหลือฉุกเฉินและกู้ภัย (Tripod & Winch)",
+          "description_th": "ติดตั้งขาหยั่งสามขา (Tripod) รอกกู้ภัย (Rescue Winch) และสายช่วยชีวิต (Lifeline) ประจำ ณ ปากทางเข้าพร้อมใช้งาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๑๗, ๑๘",
+          "hazard_type": "Entrapment & Rescue Delay"
+        },
+        {
+          "item_id": "CS-CHK-05",
+          "category": "full_body_harness",
+          "title_th": "ชุดเข็มขัดนิรภัยแบบเต็มตัว (Full Body Harness)",
+          "description_th": "ผู้ปฏิบัติงานทุกคนสวมใส่ Full Body Harness พร้อมคล้องสายดึงกู้ภัยตลอดเวลาที่อยู่ภายในสถานที่อับอากาศ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๑๘",
+          "hazard_type": "Fall & Extraction Inability"
+        },
+        {
+          "item_id": "CS-CHK-06",
+          "category": "scba_respiratory",
+          "title_th": "อุปกรณ์ช่วยหายใจฉุกเฉิน (SCBA / Air-line)",
+          "description_th": "จัดเตรียมชุดช่วยหายใจชนิดมีถังอากาศในตัว (SCBA) หรือ Air-line Respirator สำหรับทีมช่วยเหลือฉุกเฉิน ณ หน้างาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๑๘",
+          "hazard_type": "Toxic Inhalation During Rescue"
+        },
+        {
+          "item_id": "CS-CHK-07",
+          "category": "communication_system",
+          "title_th": "ระบบการสื่อสารระหว่างภายในและภายนอก",
+          "description_th": "จัดให้มีวิทยุสื่อสารชนิด Intrinsically Safe สัญญาณนกหวีด หรือระบบเสียงพูดคุยที่ติดต่อกันได้ตลอดเวลาระหว่างผู้ช่วยเหลือและผู้ปฏิบัติงาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๑๑",
+          "hazard_type": "Loss of Communication"
+        },
+        {
+          "item_id": "CS-CHK-08",
+          "category": "entry_exit_log",
+          "title_th": "การจัดทำบัญชีลงเวลาเข้า-ออก (Entry / Exit Log)",
+          "description_th": "ผู้ช่วยเหลือทำการบันทึกชื่อ เวลาเข้า เวลาออก และจำนวนผู้ปฏิบัติงานที่อยู่ภายในสถานที่อับอากาศแบบเรียลไทม์",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒",
+          "hazard_type": "Personnel Accountability Failure"
+        },
+        {
+          "item_id": "CS-CHK-09",
+          "category": "permit_posting",
+          "title_th": "การปิดประกาศหนังสืออนุญาตและป้ายเตือน ณ ทางเข้า",
+          "description_th": "ปิดประกาศหนังสืออนุญาตทำงาน (PTW) พร้อมป้ายเตือน 'อันตราย สถานที่อับอากาศ ห้ามเข้าโดยไม่ได้รับอนุญาต' ณ บริเวณทางเข้า",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒ ข้อ ๕",
+          "hazard_type": "Unauthorized Entry"
+        },
+        {
+          "item_id": "CS-CHK-10",
+          "category": "energy_isolation_blanking",
+          "title_th": "การตัดแยกพลังงานและปิดกั้นท่อส่งสารเคมี (LOTO & Blanking)",
+          "description_th": "ตัดแยกระบบไฟฟ้าของใบกวน/ปั๊ม และใส่แผ่นปิดกั้นท่อ (Spade / Blind Flange) ของท่อส่งสารเคมี ก๊าซ ไอน้ำ ที่เชื่อมต่อทั้งหมด",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงสถานที่อับอากาศ พ.ศ. ๒๕๖๒",
+          "hazard_type": "Mechanical Crushing & Ingress of Toxins"
+        }
+      ]
+    },
+    "working_at_height": {
+      "type_id": "working_at_height",
+      "name_th": "งานบนที่สูงและนั่งร้าน (Working at Height)",
+      "name_en": "Working at Height & Scaffolding Safety",
+      "statutory_law": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับนั่งร้าน งานบนที่สูง และงานดินขุด พ.ศ. ๒๕๖๔ ข้อ ๑๕ - ๓๐",
+      "total_items": 8,
+      "items": [
+        {
+          "item_id": "WAH-CHK-01",
+          "category": "physical_fitness",
+          "title_th": "การตรวจคัดกรองสุขภาพและความพร้อมของผู้ปฏิบัติงาน",
+          "description_th": "ผู้ปฏิบัติงานต้องมีความพร้อม ไม่มีอาการมึนเมา โรคประจำตัวเสี่ยง (ความดันสูงเฉียบพลัน โรคลมชัก กลัวความสูง)",
+          "is_mandatory": true,
+          "legal_basis": "พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔ มาตรา ๘",
+          "hazard_type": "Fainting & Loss of Balance"
+        },
+        {
+          "item_id": "WAH-CHK-02",
+          "category": "full_body_harness",
+          "title_th": "การสวมใส่ชุดเข็มขัดนิรภัยแบบเต็มตัว (Full Body Harness)",
+          "description_th": "สวมใส่ Full Body Harness ชนิดสองสายผูก (Double Lanyard) พร้อมอุปกรณ์ดูดซับแรงกระแทก (Shock Absorber)",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานบนที่สูง พ.ศ. ๒๕๖๔ ข้อ ๑๕",
+          "hazard_type": "Fall from Height"
+        },
+        {
+          "item_id": "WAH-CHK-03",
+          "category": "anchor_point_strength",
+          "title_th": "จุดยึดเหนี่ยวที่มั่นคงแข็งแรง (Anchor Point >= 22.2 kN)",
+          "description_th": "จุดยึดเหนี่ยวต้องผ่านการตรวจสอบวิศวกรรม รองรับแรงดึงได้ไม่น้อยกว่า ๒๒.๒ กิโลนิวตัน (๕,๐๐๐ ปอนด์) ต่อคน หรือยึดกับ Lifeline ที่ได้มาตรฐาน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานบนที่สูง พ.ศ. ๒๕๖๔ ข้อ ๑๖",
+          "hazard_type": "Anchor Failure"
+        },
+        {
+          "item_id": "WAH-CHK-04",
+          "category": "scaffolding_inspection_tag",
+          "title_th": "การตรวจสอบและติดป้ายรับรองนั่งร้าน (Green Scaffolding Tag)",
+          "description_th": "นั่งร้านต้องได้รับการตรวจสอบและติดป้ายแสดงสถานะความปลอดภัยสีเขียว (Green Tag) จากผู้มีหน้าที่ตรวจสอบนั่งร้าน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานบนที่สูง พ.ศ. ๒๕๖๔ ข้อ ๒๕",
+          "hazard_type": "Scaffold Collapse"
+        },
+        {
+          "item_id": "WAH-CHK-05",
+          "category": "edge_protection_guardrails",
+          "title_th": "การติดตั้งราวกั้นตกและแผ่นกันของตก (Guardrails & Toe-boards)",
+          "description_th": "ติดตั้งราวกั้นตกบน (สูง 0.90-1.10 ม.) ราวกลาง และแผ่นกันของตก (Toe-board สูง >= 7.5-10 ซม.) ตลอดแนวขอบเปิด",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานบนที่สูง พ.ศ. ๒๕๖๔",
+          "hazard_type": "Fall Over Edge & Falling Objects"
+        },
+        {
+          "item_id": "WAH-CHK-06",
+          "category": "barricade_drop_zone",
+          "title_th": "การกั้นแนวพื้นที่เขตอันตรายด้านล่าง (Drop Zone Barricade)",
+          "description_th": "กั้นเชือกหรือแผงกั้นพร้อมป้ายเตือน 'ระวังวัตถุตกจากที่สูง' ด้านล่าง ห้ามบุคคลที่ไม่เกี่ยวข้องเดินผ่าน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานบนที่สูง พ.ศ. ๒๕๖๔",
+          "hazard_type": "Impact by Dropped Objects"
+        },
+        {
+          "item_id": "WAH-CHK-07",
+          "category": "tool_tethering",
+          "title_th": "การผูกยึดเครื่องมือและอุปกรณ์ (Tool Lanyard)",
+          "description_th": "เครื่องมือช่างทุกชิ้นต้องมีสายคล้องรัดข้อมือหรือผูกติดกับโครงสร้าง ป้องกันการพลัดตกหล่นใส่ผู้ปฏิบัติงานด้านล่าง",
+          "is_mandatory": true,
+          "legal_basis": "พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔ มาตรา ๘",
+          "hazard_type": "Dropped Objects Hazard"
+        },
+        {
+          "item_id": "WAH-CHK-08",
+          "category": "adverse_weather_check",
+          "title_th": "การตรวจสอบสภาพอากาศและแรงลม",
+          "description_th": "ห้ามทำงานบนที่สูงกลางแจ้งขณะมีฝนตกหนัก พายุ ลมแรงเกิน 32 กม./ชม. (20 mph) หรือมีฟ้าผ่า",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานบนที่สูง พ.ศ. ๒๕๖๔",
+          "hazard_type": "Weather-Induced Fall"
+        }
+      ]
+    },
+    "electrical_loto": {
+      "type_id": "electrical_loto",
+      "name_th": "งานไฟฟ้าและการตัดแยกพลังงาน (Electrical & LOTO)",
+      "name_en": "Electrical Safety & Lockout / Tagout",
+      "statutory_law": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๒ - ๑๘",
+      "total_items": 8,
+      "items": [
+        {
+          "item_id": "EL-CHK-01",
+          "category": "isolation_point_identification",
+          "title_th": "การระบุจุดตัดแยกพลังงานทุกประเภท (Energy Source Identification)",
+          "description_th": "ระบุเบรกเกอร์ สวิตช์ตัดตอน วาล์วของเหลว/ก๊าซ ระบบไฮดรอลิก/นิวแมติก ทั้งหมดที่เชื่อมต่อกับอุปกรณ์ที่จะซ่อมบำรุง",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๒",
+          "hazard_type": "Unexpected Energization"
+        },
+        {
+          "item_id": "EL-CHK-02",
+          "category": "padlock_lockout",
+          "title_th": "การล็อกกุญแจตัดตอน (Padlock Lockout - 1 Person 1 Lock)",
+          "description_th": "ผู้ปฏิบัติงานทุกคนใส่กุญแจล็อกส่วนตัวพร้อม Hasps ณ จุดตัดแยกพลังงาน และถือลูกกุญแจไว้กับตนเอง",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๒",
+          "hazard_type": "Accidental Switch Activation"
+        },
+        {
+          "item_id": "EL-CHK-03",
+          "category": "danger_tagout",
+          "title_th": "การแขวนป้ายเตือนอันตราย (Danger Tag)",
+          "description_th": "แขวนป้ายเตือนอันตรายระบุชื่อ-สกุล เบอร์โทรศัพท์ วันที่ เวลา และเหตุผลการล็อกไว้ที่กุญแจตัดแยกทุกจุด",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๒",
+          "hazard_type": "Unauthorized Re-energization"
+        },
+        {
+          "item_id": "EL-CHK-04",
+          "category": "residual_energy_discharge",
+          "title_th": "การคายประจุและปลดปล่อยพลังงานตกค้าง (Residual Energy Bleeding)",
+          "description_th": "คายประจุคาปาซิเตอร์ ถ่ายแรงดันลม/น้ำมันไฮดรอลิกตกค้าง ปลดสปริง และล็อกกลไกเชิงกลให้อยู่ในสภาวะหยุดนิ่ง",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๓",
+          "hazard_type": "Stored Energy Release"
+        },
+        {
+          "item_id": "EL-CHK-05",
+          "category": "zero_energy_verification",
+          "title_th": "การตรวจสอบยืนยันสภาพไร้พลังงาน (Zero Energy Verification)",
+          "description_th": "ใช้เครื่องวัดโวลต์มิเตอร์ (Voltage Tester) ทดสอบแรงดันไฟฟ้าทุกเฟสและสายดิน เพื่อยืนยันว่าไม่มีแรงดันไฟฟ้าตกค้าง (Zero Volts)",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๓",
+          "hazard_type": "Electrocution & Shock"
+        },
+        {
+          "item_id": "EL-CHK-06",
+          "category": "arc_flash_ppe",
+          "title_th": "อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคลต้านอาร์กและไฟฟ้า (Arc Flash PPE)",
+          "description_th": "สวมใส่ถุงมือยางกันไฟฟ้าพร้อมถุงมือหนังชั้นนอก แผ่นฉนวนรองยืน แว่นตากันประกายไฟ และชุดต้าน Arc Flash ตามระดับพิกัดแรงดัน",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๘",
+          "hazard_type": "Arc Flash & Electric Burn"
+        },
+        {
+          "item_id": "EL-CHK-07",
+          "category": "barricade_switchgear",
+          "title_th": "การกั้นเขตพื้นที่อันตรายสถานีไฟฟ้า / ตู้สวิตช์เกียร์",
+          "description_th": "ติดตั้งเชือกกั้นและป้ายเตือน 'อันตราย ไฟฟ้าแรงสูง' ป้องกันบุคคลภายนอกเข้าใกล้จุดที่มีชิ้นส่วนนำไฟฟ้าเปลือย",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘",
+          "hazard_type": "Flashover & Accidental Touch"
+        },
+        {
+          "item_id": "EL-CHK-08",
+          "category": "re_energization_protocol",
+          "title_th": "ขั้นตอนการปลดล็อกและการจ่ายพลังงานกลับ (De-isolation Protocol)",
+          "description_th": "ตรวจสอบเครื่องมือและคนออกจากพื้นที่ ปิดฝาตู้สวิตช์ แจ้งเตือนผู้เกี่ยวข้อง และปลดกุญแจล็อกตามลำดับขั้นตอนที่ปลอดภัย",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงไฟฟ้า พ.ศ. ๒๕๕๘",
+          "hazard_type": "Premature Power Restoration"
+        }
+      ]
+    },
+    "excavation_lifting": {
+      "type_id": "excavation_lifting",
+      "name_th": "งานขุดเจาะและยกเคลื่อนย้าย (Excavation & Lifting)",
+      "name_en": "Excavation, Trenching & Heavy Lifting Safety",
+      "statutory_law": "กฎกระทรวง กำหนดมาตรฐานในการบริหาร จัดการ และดำเนินการด้านความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงานเกี่ยวกับนั่งร้าน งานบนที่สูง และงานดินขุด พ.ศ. ๒๕๖๔ ข้อ ๓๘ - ๔๘ และกฎกระทรวงเครื่องจักร ปั้นจั่น ๒๕๖๔",
+      "total_items": 8,
+      "items": [
+        {
+          "item_id": "ELI-CHK-01",
+          "category": "underground_utilities_survey",
+          "title_th": "การสำรวจแนวสาธารณูปโภคใต้ดิน (Underground Utilities Check)",
+          "description_th": "ตรวจสอบแบบแปลน สแกนหาแนวท่อก๊าซ สายไฟฟ้าใต้ดิน ท่อประปา และสายสื่อสาร พร้อมลงนามรับรองความปลอดภัยก่อนขุดเจาะ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานดินขุด พ.ศ. ๒๕๖๔ ข้อ ๓๙",
+          "hazard_type": "Pipe Rupture & Underground Electrocution"
+        },
+        {
+          "item_id": "ELI-CHK-02",
+          "category": "soil_shoring_sloping",
+          "title_th": "การติดตั้งระบบค้ำยันดิน (Shoring) เมื่อขุดลึกตั้งแต่ ๑.๕ เมตร",
+          "description_th": "ติดตั้ง Sheet Pile, Trench Box หรือขุดเปิดลาดเอียง (Sloping/Benching) ตามการคำนวณวิศวกรเพื่อป้องกันดินพังทลาย",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานดินขุด พ.ศ. ๒๕๖๔ ข้อ ๓๘",
+          "hazard_type": "Cave-in & Trench Collapse"
+        },
+        {
+          "item_id": "ELI-CHK-03",
+          "category": "trench_access_ladder",
+          "title_th": "ทางขึ้น-ลงในร่องขุดทุกระยะไม่เกิน ๗.๕ เมตร",
+          "description_th": "จัดเตรียมบันไดทางขึ้นลงที่มั่นคงแข็งแรง ยื่นพ้นปากบ่อ 1 เมตร ทุกระยะไม่เกิน ๗.๕ เมตร ในแนวร่องขุดเพื่อการอพยพ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานดินขุด พ.ศ. ๒๕๖๔ ข้อ ๔๒",
+          "hazard_type": "Entrapment in Trench"
+        },
+        {
+          "item_id": "ELI-CHK-04",
+          "category": "spoil_pile_setback",
+          "title_th": "ระยะเว้นกองดินและเครื่องจักรจากขอบบ่อขุด",
+          "description_th": "กองดินขุดและจอดเครื่องจักรหนักห่างจากขอบบ่อขุดไม่น้อยกว่า ๑.๐ เมตร และติดตั้งแผ่นกั้นดินตก",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงงานดินขุด พ.ศ. ๒๕๖๔",
+          "hazard_type": "Surcharge Collapse"
+        },
+        {
+          "item_id": "ELI-CHK-05",
+          "category": "crane_certification_pjor",
+          "title_th": "ใบรับรองการตรวจทดสอบปั้นจั่น/เครนประจำปี (ปจ.๑ / ปจ.๒)",
+          "description_th": "ปั้นจั่น เครน หรือรถเครนต้องมีเอกสารรับรองการตรวจทดสอบตามแบบ ปจ.๑ หรือ ปจ.๒ โดยวิศวกรเครื่องกลที่ยังไม่หมดอายุ",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงเครื่องจักร ปั้นจั่น และหม้อน้ำ พ.ศ. ๒๕๖๔",
+          "hazard_type": "Crane Structural Failure"
+        },
+        {
+          "item_id": "ELI-CHK-06",
+          "category": "crane_load_chart_swl",
+          "title_th": "การตรวจสอบพิกัดยกปลอดภัย (Safe Working Load - SWL)",
+          "description_th": "คำนวณน้ำหนักสิ่งของรวมอุปกรณ์ช่วยยก ไม่เกินพิกัดน้ำหนักยกสูงสุดตาม Load Chart ของปั้นจั่น ณ รัศมีการยกจริง",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงเครื่องจักร ปั้นจั่น และหม้อน้ำ พ.ศ. ๒๕๖๔",
+          "hazard_type": "Overturn & Boom Failure"
+        },
+        {
+          "item_id": "ELI-CHK-07",
+          "category": "rigging_hardware_latch",
+          "title_th": "การตรวจสลิง ห่วงโอเมก้า และสลักนิรภัยตะขอยก (Safety Latch)",
+          "description_th": "ตรวจสอบสลิง ลวดสลิง ผ้าใบยก ตะขอยกต้องมีสลักนิรภัย (Safety Latch) ล็อกปิดสนิท และไม่ชำรุดเสียหาย",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงเครื่องจักร ปั้นจั่น และหม้อน้ำ พ.ศ. ๒๕๖๔",
+          "hazard_type": "Dropped Load Hazard"
+        },
+        {
+          "item_id": "ELI-CHK-08",
+          "category": "lifting_exclusion_zone",
+          "title_th": "การกั้นแนวรัศมีหมุนและเขตห้ามเข้าใต้สิ่งของยก (Lifting Exclusion Zone)",
+          "description_th": "กั้นอาณาเขตแนวการยกสิ่งของ ห้ามบุคคลเดินผ่านหรืออยู่ใต้สิ่งของที่กำลังยกโดยเด็ดขาด พร้อมมีผู้ให้สัญญาณนกหวีด/ธง",
+          "is_mandatory": true,
+          "legal_basis": "กฎกระทรวงเครื่องจักร ปั้นจั่น และหม้อน้ำ พ.ศ. ๒๕๖๔",
+          "hazard_type": "Crush Injury by Suspended Load"
+        }
+      ]
+    }
+  }
+}

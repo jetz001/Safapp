@@ -1,43 +1,48 @@
-# E2E Test Infra: SAFAPP Environmental Monitoring & Thai Environmental Safety Law
+# E2E Test Infra: Permit to Work (PTW) & Thai Safety Law
 
 ## Test Philosophy
-- Opaque-box, requirement-driven, and white-box mathematical verification.
-- Methodology: Category-Partition + Boundary Value Analysis (BVA) + Pairwise + Workload Testing + Forensic Integrity Audit.
+- Opaque-box and requirement-driven derived strictly from `ORIGINAL_REQUEST.md` and Thai Safety Regulations.
+- Methodology: Category-Partition + Boundary Value Analysis (BVA) + Pairwise Combinatorial + Real-World Workload + Adversarial Penetration.
+- Zero reliance on internal mocking for domain rules: all legal boundaries are evaluated with mathematical fidelity.
 
-## Feature Inventory & Test Mapping
-| # | Feature | Source (Requirement) | Tier 1 (Feature) | Tier 2 (BVA/Corner) | Tier 3 (Cross-Feature) | Tier 4 (Workload) |
-|---|---------|----------------------|:----------------:|:-------------------:|:----------------------:|:-----------------:|
-| 1 | Master Standards Catalog | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
-| 2 | Data Models & DB v7 | ORIGINAL_REQUEST §R1, R2 | 5 | 5 | ✓ | ✓ |
-| 3 | Sessions & Subcontractor | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
-| 4 | Point Auto-Evaluation Engine | ORIGINAL_REQUEST §R3 | 10 | 10 | ✓ | ✓ |
-| 5 | CAPA & Hearing Conservation | ORIGINAL_REQUEST §R4 | 5 | 5 | ✓ | ✓ |
-| 6 | UI EnvironmentPage (4 Tabs) | ORIGINAL_REQUEST §R2, R3, R4 | 5 | 5 | ✓ | ✓ |
-| 7 | PDF/Excel Exporters | ORIGINAL_REQUEST §R5 | 5 | 5 | ✓ | ✓ |
-| 8 | Agent Skill & CLI Helper | ORIGINAL_REQUEST §R6 | 6 | 6 | ✓ | ✓ |
+## Feature Inventory
+| # | Feature | Source (Requirement) | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|---|---------|----------------------|:------:|:------:|:------:|:------:|
+| 1 | High-Risk PTW Models & Enums | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
+| 2 | Statutory Gas Testing Evaluator | ORIGINAL_REQUEST §R3, กฎฯ อับอากาศ ๒๕๖๒ | 5 | 5 | ✓ | ✓ |
+| 3 | Confined Space 4-Role Registry | ORIGINAL_REQUEST §R3, กฎฯ อับอากาศ ๒๕๖๒ | 5 | 5 | ✓ | ✓ |
+| 4 | Hot Work 30-min Fire Watch Log | ORIGINAL_REQUEST §R3, กฎฯ อัคคีภัย ๒๕๕๕ | 5 | 5 | ✓ | ✓ |
+| 5 | Electrical LOTO Zero-Energy Verification | ORIGINAL_REQUEST §R3, กฎฯ ไฟฟ้า ๒๕๕๘ | 5 | 5 | ✓ | ✓ |
+| 6 | 5-State Workflow State Machine & Guards | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 7 | Digital Signature Canvas & Capture | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 8 | SQLite v8 Relational Repository | Explorer 1 Survey | 5 | 5 | ✓ | ✓ |
+| 9 | Riverpod 3 State Management & Filters | Explorer 1 & 2 Survey | 5 | 5 | ✓ | ✓ |
+| 10 | PtwPage 4-Tab Interactive UI & KPI | ORIGINAL_REQUEST §R4 | 5 | 5 | ✓ | ✓ |
+| 11 | Official DLPW A4 PDF Generator & QR | ORIGINAL_REQUEST §R5 | 5 | 5 | ✓ | ✓ |
+| 12 | 5-Sheet Excel Exporter | ORIGINAL_REQUEST §R5 | 5 | 5 | ✓ | ✓ |
+| 13 | Agent Skill `thai-ptw-safety-law` CLI | ORIGINAL_REQUEST §R6 | 5 | 5 | ✓ | ✓ |
+| 14 | AgentResearch Python Helper | ORIGINAL_REQUEST §R6 | 5 | 5 | ✓ | ✓ |
 
 ## Test Architecture
-- **Flutter Test Suite** (`test/features/environment/`):
-  - Unit tests for WBGT calculation (indoor vs outdoor formulas, workload thresholds 34/32/30°C).
-  - Unit tests for lighting evaluation (category matching, lux thresholds, pass/fail edge cases).
-  - Unit tests for noise evaluation (TWA calculation, 85 dBA Action Level, 86 dBA standard limit, 115 dBA continuous, 140 dB peak, HCP trigger).
-  - Repository & DB migration tests (CRUD for sessions, points, CAPAs, standard master queries).
-  - Exporter tests (PDF document structure & Excel multi-sheet data population).
-  - Widget tests (EnvironmentPage tab switching, KPI rendering, modal form submissions).
-- **Python Agent Skill Test Suite** (`tests/test_thai_env_skill.py`):
-  - 12 comprehensive unit tests for `thai_env_engine.py`, `thai_env_cli.py`, and `thai_env_helper.py`.
+- **Flutter Test Runner**: `flutter test test/features/ptw/`
+- **Python Skill Test Runner**: `python -m unittest discover -s skills/thai-ptw-safety-law/tests -p "test_*.py"`
+- **Pass/Fail Criteria**:
+  * 100% of test assertions must pass with exit code 0.
+  * Zero uncaught exceptions, zero type casting failures, zero layout overflows in widget tests.
+  * Exact Thai legal standard enforcement: 0% tolerance for hazardous atmosphere or missing mandatory roles.
 
 ## Real-World Application Scenarios (Tier 4)
 | # | Scenario | Features Exercised | Complexity |
 |---|----------|--------------------|------------|
-| 1 | Full Annual Factory Survey (30 points: 10 light, 10 noise, 10 heat) with Mixed Subcontractor (Sec 11) | F1, F2, F3, F4, F5, F7 | High |
-| 2 | High Noise Area (>85 dBA and >86 dBA) triggering mandatory Hearing Conservation Program & Auto-CAPA | F1, F4, F5, F6 | Medium |
-| 3 | Boiler / Foundry Outdoor Heat Stress WBGT calculation with solar load exceeding 30°C limit | F1, F4, F5 | Medium |
-| 4 | Agent Skill CLI batch evaluation of session JSON generating compliance index & recommendations | F8 | Medium |
+| 1 | Silo Welding & Grinding in Confined Space | Hot Work + Confined Space + Continuous Gas + Fire Watch 30m + 4-Party Signatures | High |
+| 2 | High-Voltage Substation Transformer Maintenance | Electrical LOTO (3 breaker locks) + Working at Height (Scaffolding > 2m) + Zero Energy | High |
+| 3 | Chemical Underground Pipeline Excavation & Repair | Excavation (>1.5m Shoring) + Confined Space + Gas Pre-entry + Emergency Plan | High |
+| 4 | Multi-Day Structural Roof Repair Shift Handover | Working at Height + Overdue Detection + Extension & Shift Handover Sign-off | Medium |
+| 5 | Emergency Gas Leakage Incident & Permit Immediate Cancellation | Live Gas Alert Trigger (>25 ppm CO, >10 ppm H2S) -> Auto-Revocation -> Closure | High |
 
 ## Coverage Thresholds
-- Tier 1: >= 5 per feature
-- Tier 2: >= 5 per feature (where boundaries exist)
-- Tier 3: pairwise coverage of major feature interactions
-- Tier 4: >= 4 realistic application scenarios
-- Tier 5: White-box adversarial hardening by Challenger agent
+- Tier 1 (Feature Coverage): $\ge 70$ tests across Flutter & Python components.
+- Tier 2 (Boundary & Corner Cases): $\ge 70$ tests at exact statutory limits.
+- Tier 3 (Cross-Feature Combinations): $\ge 15$ interaction tests.
+- Tier 4 (Real-World Workloads): $\ge 5$ end-to-end multi-risk scenarios.
+- Tier 5 (Adversarial Coverage Hardening): Stress tests + Forensic audit verification.

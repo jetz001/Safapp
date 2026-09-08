@@ -1,0 +1,269 @@
+{
+  "samples": [
+    {
+      "sample_id": "PTW-CONFINED-VALID",
+      "description": "Valid Confined Space PTW with compliant 4 roles, normal atmospheric gas, verified checklists, and complete signatures",
+      "payload": {
+        "ptw_number": "PTW-2026-CS-001",
+        "work_title": "ซ่อมบำรุงใบกวนภายในถังผสมสารเคมี T-101",
+        "work_type": "confined_space",
+        "location": "อาคารผลิต ๒ พื้นที่ถัง T-101",
+        "department": "ซ่อมบำรุงโรงงาน",
+        "valid_from": "2026-09-02T08:30:00",
+        "valid_to": "2026-09-02T16:30:00",
+        "applicant": {
+          "name": "นายสมยศ ช่างดี",
+          "position": "หัวหน้างานซ่อมบำรุง",
+          "company": "บจก. เซฟการผลิต",
+          "signed": true
+        },
+        "safety_officer": {
+          "name": "นางสาววิไลลักษณ์ สุขสวัสดิ์",
+          "license_no": "จป.ว-12345",
+          "signed": true
+        },
+        "authorizer": {
+          "name": "นายทรงศักดิ์ มั่นคง",
+          "cert_no": "CS-AUTH-2566-012",
+          "signed": true
+        },
+        "supervisor": {
+          "name": "นายกานต์ สุภาพ",
+          "cert_no": "CS-SUP-2566-045",
+          "signed": true
+        },
+        "attendant": {
+          "name": "นายสมบัติ พร้อมช่วย",
+          "cert_no": "CS-ATT-2566-089",
+          "signed": true
+        },
+        "entrants": [
+          {
+            "name": "นายอนุชา ว่องไว",
+            "cert_no": "CS-ENT-2567-001",
+            "signed": true
+          },
+          {
+            "name": "นายณัฐพล ช่างฝีมือ",
+            "cert_no": "CS-ENT-2567-002",
+            "signed": true
+          }
+        ],
+        "gas_testing": {
+          "tested_at": "2026-09-02T08:00:00",
+          "tester_name": "นางสาววิไลลักษณ์ สุขสวัสดิ์",
+          "instrument_model": "MultiRAE Lite 4-Gas",
+          "calibration_date": "2026-08-15",
+          "o2_pct": 20.9,
+          "lel_pct": 0.0,
+          "co_ppm": 2.0,
+          "h2s_ppm": 0.0
+        },
+        "continuous_ventilation": true,
+        "emergency_rescue_plan": true,
+        "tripod_winch_installed": true,
+        "status": "active"
+      }
+    },
+    {
+      "sample_id": "PTW-CONFINED-BAD-GAS",
+      "description": "Invalid Confined Space PTW with deficient Oxygen and excessive LEL and toxic gas",
+      "payload": {
+        "ptw_number": "PTW-2026-CS-002",
+        "work_title": "ทำความสะอาดบ่อพักน้ำเสีย",
+        "work_type": "confined_space",
+        "location": "บ่อบำบัดน้ำเสียส่วนกลาง W-04",
+        "valid_from": "2026-09-02T09:00:00",
+        "valid_to": "2026-09-02T12:00:00",
+        "applicant": {
+          "name": "นายประสิทธิ์ เร่งงาน",
+          "signed": true
+        },
+        "authorizer": {
+          "name": "นายทรงศักดิ์ มั่นคง",
+          "cert_no": "CS-AUTH-2566-012",
+          "signed": true
+        },
+        "supervisor": {
+          "name": "นายกานต์ สุภาพ",
+          "cert_no": "CS-SUP-2566-045",
+          "signed": true
+        },
+        "attendant": {
+          "name": "นายสมบัติ พร้อมช่วย",
+          "cert_no": "CS-ATT-2566-089",
+          "signed": true
+        },
+        "entrants": [
+          {
+            "name": "นายอนุชา ว่องไว",
+            "cert_no": "CS-ENT-2567-001",
+            "signed": true
+          }
+        ],
+        "gas_testing": {
+          "o2_pct": 17.5,
+          "lel_pct": 15.0,
+          "co_ppm": 35.0,
+          "h2s_ppm": 12.0
+        },
+        "continuous_ventilation": false,
+        "emergency_rescue_plan": true,
+        "status": "pending_approval"
+      }
+    },
+    {
+      "sample_id": "PTW-CONFINED-ROLE-CONFLICT",
+      "description": "Invalid Confined Space PTW where the Attendant is also listed as an Entrant",
+      "payload": {
+        "ptw_number": "PTW-2026-CS-003",
+        "work_title": "ตรวจเช็กท่อไซโล S-02",
+        "work_type": "confined_space",
+        "location": "ไซโลเก็บเมล็ดพืช",
+        "authorizer": {
+          "name": "นายทรงศักดิ์ มั่นคง",
+          "cert_no": "CS-AUTH-2566-012"
+        },
+        "supervisor": {
+          "name": "นายกานต์ สุภาพ",
+          "cert_no": "CS-SUP-2566-045"
+        },
+        "attendant": {
+          "name": "นายดำรง ช่างเข้าบ่อ",
+          "cert_no": "CS-ATT-2566-099"
+        },
+        "entrants": [
+          {
+            "name": "นายดำรง ช่างเข้าบ่อ",
+            "cert_no": "CS-ENT-2567-055"
+          }
+        ],
+        "gas_testing": {
+          "o2_pct": 20.9,
+          "lel_pct": 0.0,
+          "co_ppm": 0.0,
+          "h2s_ppm": 0.0
+        },
+        "continuous_ventilation": true,
+        "status": "draft"
+      }
+    },
+    {
+      "sample_id": "PTW-HOTWORK-VALID",
+      "description": "Valid Hot Work PTW with 11m clearance, 2 fire extinguishers, fire watcher, and 30-min monitoring",
+      "payload": {
+        "ptw_number": "PTW-2026-HW-001",
+        "work_title": "งานตัดและเชื่อมประกอบโครงสร้างท่อเหล็กไอน้ำ",
+        "work_type": "hot_work",
+        "location": "อาคารหม้อน้ำชั้น ๒",
+        "valid_from": "2026-09-02T10:00:00",
+        "valid_to": "2026-09-02T15:00:00",
+        "applicant": {
+          "name": "นายชูชัย ช่างเชื่อม",
+          "signed": true
+        },
+        "hot_work_controls": {
+          "area_cleared_11m": true,
+          "fire_blanket_used": true,
+          "fire_extinguishers_count": 2,
+          "extinguishers_type": "Dry Chemical 15 lbs",
+          "fire_watcher_name": "นายเอกชัย ตาไว",
+          "fire_watcher_trained": true,
+          "post_work_monitoring_minutes": 35,
+          "post_work_watcher_sign": true
+        },
+        "gas_testing": {
+          "lel_pct": 0.0
+        },
+        "status": "closed"
+      }
+    },
+    {
+      "sample_id": "PTW-ELECTRICAL-LOTO-VALID",
+      "description": "Valid Electrical LOTO PTW with multi-point lockout, danger tags, and zero energy verification",
+      "payload": {
+        "ptw_number": "PTW-2026-EL-001",
+        "work_title": "บำรุงรักษามอเตอร์ปั๊มสูบจ่ายน้ำมัน M-201",
+        "work_type": "electrical_loto",
+        "location": "MCC Room 1 และบริเวณปั๊ม M-201",
+        "valid_from": "2026-09-02T13:00:00",
+        "valid_to": "2026-09-02T17:00:00",
+        "applicant": {
+          "name": "นายไพโรจน์ ไฟฟ้า",
+          "signed": true
+        },
+        "loto_isolation": {
+          "zero_energy_verified": true,
+          "verification_method": "Digital Multimeter Fluke 87V (0.0 V Phase-to-Phase, 0.0 V Phase-to-Ground)",
+          "isolation_points": [
+            {
+              "point_id": "MCC-1-BKR-05",
+              "type": "Electrical Circuit Breaker 400V",
+              "location": "MCC Room 1 Panel B",
+              "padlock_no": "PL-E-101",
+              "tag_no": "DANGER-TAG-0501",
+              "isolated_by": "นายไพโรจน์ ไฟฟ้า",
+              "status": "LOCKED_AND_TAGGED"
+            },
+            {
+              "point_id": "VLV-SUCT-M201",
+              "type": "Manual Suction Gate Valve",
+              "location": "Inlet Pipe M-201",
+              "padlock_no": "PL-M-202",
+              "tag_no": "DANGER-TAG-0502",
+              "isolated_by": "นายไพโรจน์ ไฟฟ้า",
+              "status": "CLOSED_LOCKED_BLANKED"
+            }
+          ]
+        },
+        "status": "active"
+      }
+    },
+    {
+      "sample_id": "PTW-HEIGHT-VALID",
+      "description": "Valid Working at Height PTW with harness, anchor strength check, and scaffolding green tag",
+      "payload": {
+        "ptw_number": "PTW-2026-WAH-001",
+        "work_title": "ติดตั้งรางสายไฟใต้หลังคาความสูง ๖ เมตร",
+        "work_type": "working_at_height",
+        "location": "คลังสินค้า A เสาต้นที่ C-12",
+        "valid_from": "2026-09-02T09:00:00",
+        "valid_to": "2026-09-02T16:00:00",
+        "height_meters": 6.0,
+        "height_controls": {
+          "full_body_harness_used": true,
+          "double_lanyard_shock_absorber": true,
+          "anchor_point_certified_22kn": true,
+          "scaffolding_green_tag": true,
+          "edge_guardrails_installed": true,
+          "drop_zone_barricaded": true,
+          "weather_acceptable": true
+        },
+        "status": "active"
+      }
+    },
+    {
+      "sample_id": "PTW-EXCAVATION-VALID",
+      "description": "Valid Excavation PTW with shoring, underground utilities scan, and ladder placement",
+      "payload": {
+        "ptw_number": "PTW-2026-EXC-001",
+        "work_title": "ขุดวางท่อระบายน้ำคอนกรีตลึก ๒.๒ เมตร",
+        "work_type": "excavation_lifting",
+        "location": "ถนนหลักทางเข้าโรงงาน กม. ๑",
+        "valid_from": "2026-09-02T08:00:00",
+        "valid_to": "2026-09-02T17:00:00",
+        "depth_meters": 2.2,
+        "excavation_controls": {
+          "underground_utilities_scanned": true,
+          "shoring_installed": true,
+          "access_ladder_spacing_meters": 6.0,
+          "spoil_pile_setback_meters": 1.5,
+          "crane_pjor_inspected": true,
+          "crane_swl_verified": true,
+          "safety_latch_checked": true
+        },
+        "status": "active"
+      }
+    }
+  ]
+}
