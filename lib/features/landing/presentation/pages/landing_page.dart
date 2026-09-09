@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/glass_container.dart';
+import '../../../../core/constants/app_routes.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
 import '../../../ptw/presentation/notifiers/ptw_list_notifier.dart';
 import '../../../audit_inspection/presentation/notifiers/audit_providers.dart';
@@ -342,14 +343,14 @@ class LandingPage extends ConsumerWidget {
             value: '$registeredEmployeeCount คน',
             icon: Icons.people_alt_rounded,
             color: const Color(0xFF3B82F6),
-            targetIndex: 7, // Employee Page
+            targetIndex: AppRoutes.employee, // 7: Employee Page
           ),
           _KpiItem(
             title: 'การประเมินความเสี่ยง JSA',
             value: totalSessions > 0 ? '$totalSessions ชุดงาน' : 'พร้อมใช้งาน',
             icon: Icons.assignment_rounded,
             color: const Color(0xFF10B981),
-            targetIndex: 4, // JSA Page
+            targetIndex: AppRoutes.jsa, // 3: JSA Page
           ),
           _KpiItem(
             title: 'ใบอนุญาต PTW / Audit',
@@ -360,7 +361,7 @@ class LandingPage extends ConsumerWidget {
                     : 'Audit สอดคล้อง ${auditCompliance.toStringAsFixed(0)}%'),
             icon: Icons.assignment_turned_in_rounded,
             color: const Color(0xFFF59E0B),
-            targetIndex: 5, // PTW Page
+            targetIndex: AppRoutes.ptw, // 4: PTW Page
           ),
           _KpiItem(
             title: 'สถิติ Near Miss & ปลอดภัย',
@@ -371,7 +372,7 @@ class LandingPage extends ConsumerWidget {
                 : 'หยุดงาน $ltiCount ราย (Near Miss $nearMissCount)',
             icon: Icons.health_and_safety_rounded,
             color: const Color(0xFFEC4899),
-            targetIndex: 3, // Near Miss Page
+            targetIndex: AppRoutes.nearMiss, // 6: Near Miss Page
           ),
         ];
 
@@ -461,28 +462,28 @@ class LandingPage extends ConsumerWidget {
         subtitle: 'รายงานเหตุการณ์ผิดปกติทันที',
         icon: Icons.warning_amber_rounded,
         color: const Color(0xFFE11D48),
-        targetIndex: 3,
+        targetIndex: AppRoutes.nearMiss, // 6
       ),
       _QuickAction(
         title: 'ขอเปิดใบงาน PTW',
         subtitle: 'ใบอนุญาตทำงานที่มีความเสี่ยง',
         icon: Icons.assignment_turned_in_rounded,
         color: const Color(0xFFD97706),
-        targetIndex: 5,
+        targetIndex: AppRoutes.ptw, // 4
       ),
       _QuickAction(
         title: 'ประเมินความเสี่ยง JSA',
         subtitle: 'แบบ ปอ.๑ และ ปอ.๒ ตามกฎหมาย',
         icon: Icons.assignment_rounded,
         color: const Color(0xFF2563EB),
-        targetIndex: 4,
+        targetIndex: AppRoutes.jsa, // 3
       ),
       _QuickAction(
         title: 'ตรวจความปลอดภัย Audit',
         subtitle: 'Safety Inspection Checklist',
         icon: Icons.fact_check_rounded,
         color: const Color(0xFF059669),
-        targetIndex: 6,
+        targetIndex: AppRoutes.audit, // 5
       ),
     ];
 
@@ -603,7 +604,28 @@ class LandingPage extends ConsumerWidget {
   Widget _buildModuleCategories(BuildContext context) {
     final categories = [
       _CategoryGroup(
-        title: 'หมวดที่ ๑: การควบคุมความเสี่ยง & ปฏิบัติงาน (Risk & Operations)',
+        title: 'หมวดที่ ๑: ภาพรวม & การควบคุม (Overview & Control)',
+        icon: Icons.dashboard_outlined,
+        color: const Color(0xFF1E3A8A),
+        modules: [
+          _ModuleItem(
+            name: 'แดชบอร์ดสรุปสถิติผู้บริหาร',
+            desc: 'สถิติภาพรวม TRIR, Zero LTI, กราฟ ๑๒ เดือน',
+            icon: Icons.dashboard_rounded,
+            color: const Color(0xFF1E3A8A),
+            targetIndex: AppRoutes.dashboard, // 1
+          ),
+          _ModuleItem(
+            name: 'ข้อมูลองค์กร & ตั้งค่า SMS',
+            desc: 'บัญชีกิจการกระทรวงแรงงาน ผู้ชำนาญการ ม.๓๓',
+            icon: Icons.domain_rounded,
+            color: const Color(0xFF6366F1),
+            targetIndex: AppRoutes.smsSetup, // 2
+          ),
+        ],
+      ),
+      _CategoryGroup(
+        title: 'หมวดที่ ๒: การควบคุมความเสี่ยงหน้างาน (Risk & Site Operations)',
         icon: Icons.shield_outlined,
         color: const Color(0xFF2563EB),
         modules: [
@@ -612,33 +634,33 @@ class LandingPage extends ConsumerWidget {
             desc: 'แบบประเมิน ปอ.๑ และ ปอ.๒ ตามกฎหมาย',
             icon: Icons.assignment_rounded,
             color: const Color(0xFF2563EB),
-            targetIndex: 4,
+            targetIndex: AppRoutes.jsa, // 3
           ),
           _ModuleItem(
             name: 'PTW ใบอนุญาตทำงาน',
-            desc: 'ระบบขออนุมัติงานที่เสี่ยงอันตรายสูง',
+            desc: 'ระบบขออนุมัติงานที่เสี่ยงอันตรายสูง Fire Watch',
             icon: Icons.assignment_turned_in_rounded,
             color: const Color(0xFFD97706),
-            targetIndex: 5,
+            targetIndex: AppRoutes.ptw, // 4
           ),
           _ModuleItem(
             name: 'Audit & Safety Inspection',
             desc: 'ตรวจความปลอดภัยประจำพื้นที่และอุปกรณ์',
             icon: Icons.fact_check_rounded,
             color: const Color(0xFF059669),
-            targetIndex: 6,
+            targetIndex: AppRoutes.audit, // 5
           ),
           _ModuleItem(
             name: 'รายงานอุบัติเหตุ & Near Miss',
-            desc: 'บันทึกเหตุการณ์ วิเคราะห์รากเหง้า RCA',
+            desc: 'บันทึกเหตุการณ์ วิเคราะห์รากเหง้า RCA 5W1H',
             icon: Icons.warning_amber_rounded,
             color: const Color(0xFFE11D48),
-            targetIndex: 3,
+            targetIndex: AppRoutes.nearMiss, // 6
           ),
         ],
       ),
       _CategoryGroup(
-        title: 'หมวดที่ ๒: บุคลากร สุขอนามัย & ผู้รับเหมา (People & Health)',
+        title: 'หมวดที่ ๓: บุคลากร สุขอนามัย & ผู้รับเหมา (People & Health)',
         icon: Icons.people_outline_rounded,
         color: const Color(0xFF7C3AED),
         modules: [
@@ -647,119 +669,105 @@ class LandingPage extends ConsumerWidget {
             desc: 'ข้อมูลบุคลากร ประวัติการอบรมความปลอดภัย',
             icon: Icons.people_alt_rounded,
             color: const Color(0xFF4F46E5),
-            targetIndex: 7,
+            targetIndex: AppRoutes.employee, // 7
+          ),
+          _ModuleItem(
+            name: 'คณะกรรมการ คปอ.',
+            desc: 'เลือกตั้ง กกต. โครงสร้าง ประชุม ๖ วาระ ติดตามมติ',
+            icon: Icons.diversity_3_rounded,
+            color: const Color(0xFF0D9488),
+            targetIndex: AppRoutes.cpo, // 8
           ),
           _ModuleItem(
             name: 'จัดการผู้รับเหมา Contractor',
-            desc: 'ขึ้นทะเบียน ควบคุมการเข้าปฏิบัติงาน',
+            desc: 'ขึ้นทะเบียน ควบคุมการเข้าปฏิบัติงาน Safety Pass',
             icon: Icons.engineering_rounded,
             color: const Color(0xFFEA580C),
-            targetIndex: 8,
+            targetIndex: AppRoutes.contractor, // 9
           ),
           _ModuleItem(
             name: 'อาชีวอนามัย & ตรวจสุขภาพ',
             desc: 'สมุดตรวจสุขภาพตามปัจจัยเสี่ยงและสุขอนามัย',
             icon: Icons.health_and_safety_rounded,
-            color: const Color(0xFF0D9488),
-            targetIndex: 9,
+            color: const Color(0xFF059669),
+            targetIndex: AppRoutes.health, // 10
           ),
           _ModuleItem(
             name: 'อุปกรณ์ PPE & มาตรฐาน ASL',
             desc: 'ควบคุม เบิกจ่าย และตรวจสภาพอุปกรณ์',
             icon: Icons.construction_rounded,
             color: const Color(0xFF0284C7),
-            targetIndex: 12,
+            targetIndex: AppRoutes.ppe, // 11
           ),
         ],
       ),
       _CategoryGroup(
-        title: 'หมวดที่ ๓: สารเคมี สิ่งแวดล้อม & ภาวะฉุกเฉิน (Chemicals & Environment)',
-        icon: Icons.science_outlined,
+        title: 'หมวดที่ ๔: เทคนิควิศวกรรม & สิ่งแวดล้อม (Engineering & Environment)',
+        icon: Icons.precision_manufacturing_outlined,
         color: const Color(0xFF059669),
         modules: [
           _ModuleItem(
-            name: 'บัญชีสารเคมีอันตราย & SDS',
-            desc: 'เอกสารความปลอดภัยสารเคมี การจัดเก็บ',
-            icon: Icons.science_rounded,
-            color: const Color(0xFF9333EA),
-            targetIndex: 10,
-          ),
-          _ModuleItem(
-            name: 'การจัดการสิ่งแวดล้อม & ของเสีย',
-            desc: 'มลพิษ อากาศ น้ำ กากของเสียอุตสาหกรรม',
-            icon: Icons.thermostat_rounded,
-            color: const Color(0xFF16A34A),
-            targetIndex: 11,
-          ),
-          _ModuleItem(
-            name: 'แผนตอบโต้ภาวะฉุกเฉิน',
-            desc: 'ซ้อมหนีไฟ ทีมฉุกเฉิน แผนระงับเหตุอัคคีภัย',
-            icon: Icons.local_hospital_rounded,
-            color: const Color(0xFFDC2626),
-            targetIndex: 13,
+            name: 'เครื่องจักร ปั้นจั่น & หม้อน้ำ',
+            desc: 'ตรวจรับรอง ปจ.๑ / ปจ.๒ Load Test หม้อน้ำ & อุปกรณ์ยก',
+            icon: Icons.precision_manufacturing_rounded,
+            color: const Color(0xFF0284C7),
+            targetIndex: AppRoutes.machinery, // 12
           ),
           _ModuleItem(
             name: 'ระบบความปลอดภัยทางไฟฟ้า',
             desc: 'ตรวจรับรองประจำปี ม.๑๒ แบบ ๕๖๒๘๙ LOTO & PM',
             icon: Icons.bolt_rounded,
             color: const Color(0xFFD97706),
-            targetIndex: 14,
+            targetIndex: AppRoutes.electrical, // 13
           ),
           _ModuleItem(
-            name: 'เครื่องจักร ปั้นจั่น & หม้อน้ำ',
-            desc: 'ตรวจรับรอง ปจ.๑ / ปจ.๒ Load Test หม้อน้ำ & อุปกรณ์ช่วยยก',
-            icon: Icons.precision_manufacturing_rounded,
-            color: const Color(0xFF0284C7),
-            targetIndex: 15,
+            name: 'บัญชีสารเคมีอันตราย & SDS',
+            desc: 'เอกสารความปลอดภัยสารเคมี การจัดเก็บ สอ.๑/สอ.๓',
+            icon: Icons.science_rounded,
+            color: const Color(0xFF9333EA),
+            targetIndex: AppRoutes.chemicals, // 14
+          ),
+          _ModuleItem(
+            name: 'สิ่งแวดล้อม แสง เสียง ความร้อน',
+            desc: 'ตรวจวัดตามมาตรฐาน ม.๙/ม.๑๑ กฎกระทรวง ๒๕๕๙',
+            icon: Icons.thermostat_rounded,
+            color: const Color(0xFF16A34A),
+            targetIndex: AppRoutes.environment, // 15
+          ),
+          _ModuleItem(
+            name: 'แผนตอบโต้ภาวะฉุกเฉิน',
+            desc: 'ซ้อมหนีไฟ ทีมฉุกเฉิน แผนระงับเหตุอัคคีภัย',
+            icon: Icons.local_hospital_rounded,
+            color: const Color(0xFFDC2626),
+            targetIndex: AppRoutes.emergency, // 16
           ),
         ],
       ),
       _CategoryGroup(
-        title: 'หมวดที่ ๔: การบริหารจัดการ & กฎหมาย (Governance & Compliance)',
+        title: 'หมวดที่ ๕: การกำกับดูแล นโยบาย & ตั้งค่า (Governance & System)',
         icon: Icons.gavel_rounded,
         color: const Color(0xFF475569),
         modules: [
           _ModuleItem(
-            name: 'ข้อมูลองค์กร & ตั้งค่า SMS',
-            desc: 'บัญชีกิจการกระทรวงแรงงาน ผู้ชำนาญการ ม.๓๓',
-            icon: Icons.domain_rounded,
-            color: const Color(0xFF1E3A8A),
-            targetIndex: 1,
-          ),
-          _ModuleItem(
-            name: 'แดชบอร์ดสรุปสถิติ (Dashboard)',
-            desc: 'สถิติภาพรวม กราฟความปลอดภัยรายเดือน',
-            icon: Icons.dashboard_rounded,
-            color: const Color(0xFF6366F1),
-            targetIndex: 2,
+            name: 'ทะเบียนกฎหมายความปลอดภัย',
+            desc: 'Legal Register กฎหมายความปลอดภัยและสิ่งแวดล้อม',
+            icon: Icons.gavel_rounded,
+            color: const Color(0xFF334155),
+            targetIndex: AppRoutes.legal, // 17
           ),
           _ModuleItem(
             name: 'คู่มือความปลอดภัย & SOPs',
             desc: 'ขั้นตอนการทำงานปลอดภัย มาตรฐานปฏิบัติการ',
             icon: Icons.menu_book_rounded,
             color: const Color(0xFFC2410C),
-            targetIndex: 16,
-          ),
-          _ModuleItem(
-            name: 'ทะเบียนกฎหมายความปลอดภัย',
-            desc: 'Legal Register กฎหมายความปลอดภัยและสิ่งแวดล้อม',
-            icon: Icons.gavel_rounded,
-            color: const Color(0xFF334155),
-            targetIndex: 17,
-          ),
-          _ModuleItem(
-            name: 'คณะกรรมการ คปอ.',
-            desc: 'เลือกตั้ง กกต. โครงสร้าง ประชม ๖ วาระ ติดตามมติ',
-            icon: Icons.diversity_3_rounded,
-            color: const Color(0xFF0D9488),
-            targetIndex: 18,
+            targetIndex: AppRoutes.manuals, // 18
           ),
           _ModuleItem(
             name: 'ตั้งค่าระบบ (Settings)',
             desc: 'กำหนดสิทธิ์ สำรองฐานข้อมูล ปรับแต่งแอป',
             icon: Icons.settings_rounded,
             color: const Color(0xFF64748B),
-            targetIndex: 19,
+            targetIndex: AppRoutes.settings, // 19
           ),
         ],
       ),
