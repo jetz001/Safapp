@@ -41,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 12,
+        version: 13,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -104,6 +104,7 @@ class DatabaseHelper {
     await _createPpeTables(db);
     await _createEmergencyTables(db);
     await _createElectricalInspectionTable(db);
+    await _createElectricalLotoTable(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -159,6 +160,9 @@ class DatabaseHelper {
     if (oldVersion < 12) {
       await _createElectricalInspectionTable(db);
     }
+    if (oldVersion < 13) {
+      await _createElectricalLotoTable(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -170,6 +174,8 @@ class DatabaseHelper {
     await _createCpoTables(db);
     await _createPpeTables(db);
     await _createEmergencyTables(db);
+    await _createElectricalInspectionTable(db);
+    await _createElectricalLotoTable(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -1800,6 +1806,88 @@ class DatabaseHelper {
     ''');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_elec_insp_date ON electrical_inspection_records(inspection_date)');
     await db.execute('CREATE INDEX IF NOT EXISTS idx_elec_exp_date ON electrical_inspection_records(expiry_date)');
+  }
+
+  Future<void> _createElectricalLotoTable(Database db) async {
+    // 5. ตารางทะเบียนจุดตัดแยกพลังงานไฟฟ้าหลัก & เบรกเกอร์ (Main Breakers & Circuit Isolation Map)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS electrical_circuit_breakers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        equipment_tag TEXT NOT NULL UNIQUE,
+        equipment_name TEXT NOT NULL,
+        location_building TEXT NOT NULL,
+        location_floor TEXT,
+        voltage_level TEXT NOT NULL DEFAULT 'LOW_VOLTAGE',
+        rated_current_amp REAL,
+        breaker_type TEXT NOT NULL,
+        upstream_source TEXT,
+        is_locked INTEGER NOT NULL DEFAULT 0,
+        lockout_tag_no TEXT,
+        locked_by TEXT,
+        locked_at TEXT,
+        zero_energy_verified INTEGER NOT NULL DEFAULT 0,
+        authorized_operator TEXT,
+        single_line_diagram_ref TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cb_tag ON electrical_circuit_breakers(equipment_tag)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_cb_locked ON electrical_circuit_breakers(is_locked)');
+
+    // Pre-populate standard factory breakers if empty
+    final countRes = await db.rawQuery('SELECT COUNT(*) as count FROM electrical_circuit_breakers');
+    final count = countRes.isNotEmpty ? (countRes.first['count'] as int? ?? 0) : 0;
+    if (count == 0) {
+      await db.insert('electrical_circuit_breakers', {
+        'equipment_tag': 'MDB-01-ACB',
+        'equipment_name': 'ตู้ควบคุมหลัก อาคารผลิต 1 (Main MDB)',
+        'location_building': 'อาคารผลิต 1 (Production Plant 1)',
+        'location_floor': 'ชั้น 1 ห้องควบคุมไฟฟ้าแรงต่ำ',
+        'voltage_level': 'LOW_VOLTAGE',
+        'rated_current_amp': 1600.0,
+        'breaker_type': 'Air Circuit Breaker (ACB)',
+        'upstream_source': 'หม้อแปลงไฟฟ้า TR-01 (1,000 kVA)',
+        'is_locked': 0,
+        'zero_energy_verified': 0,
+        'authorized_operator': 'วิศวกรไฟฟ้า / ช่างเทคนิคอาวุโส',
+        'single_line_diagram_ref': 'SLD-DWG-001',
+        'notes': 'จุดตัดแยกกระแสไฟหลักของอาคารผลิตทั้งหมด',
+      });
+
+      await db.insert('electrical_circuit_breakers', {
+        'equipment_tag': 'MDB-OFFICE-MCCB',
+        'equipment_name': 'ตู้ควบคุมหลัก อาคารสำนักงาน',
+        'location_building': 'อาคารสำนักงานใหญ่ (Head Office)',
+        'location_floor': 'ชั้น 1 ห้องไฟฟ้าใต้บันได',
+        'voltage_level': 'LOW_VOLTAGE',
+        'rated_current_amp': 400.0,
+        'breaker_type': 'Molded Case Circuit Breaker (MCCB)',
+        'upstream_source': 'หม้อแปลงไฟฟ้า TR-02 (400 kVA)',
+        'is_locked': 0,
+        'zero_energy_verified': 0,
+        'authorized_operator': 'หัวหน้าช่างอาคาร',
+        'single_line_diagram_ref': 'SLD-DWG-002',
+        'notes': 'ควบคุมระบบแสงสว่าง ปลั๊ก และแอร์สำนักงาน',
+      });
+
+      await db.insert('electrical_circuit_breakers', {
+        'equipment_tag': 'SUB-SERVER-MCCB',
+        'equipment_name': 'ตู้จ่ายไฟสำรองห้องเซิร์ฟเวอร์ (Server Room)',
+        'location_building': 'อาคารสำนักงานใหญ่',
+        'location_floor': 'ชั้น 2 ห้อง Data Center',
+        'voltage_level': 'LOW_VOLTAGE',
+        'rated_current_amp': 100.0,
+        'breaker_type': 'Molded Case Circuit Breaker (MCCB)',
+        'upstream_source': 'MDB-OFFICE พร้อมระบบสลับ UPS อัตโนมัติ',
+        'is_locked': 0,
+        'zero_energy_verified': 0,
+        'authorized_operator': 'ผู้ดูแลระบบ IT & หัวหน้าช่างอาคาร',
+        'single_line_diagram_ref': 'SLD-DWG-003',
+        'notes': 'ห้ามปลดวงจรโดยไม่แจ้งฝ่าย IT ล่วงหน้าอย่างน้อย 24 ชม.',
+      });
+    }
   }
 }
 
