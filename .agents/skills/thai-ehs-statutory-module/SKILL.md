@@ -67,6 +67,18 @@ Every statutory domain must support actionable SOPs adhering to ISO 45001 Clause
 4. **Emergency Protocols**: E-Stop actions, spill kits, eyewash, first-aid measures.
 5. **Dual-Mode Integration**: Retain in-app structured viewer/editor while supporting native external PDF viewing.
 
+### Step 5: 3-Tier Safety Manual & Dynamic Handbook Assembly Protocol
+Under Thai Ministerial Regulations B.E. 2565 and OSH Act B.E. 2554 (Section 13), employers must provide written safety regulations and manuals distributed to all employees:
+1. **Tier 1 - Master Safety Manual (เล่มรวมแม่แบบ ๑๒-๑๕ บท)**:
+   - Full chapters: Policy, Committee (คปอ.), General Rules, PPE Matrix, PTW, Dynamic Hazard Modules, Incident Reporting, Emergency Response.
+2. **Tier 2 - Employee Pocket Handbook (คู่มือฉบับพนักงาน/กระเป๋าเสื้อ)**:
+   - Frontline focus: Worker Rights & Duties, 10 Golden Rules, Safety Signs & Colors, Department PPE, Stop Work Authority, Emergency Hotline.
+3. **Tier 3 - 1-Page Safety Induction Leaflet (ใบสรุปพนักงานใหม่ ๑ หน้า)**:
+   - Essential site rules, PPE requirements, evacuation route, alarms, and Tear-off Sign-off acknowledgment slip.
+4. **Dynamic Factory Scope Synthesis**:
+   - Centralized scope configuration flags (`hasBoiler`, `hasCrane`, `hasChemical`, `hasConfinedSpace`, `hasHeights`, `hasElectrical`, `hasEmergency`).
+   - Dynamically includes or suppresses specific hazard chapters across all 3 tiers without manual rewrite.
+
 ---
 
 ## Verification Protocol

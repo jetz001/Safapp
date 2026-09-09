@@ -41,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 15,
+        version: 16,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -107,6 +107,7 @@ class DatabaseHelper {
     await _createElectricalLotoTable(db);
     await _createMachineryTables(db);
     await _createSopTables(db);
+    await _createManualScopeTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -171,6 +172,9 @@ class DatabaseHelper {
     if (oldVersion < 15) {
       await _createSopTables(db);
     }
+    if (oldVersion < 16) {
+      await _createManualScopeTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -186,6 +190,7 @@ class DatabaseHelper {
     await _createElectricalLotoTable(db);
     await _createMachineryTables(db);
     await _createSopTables(db);
+    await _createManualScopeTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -2314,6 +2319,43 @@ class DatabaseHelper {
         'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
         'approver': 'ผู้อำนวยการฝ่ายบริหารโรงงาน',
         'status': 'ACTIVE',
+      });
+    }
+  }
+
+  // ========================================================
+  // 14. FACTORY SAFETY SCOPE & MANUAL CONFIGURATION
+  // ========================================================
+
+  Future<void> _createManualScopeTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS safety_factory_scope (
+        id INTEGER PRIMARY KEY,
+        has_boiler INTEGER DEFAULT 1,
+        has_crane INTEGER DEFAULT 1,
+        has_chemical INTEGER DEFAULT 1,
+        has_confined_space INTEGER DEFAULT 1,
+        has_working_at_height INTEGER DEFAULT 1,
+        has_electrical_loto INTEGER DEFAULT 1,
+        has_emergency_fire INTEGER DEFAULT 1,
+        has_ppe INTEGER DEFAULT 1,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    final countRes = await db.rawQuery('SELECT COUNT(*) as count FROM safety_factory_scope');
+    final scopeCount = countRes.isNotEmpty ? (countRes.first['count'] as int? ?? 0) : 0;
+    if (scopeCount == 0) {
+      await db.insert('safety_factory_scope', {
+        'id': 1,
+        'has_boiler': 1,
+        'has_crane': 1,
+        'has_chemical': 1,
+        'has_confined_space': 1,
+        'has_working_at_height': 1,
+        'has_electrical_loto': 1,
+        'has_emergency_fire': 1,
+        'has_ppe': 1,
       });
     }
   }
