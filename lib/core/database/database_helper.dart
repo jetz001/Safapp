@@ -41,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 10,
+        version: 12,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -102,6 +102,8 @@ class DatabaseHelper {
     await _createPtwTables(db);
     await _createCpoTables(db);
     await _createPpeTables(db);
+    await _createEmergencyTables(db);
+    await _createElectricalInspectionTable(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -151,6 +153,12 @@ class DatabaseHelper {
     if (oldVersion < 10) {
       await _createPpeTables(db);
     }
+    if (oldVersion < 11) {
+      await _createEmergencyTables(db);
+    }
+    if (oldVersion < 12) {
+      await _createElectricalInspectionTable(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -161,6 +169,7 @@ class DatabaseHelper {
     await _createPtwTables(db);
     await _createCpoTables(db);
     await _createPpeTables(db);
+    await _createEmergencyTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -1664,6 +1673,133 @@ class DatabaseHelper {
         await db.insert('ppe_suppliers', sup.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
       }
     }
+  }
+
+  Future<void> _createEmergencyTables(Database db) async {
+    // 1. ตารางแผนฉุกเฉิน (Emergency Response Plans - ERP 6 แผนย่อยตามกฎกระทรวง ข้อ ๔ และเหตุฉุกเฉินอื่นๆ)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS emergency_plans (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plan_title TEXT NOT NULL,
+        hazard_type TEXT NOT NULL DEFAULT 'FIRE',
+        business_type TEXT NOT NULL DEFAULT 'FACTORY',
+        company_name TEXT,
+        company_address TEXT,
+        total_employees INTEGER DEFAULT 0,
+        male_count INTEGER DEFAULT 0,
+        female_count INTEGER DEFAULT 0,
+        fire_commander_name TEXT,
+        deputy_commander_name TEXT,
+        commander_phone TEXT,
+        version TEXT DEFAULT '1.0',
+        effective_date TEXT,
+        review_date TEXT,
+        status TEXT NOT NULL DEFAULT 'ACTIVE',
+        plan_1_inspection_json TEXT,
+        plan_2_training_json TEXT,
+        plan_3_campaign_json TEXT,
+        plan_4_suppression_json TEXT,
+        plan_5_evacuation_json TEXT,
+        plan_6_relief_json TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_erp_hazard_type ON emergency_plans(hazard_type)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_erp_status ON emergency_plans(status)');
+
+    // 2. ตารางบันทึกการฝึกซ้อมและรายงานผล (Drill Sessions & สปร. ๔ ข้อ ๓๐)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS emergency_drill_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        plan_id INTEGER,
+        hazard_type TEXT NOT NULL DEFAULT 'FIRE',
+        drill_title TEXT NOT NULL,
+        drill_date TEXT NOT NULL,
+        start_time TEXT,
+        end_time TEXT,
+        drill_year INTEGER,
+        organizer_type TEXT NOT NULL DEFAULT 'SELF_APPROVED',
+        organizer_name TEXT,
+        approval_cert_no TEXT,
+        approval_date TEXT,
+        scenario_description TEXT,
+        incident_location TEXT,
+        fire_or_hazard_source TEXT,
+        total_workers_on_site INTEGER DEFAULT 0,
+        participated_count INTEGER DEFAULT 0,
+        male_participants INTEGER DEFAULT 0,
+        female_participants INTEGER DEFAULT 0,
+        participation_rate_percent REAL DEFAULT 0.0,
+        initial_attack_time_sec INTEGER DEFAULT 0,
+        evacuation_time_sec INTEGER DEFAULT 0,
+        headcount_status TEXT NOT NULL DEFAULT 'ALL_ACCOUNTED',
+        simulated_injuries_count INTEGER DEFAULT 0,
+        problems_and_obstacles TEXT,
+        improvement_actions TEXT,
+        evaluation_summary TEXT,
+        evaluator_name TEXT,
+        evaluator_position TEXT,
+        spr4_submission_status TEXT NOT NULL DEFAULT 'PENDING',
+        submission_deadline TEXT,
+        submitted_date TEXT,
+        officer_receipt_no TEXT,
+        vendor_report_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (plan_id) REFERENCES emergency_plans(id) ON DELETE SET NULL
+      )
+    ''');
+    try {
+      await db.execute('ALTER TABLE emergency_drill_sessions ADD COLUMN vendor_report_path TEXT');
+    } catch (_) {}
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_drill_date ON emergency_drill_sessions(drill_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_drill_submission ON emergency_drill_sessions(spr4_submission_status)');
+
+    // 3. ตารางรูปถ่ายและเอกสารแนบการฝึกซ้อม (Drill Photos & Evidence for สปร. ๔)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS emergency_drill_attachments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        drill_id INTEGER NOT NULL,
+        image_path TEXT NOT NULL,
+        caption TEXT,
+        category TEXT DEFAULT 'DURING',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (drill_id) REFERENCES emergency_drill_sessions(id) ON DELETE CASCADE
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_attachment_drill_id ON emergency_drill_attachments(drill_id)');
+  }
+
+  Future<void> _createElectricalInspectionTable(Database db) async {
+    // 4. ตารางบันทึกผลการตรวจสอบและรับรองระบบไฟฟ้าและบริภัณฑ์ไฟฟ้า (แบบ ๕๖๒๘๙ / กฎกระทรวงไฟฟ้า ๒๕๕๘ ข้อ ๑๒)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS electrical_inspection_records (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_name TEXT,
+        inspection_date TEXT NOT NULL,
+        expiry_date TEXT NOT NULL,
+        inspector_name TEXT NOT NULL,
+        inspector_license_no TEXT NOT NULL,
+        contractor_company TEXT,
+        inspector_type TEXT NOT NULL DEFAULT 'EXTERNAL_CONTRACTOR',
+        overall_result TEXT NOT NULL DEFAULT 'PASS',
+        voltage_system TEXT NOT NULL DEFAULT 'HIGH_AND_LOW_VOLTAGE',
+        transformer_count INTEGER DEFAULT 0,
+        mdb_panel_count INTEGER DEFAULT 0,
+        grounding_resistance_ohm REAL,
+        defects_found TEXT,
+        corrective_actions TEXT,
+        vendor_report_pdf_path TEXT,
+        thermoscan_report_path TEXT,
+        engineer_license_doc_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_elec_insp_date ON electrical_inspection_records(inspection_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_elec_exp_date ON electrical_inspection_records(expiry_date)');
   }
 }
 

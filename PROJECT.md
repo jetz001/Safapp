@@ -57,6 +57,9 @@ The PTW module in SAFAPP is architected around a layered, reactive, clean-archit
 | 15 | Multi-Agent Helper Script | `thai_ptw_helper.py` in `D:\DEV\AgentResearch\Scripts\` | M5 | ORIGINAL_REQUEST §R6 |
 | 16 | E2E 4-Tier Test Suite | Tier 1-4 tests (Flutter & Python) ensuring 100% test pass rate | M6 | ORIGINAL_REQUEST §A4 |
 | 17 | Adversarial Hardening (Tier 5) | Stress tests, boundary attacks, and forensic audit verification | M6 | Project Pattern |
+| 18 | Multi-Hazard ERP Builder (6 Pillars) | 5 hazard types, 6 statutory sub-plans, smart industry presets | M7 | Statutory B.E. 2555 |
+| 19 | Drill Management & Form สปร. ๔ | Annual drill SLA countdown, live timer, headcount, DLPW PDF & Excel | M7 | Clause 30 & SPR 4 |
+| 20 | Agent Skill `thai-emergency-response-plan` | SKILL.md, CLI subcommands (calc quota, extinguishers, audit drill) | M7 | Workflow Skill Creator |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |

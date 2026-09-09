@@ -1,0 +1,77 @@
+{
+  "presets": {
+    "FIRE_FACTORY": {
+      "hazard_type": "FIRE",
+      "business_type": "FACTORY",
+      "title": "แผนป้องกันและระงับอัคคีภัยประจำปี (ตามกฎกระทรวงฯ ๒๕๕๕ ข้อ ๔)",
+      "mandatory_pillars": [
+        "inspection",
+        "training",
+        "campaign",
+        "suppression",
+        "evacuation",
+        "relief"
+      ],
+      "training_quota_percent": 40.0,
+      "max_extinguisher_travel_distance_m": 20.0,
+      "max_extinguisher_height_m": 1.50
+    },
+    "CHEMICAL_HAZMAT": {
+      "hazard_type": "CHEMICAL_SPILL",
+      "business_type": "CHEMICAL_STORAGE",
+      "title": "แผนเผชิญเหตุสารเคมีรั่วไหลและวัตถุอันตราย (HAZMAT ERP)",
+      "mandatory_pillars": [
+        "inspection",
+        "training",
+        "campaign",
+        "suppression",
+        "evacuation",
+        "relief"
+      ],
+      "isolation_standard": "ERG 2024 / Upwind Evacuation"
+    },
+    "FLOOD": {
+      "hazard_type": "FLOOD",
+      "business_type": "FACTORY",
+      "title": "แผนเตรียมความพร้อมและป้องกันอุทกภัย (Flood ERP)",
+      "mandatory_pillars": [
+        "inspection",
+        "training",
+        "campaign",
+        "suppression",
+        "evacuation",
+        "relief"
+      ]
+    },
+    "EARTHQUAKE": {
+      "hazard_type": "EARTHQUAKE",
+      "business_type": "OFFICE",
+      "title": "แผนเผชิญเหตุแผ่นดินไหวและอาคารถล่ม (Earthquake ERP)",
+      "mandatory_pillars": [
+        "inspection",
+        "training",
+        "campaign",
+        "suppression",
+        "evacuation",
+        "relief"
+      ]
+    },
+    "ELECTRICAL_SAFETY": {
+      "hazard_type": "ELECTRICAL",
+      "business_type": "FACTORY",
+      "title": "แผนตอบโต้ภาวะฉุกเฉินและระงับอุบัติภัยจากระบบไฟฟ้า (Electrical ERP)",
+      "mandatory_pillars": [
+        "inspection",
+        "training",
+        "campaign",
+        "suppression",
+        "evacuation",
+        "relief"
+      ],
+      "annual_inspection_sla_days": 365,
+      "max_grounding_resistance_ohm": 5.0,
+      "statutory_form": "แบบ ๕๖๒๘๙",
+      "statutory_regulation": "กฎกระทรวงไฟฟ้า ๒๕๕๘ ข้อ ๑๒"
+    }
+  }
+}
