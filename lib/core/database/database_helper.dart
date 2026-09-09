@@ -1991,7 +1991,8 @@ class DatabaseHelper {
     await db.execute('CREATE INDEX IF NOT EXISTS idx_mach_asset_stat ON machinery_assets(status)');
 
     // Pre-populate standard sample records if empty
-    final craneCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM machinery_crane_inspections')) ?? 0;
+    final craneCountRes = await db.rawQuery('SELECT COUNT(*) as count FROM machinery_crane_inspections');
+    final craneCount = craneCountRes.isNotEmpty ? (craneCountRes.first['count'] as int? ?? 0) : 0;
     if (craneCount == 0) {
       final now = DateTime.now();
       final inspDate = DateTime(now.year, now.month - 1, now.day);
@@ -2052,7 +2053,8 @@ class DatabaseHelper {
       });
     }
 
-    final boilerCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM machinery_boiler_inspections')) ?? 0;
+    final boilerCountRes = await db.rawQuery('SELECT COUNT(*) as count FROM machinery_boiler_inspections');
+    final boilerCount = boilerCountRes.isNotEmpty ? (boilerCountRes.first['count'] as int? ?? 0) : 0;
     if (boilerCount == 0) {
       final now = DateTime.now();
       final bInspDate = DateTime(now.year, now.month - 3, now.day);
@@ -2083,7 +2085,8 @@ class DatabaseHelper {
       });
     }
 
-    final assetCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM machinery_assets')) ?? 0;
+    final assetCountRes = await db.rawQuery('SELECT COUNT(*) as count FROM machinery_assets');
+    final assetCount = assetCountRes.isNotEmpty ? (assetCountRes.first['count'] as int? ?? 0) : 0;
     if (assetCount == 0) {
       final nowStr = DateTime.now().toIso8601String().substring(0, 10);
       await db.insert('machinery_assets', {
