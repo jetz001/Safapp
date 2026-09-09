@@ -79,6 +79,27 @@ Under Thai Ministerial Regulations B.E. 2565 and OSH Act B.E. 2554 (Section 13),
    - Centralized scope configuration flags (`hasBoiler`, `hasCrane`, `hasChemical`, `hasConfinedSpace`, `hasHeights`, `hasElectrical`, `hasEmergency`).
    - Dynamically includes or suppresses specific hazard chapters across all 3 tiers without manual rewrite.
 
+### Step 6: Statutory Safety Management System (SMS 2565) Audit & Cross-Module Verification Protocol
+Under Thai Ministerial Regulation on Safety Management Systems B.E. 2565 (กฎกระทรวงระบบการจัดการด้านความปลอดภัย พ.ศ. ๒๕๖๕, ๑๑ เม.ย. ๒๕๖๕) issued under OSH Act B.E. 2554 (Sections 5 & 8):
+1. **Mandatory Scope (ข้อ ๔ & บัญชีท้าย ๕๔ กิจการ)**:
+   - Covers 54 scheduled industries with 50+ employees (within 60 days of reaching employee threshold).
+   - Equivalency recognition (ข้อ ๑๓): ISO 45001, ILO-OSH, OSHA, ANSI, BSI, AS/NZS, CSA.
+2. **5 Core Statutory Pillars (ข้อ ๕-๑๑)**:
+   - Pillar 1: Safety Policy & Employee Participation (นโยบายด้านความปลอดภัยฯ ข้อ ๖-๗) - Written in Thai, signed, reviewed annually.
+   - Pillar 2: Safety Organization & Contractor Safety (การจัดองค์กรด้านความปลอดภัยฯ ข้อ ๘) - Certified roles (จป./คปอ.), training, 2-year document retention (ข้อ ๘(๓)).
+   - Pillar 3: Planning & Implementation (แผนงานด้านความปลอดภัยและการนำไปปฏิบัติ ข้อ ๙) - Initial hazard review, defined budgets, SLAs, and evaluation metrics.
+   - Pillar 4: Performance Evaluation & Annual Review (การประเมินผลและการทบทวนระบบ ข้อ ๑๐) - Internal Safety Audit (ข้อ ๑๐(๑)), 5W1H incident analysis (ข้อ ๑๐(๒)), annual systemic review.
+   - Pillar 5: Continual Improvement & Worker Engagement (การปรับปรุงและพัฒนา ข้อ ๑๑-๑๒) - Continuous CAPA closed-loop, worker feedback/whistleblower channels.
+3. **Cross-Module Evidence Engine**:
+   - Automatically gathers live verification metrics from across active modules (`electrical`, `machinery`, `chemicals`, `environment`, `ptw`, `emergency`, `health_hygiene`, `cpo`).
+   - Links direct inspection records (แบบ ๕๖๒๘๙, ปจ.๑, ปจ.๒, สอ.๑, สอ.๓, สปร.๔) next to audit criteria.
+4. **Grading & Statutory CAR/CAPA Engine**:
+   - 4-Tier Evaluation: `CONFORM`, `MINOR_NC`, `MAJOR_NC`, `N/A`.
+   - Automatic Corrective & Preventive Action (CAR/CAPA) generation upon Non-Conformance detection with root cause analysis and SLA tracking.
+5. **Statutory Document Retention & Export**:
+   - Produces official bilingual PDF Audit Reports with Auditor, Safety Officer (จป.วิชาชีพ), and Employer signature blocks for Section 8(3) 2-year statutory retention.
+   - Produces detailed Excel Compliance Worksheets for Department of Labour Protection and Welfare (สปภ.) inspector verification.
+
 ---
 
 ## Verification Protocol

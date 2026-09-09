@@ -41,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 16,
+        version: 17,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -108,6 +108,7 @@ class DatabaseHelper {
     await _createMachineryTables(db);
     await _createSopTables(db);
     await _createManualScopeTables(db);
+    await _createAuditInspectionTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -175,6 +176,9 @@ class DatabaseHelper {
     if (oldVersion < 16) {
       await _createManualScopeTables(db);
     }
+    if (oldVersion < 17) {
+      await _createAuditInspectionTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -191,6 +195,7 @@ class DatabaseHelper {
     await _createMachineryTables(db);
     await _createSopTables(db);
     await _createManualScopeTables(db);
+    await _createAuditInspectionTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -2358,6 +2363,77 @@ class DatabaseHelper {
         'has_ppe': 1,
       });
     }
+  }
+
+  // ========================================================
+  // 15. AUDIT & INSPECTION (SMS 2565 & FACTORY SCOPE)
+  // ========================================================
+
+  Future<void> _createAuditInspectionTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS audit_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        audit_no TEXT NOT NULL UNIQUE,
+        audit_title TEXT NOT NULL,
+        audit_date TEXT NOT NULL,
+        lead_auditor TEXT NOT NULL,
+        auditor_team TEXT,
+        audit_scope TEXT NOT NULL,
+        status TEXT DEFAULT 'IN_PROGRESS',
+        total_items INTEGER DEFAULT 0,
+        conform_count INTEGER DEFAULT 0,
+        minor_nc_count INTEGER DEFAULT 0,
+        major_nc_count INTEGER DEFAULT 0,
+        na_count INTEGER DEFAULT 0,
+        compliance_percentage REAL DEFAULT 0.0,
+        summary_notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS audit_checklist_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        audit_session_id INTEGER NOT NULL,
+        category_code TEXT NOT NULL,
+        category_title TEXT NOT NULL,
+        clause_no TEXT NOT NULL,
+        item_title TEXT NOT NULL,
+        requirement_description TEXT NOT NULL,
+        legal_reference TEXT NOT NULL,
+        source_module TEXT,
+        evidence_summary TEXT,
+        evidence_link_id TEXT,
+        result_status TEXT DEFAULT 'UNAUDITED',
+        auditor_notes TEXT,
+        suggested_action TEXT,
+        sort_order INTEGER DEFAULT 0,
+        FOREIGN KEY (audit_session_id) REFERENCES audit_sessions(id) ON DELETE CASCADE
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS audit_findings_capa (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        audit_session_id INTEGER NOT NULL,
+        checklist_item_id INTEGER,
+        finding_no TEXT NOT NULL UNIQUE,
+        finding_type TEXT NOT NULL,
+        clause_ref TEXT NOT NULL,
+        problem_description TEXT NOT NULL,
+        root_cause TEXT,
+        corrective_action TEXT NOT NULL,
+        preventive_action TEXT,
+        responsible_person TEXT NOT NULL,
+        due_date TEXT NOT NULL,
+        status TEXT DEFAULT 'OPEN',
+        completed_date TEXT,
+        verifier_name TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (audit_session_id) REFERENCES audit_sessions(id) ON DELETE CASCADE
+      )
+    ''');
   }
 }
 

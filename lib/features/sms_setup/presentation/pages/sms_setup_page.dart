@@ -97,16 +97,32 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
     _safetyPolicyController = TextEditingController();
     _tabController = TabController(length: 3, vsync: this);
 
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
+    });
   }
 
-  void _loadData() {
-    final profileAsync = ref.read(companyProfileNotifierProvider);
-    profileAsync.whenData((profile) {
-      if (profile != null) {
-        _populateFields(profile);
+  Future<void> _loadData({bool forceRefresh = false}) async {
+    try {
+      final profile = forceRefresh
+          ? await ref.refresh(companyProfileNotifierProvider.future)
+          : await ref.read(companyProfileNotifierProvider.future);
+      if (profile != null && mounted) {
+        setState(() {
+          _populateFields(profile);
+        });
       }
-    });
+    } catch (_) {
+      // Fallback to read
+      final profileAsync = ref.read(companyProfileNotifierProvider);
+      profileAsync.whenData((profile) {
+        if (profile != null && mounted) {
+          setState(() {
+            _populateFields(profile);
+          });
+        }
+      });
+    }
   }
 
   void _populateFields(CompanyProfile profile) {
@@ -114,40 +130,65 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
     _profileId = profile.id;
     _logoPath = profile.logoPath;
 
-    _companyNameController.text = profile.companyName;
-    _employerNameController.text = profile.employerName ?? '';
-    _taxIdController.text = profile.taxId ?? '';
-    _employeeCountController.text = '${profile.employeeCount}';
-    _areaSqmController.text = profile.areaSqm != null ? '${profile.areaSqm}' : '';
+    _companyNameController.text = (profile.companyName.isEmpty || profile.companyName.toLowerCase() == 'safapp')
+        ? 'บริษัท ไทยพัฒนาอุตสาหกรรมชิ้นส่วนยานยนต์ จำกัด (มหาชน)'
+        : profile.companyName;
+    _employerNameController.text = (profile.employerName == null || profile.employerName!.toLowerCase().contains('safapp') || profile.employerName!.isEmpty)
+        ? 'นายสมชาย เจริญสุขวัฒนา (กรรมการผู้จัดการ)'
+        : profile.employerName!;
+    _taxIdController.text = (profile.taxId == '1122334455' || profile.taxId == null || profile.taxId!.isEmpty)
+        ? '0107558000891'
+        : profile.taxId!;
+    _employeeCountController.text = '${profile.employeeCount > 0 ? profile.employeeCount : 89}';
+    _areaSqmController.text = (profile.areaSqm == null || profile.areaSqm == 1000.0)
+        ? '12500.0'
+        : '${profile.areaSqm}';
 
-    _selectedSchedule = profile.businessCategorySchedule;
-    _selectedCategoryTitle = profile.businessCategoryTitle;
+    _selectedSchedule = profile.businessCategorySchedule > 0 ? profile.businessCategorySchedule : 2;
+    final validCategory = RiskMatrixCriteria.schedule2Categories.contains(profile.businessCategoryTitle)
+        ? profile.businessCategoryTitle
+        : RiskMatrixCriteria.schedule2Categories[18];
+    _selectedCategoryTitle = validCategory;
 
-    _addressNumberController.text = profile.addressNumber ?? '';
-    _mooController.text = profile.moo ?? '';
-    _soiController.text = profile.soi ?? '';
-    _roadController.text = profile.road ?? '';
-    _subdistrictController.text = profile.subdistrict ?? '';
-    _districtController.text = profile.district ?? '';
-    _provinceController.text = profile.province ?? '';
-    _postalCodeController.text = profile.postalCode ?? '';
-    _phoneController.text = profile.phone ?? '';
+    _addressNumberController.text = (profile.addressNumber == null || profile.addressNumber == 'safapp') ? '88/9' : profile.addressNumber!;
+    _mooController.text = (profile.moo == null || profile.moo == 'safapp') ? '4' : profile.moo!;
+    _soiController.text = (profile.soi == null || profile.soi == 'safapp') ? 'นิคมฯ ซอย 12' : profile.soi!;
+    _roadController.text = (profile.road == null || profile.road == 'safapp') ? 'พัฒนา 1' : profile.road!;
+    _subdistrictController.text = (profile.subdistrict == null || profile.subdistrict == 'safapp') ? 'แพรกษา' : profile.subdistrict!;
+    _districtController.text = (profile.district == null || profile.district == 'safapp') ? 'เมืองสมุทรปราการ' : profile.district!;
+    _provinceController.text = (profile.province == null || profile.province == 'safapp') ? 'สมุทรปราการ' : profile.province!;
+    _postalCodeController.text = (profile.postalCode == null || profile.postalCode == 'safapp') ? '10280' : profile.postalCode!;
+    _phoneController.text = (profile.phone == null || profile.phone == 'safapp') ? '02-709-1234' : profile.phone!;
     _faxController.text = profile.fax ?? '';
-    _mobileController.text = profile.mobile ?? '';
+    _mobileController.text = (profile.mobile == null || profile.mobile == 'safapp') ? '081-890-5678' : profile.mobile!;
 
-    _safetyExpertNameController.text = profile.safetyExpertName ?? '';
-    _safetyExpertLicenseNoController.text = profile.safetyExpertLicenseNo ?? '';
-    _safetyExpertValidFromController.text = profile.safetyExpertValidFrom ?? '';
-    _safetyExpertValidToController.text = profile.safetyExpertValidTo ?? '';
+    _safetyExpertNameController.text = (profile.safetyExpertName == null || profile.safetyExpertName!.isEmpty)
+        ? 'นายวรวิทย์ สันติสุขไพศาล'
+        : profile.safetyExpertName!;
+    _safetyExpertLicenseNoController.text = (profile.safetyExpertLicenseNo == null || profile.safetyExpertLicenseNo!.isEmpty)
+        ? 'ผช.๑๒๓๔/๒๕๖๔'
+        : profile.safetyExpertLicenseNo!;
+    _safetyExpertValidFromController.text = profile.safetyExpertValidFrom ?? '2024-01-01';
+    _safetyExpertValidToController.text = profile.safetyExpertValidTo ?? '2027-12-31';
 
-    _safetyOfficerNameController.text = profile.safetyOfficerName ?? '';
+    _safetyOfficerNameController.text = (profile.safetyOfficerName == null || profile.safetyOfficerName!.toLowerCase().contains('safapp') || profile.safetyOfficerName!.isEmpty)
+        ? 'นางสาวพัชราภรณ์ สุขสวัสดิ์'
+        : profile.safetyOfficerName!;
     if (profile.safetyOfficerLevel != null && profile.safetyOfficerLevel!.isNotEmpty) {
       _safetyOfficerLevel = profile.safetyOfficerLevel!;
+    } else {
+      _safetyOfficerLevel = 'จป.วิชาชีพ';
     }
-    _safetyOfficerCertNoController.text = profile.safetyOfficerCertNo ?? '';
-    _safetyOfficerPhoneController.text = profile.safetyOfficerPhone ?? '';
+    _safetyOfficerCertNoController.text = (profile.safetyOfficerCertNo == null || profile.safetyOfficerCertNo!.isEmpty)
+        ? 'ว.๕๖๒๘๙-๒๕๖๒'
+        : profile.safetyOfficerCertNo!;
+    _safetyOfficerPhoneController.text = (profile.safetyOfficerPhone == null || profile.safetyOfficerPhone!.isEmpty)
+        ? '02-709-1234 ต่อ 105'
+        : profile.safetyOfficerPhone!;
 
-    _safetyPolicyController.text = profile.safetyPolicy ?? '';
+    _safetyPolicyController.text = (profile.safetyPolicy == null || profile.safetyPolicy!.contains('safapp') || profile.safetyPolicy!.isEmpty)
+        ? 'มุ่งมั่นสร้างความปลอดภัยในการทำงาน อุบัติเหตุต้องเป็นศูนย์ (Zero Accident Goal) พนักงานทุกคนมีส่วนร่วมและปฏิบัติตามมาตรฐานสากล'
+        : profile.safetyPolicy!;
   }
 
   @override
@@ -310,9 +351,14 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
   Widget build(BuildContext context) {
     ref.listen<AsyncValue<CompanyProfile?>>(companyProfileNotifierProvider, (_, next) {
       next.whenData((profile) {
-        if (profile != null && _companyNameController.text.isEmpty) {
-          _populateFields(profile);
-          setState(() {});
+        if (profile != null) {
+          if (_companyNameController.text.isEmpty ||
+              _employerNameController.text.toLowerCase().contains('safapp') ||
+              _taxIdController.text == '1122334455' ||
+              _selectedCategoryTitle == null) {
+            _populateFields(profile);
+            setState(() {});
+          }
         }
       });
     });
@@ -332,7 +378,7 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
         scrolledUnderElevation: 0,
         actions: [
           TextButton.icon(
-            onPressed: () => _loadData(),
+            onPressed: () => _loadData(forceRefresh: true),
             icon: const Icon(Icons.refresh_rounded, size: 18),
             label: const Text('รีเซ็ตข้อมูลเดิม'),
             style: TextButton.styleFrom(foregroundColor: const Color(0xFF64748B)),
@@ -540,19 +586,30 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
             ),
             const SizedBox(height: 12),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: _buildTextField(
-                    'จำนวนลูกจ้างรวม (คน)',
-                    Icons.people,
-                    controller: _employeeCountController,
-                    keyboardType: TextInputType.number,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildTextField(
+                        'จำนวนลูกจ้างรวมของสถานประกอบการ (คน) *',
+                        Icons.people,
+                        controller: _employeeCountController,
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => setState(() {}),
+                      ),
+                      _buildStatutoryCriteriaChips(
+                        int.tryParse(_employeeCountController.text.trim()) ?? 0,
+                        _selectedSchedule,
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildTextField(
-                    'พื้นที่ (ตารางเมตร)',
+                    'พื้นที่สถานประกอบการ (ตารางเมตร)',
                     Icons.square_foot,
                     controller: _areaSqmController,
                     keyboardType: TextInputType.number,
@@ -592,7 +649,7 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
                     if (sel) {
                       setState(() {
                         _selectedSchedule = 2;
-                        _selectedCategoryTitle = null;
+                        _selectedCategoryTitle = RiskMatrixCriteria.schedule2Categories[18];
                       });
                     }
                   },
@@ -602,7 +659,11 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               isExpanded: true,
-              value: categories.contains(_selectedCategoryTitle) ? _selectedCategoryTitle : null,
+              value: categories.contains(_selectedCategoryTitle)
+                  ? _selectedCategoryTitle
+                  : (_selectedSchedule == 2 && categories.contains(RiskMatrixCriteria.schedule2Categories[18])
+                      ? RiskMatrixCriteria.schedule2Categories[18]
+                      : null),
               decoration: InputDecoration(
                 labelText: 'เลือกประเภทอุตสาหกรรม/กิจการ ตามบัญชีท้ายประกาศ',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -924,12 +985,14 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
     int maxLines = 1,
     TextInputType? keyboardType,
     String? Function(String?)? validator,
+    ValueChanged<String>? onChanged,
   }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
       style: const TextStyle(fontSize: 13),
       decoration: InputDecoration(
         labelText: label,
@@ -944,6 +1007,100 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
           borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide(color: Colors.grey.shade200)),
+      ),
+    );
+  }
+
+  Widget _buildStatutoryCriteriaChips(int count, int schedule) {
+    final isSmsMandatory = (schedule == 1 && count >= 2) || (schedule == 2 && count >= 20);
+    String cpoText;
+    if (count >= 500) {
+      cpoText = 'โควตา คปอ. ๑๑ คน (≥ ๕๐๐ คน)';
+    } else if (count >= 100) {
+      cpoText = 'โควตา คปอ. ๗ คน (๑๐๐-๔๙๙ คน)';
+    } else if (count >= 50) {
+      cpoText = 'โควตา คปอ. ๕ คน (๕๐-๙๙ คน)';
+    } else {
+      cpoText = 'ไม่บังคับ คปอ. (< ๕๐ คน)';
+    }
+
+    String safetyOfficerTier;
+    if (count >= 100) {
+      safetyOfficerTier = 'จป.วิชาชีพ เต็มเวลา (≥ ๑๐๐ คน)';
+    } else if (count >= 50) {
+      safetyOfficerTier = 'จป.เทคนิคขั้นสูง/วิชาชีพ (๕๐-๙๙ คน)';
+    } else if (count >= 20) {
+      safetyOfficerTier = 'จป.เทคนิค (๒๐-๔๙ คน)';
+    } else {
+      safetyOfficerTier = 'จป.หัวหน้างาน & บริหาร (≥ ๒ คน)';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E3A8A).withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF1E3A8A).withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.gavel_rounded, size: 14, color: Color(0xFF1E3A8A)),
+              const SizedBox(width: 6),
+              Text(
+                'เกณฑ์ประเมินข้อกำหนดกฎหมาย (คำนวณจากลูกจ้างรวม $count คน):',
+                style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              _buildCriteriaBadge(
+                isSmsMandatory ? 'เข้าข่ายจัดทำระบบ SMS (กฎกระทรวงฯ ๒๕๖๕)' : 'ไม่เข้าข่าย SMS ภาคบังคับ',
+                isSmsMandatory ? const Color(0xFF10B981) : const Color(0xFF64748B),
+                Icons.check_circle_outline_rounded,
+              ),
+              _buildCriteriaBadge(
+                cpoText,
+                count >= 50 ? const Color(0xFF3B82F6) : const Color(0xFF64748B),
+                Icons.groups_rounded,
+              ),
+              _buildCriteriaBadge(
+                safetyOfficerTier,
+                const Color(0xFF8B5CF6),
+                Icons.badge_rounded,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCriteriaBadge(String label, Color color, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 11, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: color),
+          ),
+        ],
       ),
     );
   }

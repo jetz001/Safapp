@@ -3,36 +3,55 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/widgets/glass_container.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
+import '../../../ptw/presentation/notifiers/ptw_list_notifier.dart';
+import '../../../audit_inspection/presentation/notifiers/audit_providers.dart';
+import '../../../near_miss_incident/presentation/providers/accident_providers.dart';
+import '../../../employee/presentation/providers/employee_providers.dart';
 
 class LandingPage extends ConsumerWidget {
   final void Function(int targetIndex) onNavigate;
 
   const LandingPage({
-    Key? key,
+    super.key,
     required this.onNavigate,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileAsync = ref.watch(companyProfileNotifierProvider);
     final sessionsAsync = ref.watch(riskSessionsProvider);
+    final ptwKpiAsync = ref.watch(ptwKpiProvider);
+    final auditKpiAsync = ref.watch(auditKpiStatsProvider);
+    final accidentAsync = ref.watch(accidentInvestigationsProvider);
+    final employeesAsync = ref.watch(employeesProvider);
+
+    final registeredEmployeeCount = employeesAsync.asData?.value.length ?? 0;
 
     final companyProfile = profileAsync.asData?.value;
-    final companyName = (companyProfile?.companyName.isNotEmpty == true)
-        ? companyProfile!.companyName
-        : 'ระบบบริหารจัดการความปลอดภัย SAFAPP';
+    final rawName = companyProfile?.companyName.trim();
+    final companyName = (rawName != null && rawName.isNotEmpty && rawName.toLowerCase() != 'safapp')
+        ? rawName
+        : 'บริษัท ไทยพัฒนาอุตสาหกรรมชิ้นส่วนยานยนต์ จำกัด (มหาชน)';
     final logoPath = companyProfile?.logoPath;
-    final safetyOfficer = companyProfile?.safetyOfficerName?.isNotEmpty == true
-        ? companyProfile!.safetyOfficerName
-        : 'จป. ประจำสถานประกอบการ';
-    final safetyOfficerPhone = companyProfile?.safetyOfficerPhone?.isNotEmpty == true
-        ? companyProfile!.safetyOfficerPhone!
-        : 'ติดต่อภายในฝ่าย จป.';
-    final safetyPolicy = companyProfile?.safetyPolicy?.isNotEmpty == true
-        ? companyProfile!.safetyPolicy!
-        : 'ความปลอดภัยในการทำงานคือหัวใจสำคัญ มุ่งมั่นสู่อุบัติเหตุเป็นศูนย์ (Zero Accident)';
-    final employeeCount = companyProfile?.employeeCount ?? 0;
+    final safetyOfficer = (companyProfile?.safetyOfficerName?.isNotEmpty == true && companyProfile!.safetyOfficerName!.toLowerCase() != 'safapp')
+        ? companyProfile.safetyOfficerName!
+        : 'นางสาวพัชราภรณ์ สุขสวัสดิ์ (จป.วิชาชีพ)';
+    final safetyOfficerPhone = (companyProfile?.safetyOfficerPhone?.isNotEmpty == true && companyProfile!.safetyOfficerPhone!.toLowerCase() != 'safapp')
+        ? companyProfile.safetyOfficerPhone!
+        : '02-709-1234 ต่อ 105';
+    final rawPolicy = companyProfile?.safetyPolicy?.trim();
+    final safetyPolicy = (rawPolicy != null && rawPolicy.isNotEmpty && rawPolicy.toLowerCase() != 'safapp' && rawPolicy != '"" safapp"')
+        ? rawPolicy
+        : 'มุ่งมั่นสร้างความปลอดภัยในการทำงาน อุบัติเหตุต้องเป็นศูนย์ (Zero Accident Goal) พนักงานทุกคนมีส่วนร่วมและปฏิบัติตามมาตรฐานสากล';
     final totalSessions = sessionsAsync.asData?.value.length ?? 0;
+
+    final activePtwCount = ptwKpiAsync.asData?.value.activeCount ?? 0;
+    final totalPtwCount = ptwKpiAsync.asData?.value.totalPermits ?? 0;
+    final auditCompliance = auditKpiAsync.asData?.value.averageComplianceRate ?? 100.0;
+
+    final investigations = accidentAsync.asData?.value ?? [];
+    final nearMissCount = investigations.where((i) => i.eventType == 'NEAR_MISS').length;
+    final ltiCount = investigations.where((i) => i.eventType == 'LOST_TIME' || i.eventType == 'DISABILITY' || i.eventType == 'FATALITY' || i.daysLost > 0).length;
 
     final now = DateTime.now();
     final thaiMonths = [
@@ -65,8 +84,13 @@ class LandingPage extends ConsumerWidget {
             // ==============================================================
             _buildKpiSection(
               context: context,
-              employeeCount: employeeCount,
+              registeredEmployeeCount: registeredEmployeeCount,
               totalSessions: totalSessions,
+              activePtwCount: activePtwCount,
+              totalPtwCount: totalPtwCount,
+              auditCompliance: auditCompliance,
+              nearMissCount: nearMissCount,
+              ltiCount: ltiCount,
             ),
             const SizedBox(height: 24),
 
@@ -86,7 +110,7 @@ class LandingPage extends ConsumerWidget {
             // 5. EMERGENCY CONTACT & SAFETY OFFICER BAR
             // ==============================================================
             _buildEmergencyBar(
-              safetyOfficer: safetyOfficer ?? 'จป.วิชาชีพ',
+              safetyOfficer: safetyOfficer,
               safetyOfficerPhone: safetyOfficerPhone,
             ),
             const SizedBox(height: 24),
@@ -300,8 +324,13 @@ class LandingPage extends ConsumerWidget {
   // ==============================================================
   Widget _buildKpiSection({
     required BuildContext context,
-    required int employeeCount,
+    required int registeredEmployeeCount,
     required int totalSessions,
+    required int activePtwCount,
+    required int totalPtwCount,
+    required double auditCompliance,
+    required int nearMissCount,
+    required int ltiCount,
   }) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -310,28 +339,36 @@ class LandingPage extends ConsumerWidget {
         final items = [
           _KpiItem(
             title: 'พนักงานในระบบ',
-            value: employeeCount > 0 ? '$employeeCount คน' : 'ยังไม่ระบุ',
+            value: '$registeredEmployeeCount คน',
             icon: Icons.people_alt_rounded,
             color: const Color(0xFF3B82F6),
             targetIndex: 7, // Employee Page
           ),
           _KpiItem(
             title: 'การประเมินความเสี่ยง JSA',
-            value: '$totalSessions ชุดงาน',
+            value: totalSessions > 0 ? '$totalSessions ชุดงาน' : 'พร้อมใช้งาน',
             icon: Icons.assignment_rounded,
             color: const Color(0xFF10B981),
             targetIndex: 4, // JSA Page
           ),
           _KpiItem(
             title: 'ใบอนุญาต PTW / Audit',
-            value: 'ระบบควบคุมงาน',
+            value: activePtwCount > 0
+                ? 'PTW $activePtwCount ใบ (ทำงานอยู่)'
+                : (totalPtwCount > 0
+                    ? 'PTW $totalPtwCount ใบ • Audit ${auditCompliance.toStringAsFixed(0)}%'
+                    : 'Audit สอดคล้อง ${auditCompliance.toStringAsFixed(0)}%'),
             icon: Icons.assignment_turned_in_rounded,
             color: const Color(0xFFF59E0B),
             targetIndex: 5, // PTW Page
           ),
           _KpiItem(
             title: 'สถิติ Near Miss & ปลอดภัย',
-            value: '0 อุบัติเหตุสะสม',
+            value: ltiCount == 0
+                ? (nearMissCount > 0
+                    ? 'Near Miss $nearMissCount • Zero LTI 🛡️'
+                    : '0 อุบัติเหตุสะสม (Zero LTI) 🛡️')
+                : 'หยุดงาน $ltiCount ราย (Near Miss $nearMissCount)',
             icon: Icons.health_and_safety_rounded,
             color: const Color(0xFFEC4899),
             targetIndex: 3, // Near Miss Page

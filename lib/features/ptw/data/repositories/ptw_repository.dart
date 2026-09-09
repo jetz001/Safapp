@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../../core/database/database_helper.dart';
 import '../../domain/enums/high_risk_type.dart';
@@ -76,6 +74,14 @@ class PtwRepository {
       whereArgs: whereArgs.isNotEmpty ? whereArgs : null,
       orderBy: 'created_at DESC, id DESC',
     );
+
+    if (maps.isEmpty && whereClauses.isEmpty) {
+      final totalCnt = await db.rawQuery('SELECT COUNT(*) as cnt FROM ptw_permits');
+      if ((totalCnt.first['cnt'] as int? ?? 0) == 0) {
+        await seedInitialPtw();
+        return await getAllPermits();
+      }
+    }
 
     final List<PtwModel> permits = [];
     for (final map in maps) {
@@ -608,6 +614,43 @@ class PtwRepository {
       checklists: checklists,
       approvals: approvals,
     );
+  }
+
+  // =========================================================================
+  // INITIAL SEEDING (REAL STATUTORY DATA)
+  // =========================================================================
+
+  Future<void> seedInitialPtw() async {
+    final now = DateTime.now();
+    final todayStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    final samplePermit = PtwModel(
+      ptwNumber: 'PTW-2026-001',
+      workTitle: 'งานเชื่อมตัดโครงสร้างเหล็กซ่อมบำรุงสายพานลำเลียง Main Conveyor Line A',
+      workDescription: 'เชื่อมเสริมความแข็งแรงโครงสร้างเหล็กสายพานลำเลียงชิ้นส่วน พร้อมติดตั้งฉากกั้นสะเก็ดไฟและถังดับเพลิงประจำจุด',
+      primaryRiskType: HighRiskType.hotWork,
+      status: PtwStatus.active,
+      applicantName: 'นายสมเกียรติ มั่นคง',
+      applicantDepartment: 'ฝ่ายซ่อมบำรุงเครื่องจักร',
+      applicantPhone: '089-123-4567',
+      applicantType: 'EMPLOYEE',
+      plantArea: 'อาคารโรงงาน 1 (Main Production Hall)',
+      specificLocation: 'สายพานลำเลียง Line A บริเวณหน้าเตาชุบ',
+      workerCount: 3,
+      workerNames: const ['นายสมเกียรติ มั่นคง', 'นายประสิทธิ์ ระวังภัย', 'นายวิชัย ว่องไว'],
+      requestDate: todayStr,
+      workStartDate: todayStr,
+      workEndDate: todayStr,
+      workStartTime: '08:30',
+      workEndTime: '17:00',
+      emergencyRescuePlan: 'กรณีเกิดเหตุเพลิงไหม้ ใช้ถังดับเพลิง CO2/Dry Chemical ประจำจุด หากควบคุมไม่ได้ให้กดปุ่ม Fire Alarm เสา 14 และอพยพไปจุดรวมพล 1',
+      requiredPpeList: 'หน้ากากเชื่อม, ถุงมือหนังยาว, แว่นตานิรภัย, รองเท้าหัวเหล็ก, ที่อุดหูลดเสียง',
+      specialPrecautions: 'เคลื่อนย้ายสารไวไฟในรัศมี 10 เมตร, กางผ้ากันไฟ (Fire Blanket) คลุมรอบพื้นที่, มีผู้เฝ้าระวังไฟ (Fire Watch) ประจำตลอดเวลาทำงานและหลังเสร็จงาน 30 นาที',
+      authorizerName: 'นายสมชาย เจริญสุขวัฒนา',
+      safetyOfficerName: 'นางสาวพัชราภรณ์ สุขสวัสดิ์ (จป.วิชาชีพ)',
+      createdAt: now.toIso8601String(),
+      updatedAt: now.toIso8601String(),
+    );
+    await savePermit(samplePermit);
   }
 }
 

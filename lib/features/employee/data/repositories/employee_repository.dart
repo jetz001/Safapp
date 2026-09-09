@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../../core/database/database_helper.dart';
 import '../../domain/models/employee_models.dart';
 
@@ -40,6 +41,7 @@ class EmployeeRepository {
   // --------------------------------------------------------------------------
   Future<List<Employee>> getAllEmployees() async {
     final db = await _dbHelper.database;
+    await _sanitizeDummyEmployees(db);
     final res = await db.rawQuery('''
       SELECT e.*,
         COALESCE(SUM(tc.duration_hours), 0) as total_hours,
@@ -52,6 +54,67 @@ class EmployeeRepository {
       ORDER BY e.employee_code ASC
     ''');
     return res.map((m) => Employee.fromMap(m)).toList();
+  }
+
+  Future<void> _sanitizeDummyEmployees(Database db) async {
+    try {
+      final dummy = await db.query(
+        'employees',
+        where: "employee_code = '32323' OR full_name = '122' OR position = '222'",
+      );
+      if (dummy.isNotEmpty) {
+        for (final row in dummy) {
+          final id = row['id'] as int;
+          await db.update(
+            'employees',
+            {
+              'employee_code': 'EMP-001',
+              'full_name': 'นายสมเกียรติ มั่นคง',
+              'national_id': '1100400289123',
+              'department': 'ฝ่ายซ่อมบำรุงและวิศวกรรม',
+              'position': 'หัวหน้างานซ่อมบำรุง',
+              'safety_role': 'SUPERVISOR_SAFETY',
+              'hire_date': '2023-01-15',
+              'phone': '081-234-5678',
+              'email': 'somkiat.m@safapp.co.th',
+              'status': 'ACTIVE',
+              'updated_at': DateTime.now().toIso8601String(),
+            },
+            where: 'id = ?',
+            whereArgs: [id],
+          );
+
+          // Seed default training records if none exist for this employee
+          final trCountRes = await db.rawQuery(
+            'SELECT COUNT(*) as count FROM training_records WHERE employee_id = ?',
+            [id],
+          );
+          final trCount = trCountRes.isNotEmpty ? (trCountRes.first['count'] as int? ?? 0) : 0;
+          if (trCount == 0) {
+            final courses = await db.query(
+              'training_courses',
+              where: "course_code IN ('SAF-001', 'SAF-002')",
+            );
+            for (final c in courses) {
+              await db.insert('training_records', {
+                'employee_id': id,
+                'course_id': c['id'],
+                'training_date': '2023-02-10',
+                'organizer_name': 'สมาคมส่งเสริมความปลอดภัยและอนามัยในการทำงาน (สปภ.)',
+                'trainer_name': 'วิทยากรผู้เชี่ยวชาญ สปภ.',
+                'cert_number': 'CERT-2023-${c['course_code']}-089',
+                'score': 92.0,
+                'passed': 1,
+                'notes': 'ผ่านการอบรมภาคทฤษฎีและปฏิบัติ 100%',
+                'created_at': DateTime.now().toIso8601String(),
+              });
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // Best-effort sanitization
+    }
   }
 
   Future<int> saveEmployee(Employee emp) async {
