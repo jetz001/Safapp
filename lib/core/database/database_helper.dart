@@ -41,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 14,
+        version: 15,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -106,6 +106,7 @@ class DatabaseHelper {
     await _createElectricalInspectionTable(db);
     await _createElectricalLotoTable(db);
     await _createMachineryTables(db);
+    await _createSopTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -167,6 +168,9 @@ class DatabaseHelper {
     if (oldVersion < 14) {
       await _createMachineryTables(db);
     }
+    if (oldVersion < 15) {
+      await _createSopTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -181,6 +185,7 @@ class DatabaseHelper {
     await _createElectricalInspectionTable(db);
     await _createElectricalLotoTable(db);
     await _createMachineryTables(db);
+    await _createSopTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -2142,5 +2147,176 @@ class DatabaseHelper {
       });
     }
   }
+
+  // ========================================================
+  // 13. SAFETY MANUAL & DIGITAL SOP HUB (ISO 45001 & Thai OSH)
+  // ========================================================
+
+  Future<void> _createSopTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS safety_manual_sops (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        doc_code TEXT NOT NULL UNIQUE,
+        title TEXT NOT NULL,
+        category TEXT NOT NULL,
+        revision TEXT DEFAULT 'Rev. 01',
+        effective_date TEXT NOT NULL,
+        review_due_date TEXT NOT NULL,
+        purpose TEXT,
+        scope TEXT,
+        required_ppe TEXT,
+        precautions TEXT,
+        steps_json TEXT,
+        emergency_procedure TEXT,
+        pdf_file_path TEXT,
+        author TEXT,
+        reviewer TEXT,
+        approver TEXT,
+        status TEXT DEFAULT 'ACTIVE',
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sop_doc_code ON safety_manual_sops(doc_code)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sop_category ON safety_manual_sops(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_sop_status ON safety_manual_sops(status)');
+
+    // Pre-populate standard sample records if empty
+    final countRes = await db.rawQuery('SELECT COUNT(*) as count FROM safety_manual_sops');
+    final sopCount = countRes.isNotEmpty ? (countRes.first['count'] as int? ?? 0) : 0;
+    if (sopCount == 0) {
+      final now = DateTime.now();
+      final effectiveDateStr = DateTime(now.year, 1, 1).toIso8601String().substring(0, 10);
+      final reviewDateStr = DateTime(now.year + 1, 1, 1).toIso8601String().substring(0, 10);
+
+      // 1. Machinery / Overhead Crane SOP
+      await db.insert('safety_manual_sops', {
+        'doc_code': 'SOP-MCH-001',
+        'title': 'ขั้นตอนการตรวจสอบก่อนใช้งานและควบคุมปั้นจั่นเหนือศีรษะ (Overhead Crane & Rigging SOP)',
+        'category': 'MACHINERY',
+        'revision': 'Rev. 01',
+        'effective_date': effectiveDateStr,
+        'review_due_date': reviewDateStr,
+        'purpose': 'เพื่อกำหนดมาตรฐานความปลอดภัยในการตรวจสอบอุปกรณ์ช่วยยกและการขับเคลื่อนปั้นจั่นเหนือศีรษะ ป้องกันอุบัติเหตุชิ้นงานตกหล่นตามกฎกระทรวงเครื่องจักร พ.ศ. ๒๕๖๔',
+        'scope': 'ครอบคลุมปั้นจั่นเหนือศีรษะ (Overhead Crane) และรอกไฟฟ้าทุกตัวในพื้นที่อาคารผลิตและคลังสินค้า',
+        'required_ppe': '["HELMET","SAFETY_GLASSES","GLOVES","BOOTS","HI_VIS_VEST"]',
+        'precautions': '• ห้ามยกชิ้นงานหนักเกินพิกัดยกปลอดภัย (Safe Working Load: SWL) เด็ดขาด\n• ห้ามบุคคลเดินหรือยืนใต้แนวรัศมีชิ้นงานที่กำลังยก (No Walk Under Load)\n• ห้ามดึงหรือลากชิ้นงานในแนวเฉียง ต้องตั้งแนวตะขอให้ตรง 90 องศา',
+        'steps_json': '[{"stepNumber":1,"title":"การตรวจสอบก่อนเริ่มปฏิบัติงาน (Pre-operational Visual Check)","action":"ตรวจสอบสภาพทั่วไปของลวดสลิง โซ่ยก และอุปกรณ์ช่วยยก (สะเก็น, สายรัด) ว่าไม่มีรอยแตกร้าว คดงอ หรือฉีกขาด","safetyCheckpoint":"ปากตะขอต้องมี Safety Latch ปิดสนิทสมบูรณ์ และสลิงไม่มีเส้นลวดขาดเกิน 3 เส้นในหนึ่งช่วงเกลียว"},{"stepNumber":2,"title":"ทดสอบระบบควบคุมและอุปกรณ์ความปลอดภัย (Safety Device Testing)","action":"เปิดสวิตช์ควบคุม ทดสอบปุ่มหยุดฉุกเฉิน (E-Stop) และทดสอบยกตะขอเปล่าขึ้นสู่ระดับสูงสุด","safetyCheckpoint":"ระบบตัดรอกอัตโนมัติ (Limit Switch) ต้องตัดการทำงานทันทีก่อนที่บล็อกตะขอจะชนโครงสร้าง"},{"stepNumber":3,"title":"การผูกรัดและยกเคลื่อนย้ายชิ้นงาน (Rigging & Hoisting Execution)","action":"ใช้อุปกรณ์ช่วยยกที่ได้พิกัดน้ำหนัก ผูกรัดให้ได้สมดุล ส่งสัญญาณมือมาตรฐาน และยกขึ้นจากพื้น 10-20 ซม. เพื่อทดสอบเบรกก่อนยกจริง","safetyCheckpoint":"สลิงต้องตั้งฉาก 90 องศา ให้สัญญาณเตือนด้วยเสียงแตรก่อนเคลื่อนย้ายชิ้นงาน"},{"stepNumber":4,"title":"การวางชิ้นงานและการจัดเก็บหลังเลิกงาน (Post-Operation & Parking)","action":"วางชิ้นงานลงบนหมอนรองอย่างมั่นคง ปลดสลิงยก ยกรอกขึ้นเก็บที่ความสูงอย่างน้อย 2 เมตรเหนือพื้นดิน","safetyCheckpoint":"กดปุ่ม Emergency Stop และสับเบรกเกอร์ตัดกระแสไฟจ่ายเข้าปั้นจั่นทุกครั้งเมื่อสิ้นสุดการใช้งาน"}]',
+        'emergency_procedure': 'หากเกิดเหตุการณ์ชิ้นงานแกว่งผิดปกติหรือสลิงส่งเสียงผิดรูป ให้กดปุ่ม Emergency Stop ทันที กั้นพื้นที่รัศมีอันตราย และแจ้ง จป.วิชาชีพ หรือหัวหน้างานทันที',
+        'pdf_file_path': null,
+        'author': 'ธีรพงษ์ วิศวกรเครื่องกล',
+        'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
+        'approver': 'ผู้จัดการฝ่ายวิศวกรรมและความปลอดภัย',
+        'status': 'ACTIVE',
+      });
+
+      // 2. Electrical / LOTO SOP
+      await db.insert('safety_manual_sops', {
+        'doc_code': 'SOP-ELC-001',
+        'title': 'ขั้นตอนการตัดแยกแหล่งจ่ายพลังงานและการล็อคแขวนป้ายเตือน (6-Step Lockout/Tagout - LOTO)',
+        'category': 'ELECTRICAL',
+        'revision': 'Rev. 01',
+        'effective_date': effectiveDateStr,
+        'review_due_date': reviewDateStr,
+        'purpose': 'เพื่อกำหนดขั้นตอนการควบคุมพลังงานอันตราย (Hazardous Energy Control) ป้องกันการปล่อยพลังงานหรือสตาร์ทเครื่องจักรโดยไม่ได้ตั้งใจตามกฎกระทรวงความปลอดภัยไฟฟ้า พ.ศ. ๒๕๕๘',
+        'scope': 'ครอบคลุมงานซ่อมบำรุง ตรวจสอบ ล้างเครื่องจักร และงานติดตั้งที่เกี่ยวข้องกับพลังงานไฟฟ้า ลม ไฮดรอลิกส์',
+        'required_ppe': '["HELMET","SAFETY_GLASSES","GLOVES","BOOTS"]',
+        'precautions': '• กฎเหล็ก 1 คน 1 กุญแจ (One Person, One Lock) ห้ามใช้กุญแจร่วมกันเด็ดขาด\n• ห้ามปลดล็อคกุญแจของผู้อื่นโดยไม่ได้รับอนุญาตตามขั้นตอนฉุกเฉิน\n• ต้องยืนยันพลังงานเป็นศูนย์ (Zero Energy) ด้วยมิเตอร์วัดเสมอ',
+        'steps_json': '[{"stepNumber":1,"title":"แจ้งเตือนผู้มีส่วนเกี่ยวข้อง (Notify Affected Persons)","action":"แจ้งหัวหน้ากะและผู้ควบคุมเครื่องจักรในพื้นที่ว่าจะทำการหยุดเครื่องจักรเพื่อซ่อมบำรุง","safetyCheckpoint":"ลงชื่อรับทราบในใบแจ้งการตัดแยกพลังงาน"},{"stepNumber":2,"title":"สั่งหยุดการทำงานของเครื่องจักร (Machine Shutdown)","action":"กดปุ่มหยุดเครื่องจักรตามขั้นตอนการทำงานปกติที่แผงควบคุมหลัก","safetyCheckpoint":"รอจนกระทั่งชิ้นส่วนกลไกหยุดหมุนสนิท"},{"stepNumber":3,"title":"ปลดตัดแยกแหล่งจ่ายพลังงาน (Energy Isolation)","action":"สับเบรกเกอร์หลัก (Main Breaker/MCCB) และปิดวาล์วตัดแยกระบบลมและไฮดรอลิกส์","safetyCheckpoint":"สังเกตตำแหน่งคันโยกเบรกเกอร์ว่าอยู่ในตำแหน่ง OFF ชัดเจน"},{"stepNumber":4,"title":"คล้องแม่กุญแจและแขวนป้ายเตือน (Lockout & Tagout)","action":"คล้องแม่กุญแจนิรภัยส่วนบุคคล (Safety Padlock) เข้ากับอุปกรณ์ครอบล็อค และแขวนป้ายเตือนอันตรายระบุชื่อ วันที่ และเบอร์ติดต่อ","safetyCheckpoint":"กุญแจดอกจริงต้องถูกเก็บไว้ที่ผู้ปฏิบัติงานแต่เพียงผู้เดียว"},{"stepNumber":5,"title":"ระบายพลังงานตกค้าง (Dissipate Stored Energy)","action":"เปิดวาล์วเดรนลม คายแรงดันน้ำมันไฮดรอลิกส์ และคายประจุในตัวเก็บประจุไฟฟ้า","safetyCheckpoint":"เข็มเกจวัดแรงดันลมและไฮดรอลิกส์ต้องชี้ที่เลข 0"},{"stepNumber":6,"title":"ตรวจสอบสภาวะพลังงานเป็นศูนย์ (Zero Energy Verification)","action":"ใช้มัลติมิเตอร์ (Multimeter) วัดแรงดันไฟฟ้าขั้วต่อทุกเฟส (L-L, L-N, L-G) และทดลองกดปุ่มสตาร์ทเครื่องจักรเพื่อยืนยัน","safetyCheckpoint":"แรงดันไฟฟ้าต้องวัดได้ 0.0 Volt และเครื่องจักรต้องไม่สตาร์ทติดเด็ดขาด"}]',
+        'emergency_procedure': 'กรณีเจ้าของกุญแจไม่อยู่และมีความจำเป็นต้องปลดล็อคฉุกเฉิน ต้องผ่านการอนุมัติร่วมกันระหว่างผู้จัดการฝ่ายและ จป.วิชาชีพ พร้อมตรวจสอบความปลอดภัยรอบเครื่องจักร',
+        'pdf_file_path': null,
+        'author': 'วิศวกรไฟฟ้าประจำโรงงาน',
+        'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
+        'approver': 'ผู้จัดการโรงงาน (Plant Manager)',
+        'status': 'ACTIVE',
+      });
+
+      // 3. Chemical Handling SOP
+      await db.insert('safety_manual_sops', {
+        'doc_code': 'SOP-CHM-001',
+        'title': 'ขั้นตอนการจัดเก็บ ถ่ายเท และระงับเหตุสารเคมีอันตรายรั่วไหล (Chemical Handling & Spill SOP)',
+        'category': 'CHEMICAL',
+        'revision': 'Rev. 01',
+        'effective_date': effectiveDateStr,
+        'review_due_date': reviewDateStr,
+        'purpose': 'เพื่อกำหนดแนวปฏิบัติในการใช้งาน การจัดเก็บสารเคมีอันตราย และการเข้าระงับเหตุสารเคมีรั่วไหลฉุกเฉินตามกฎกระทรวงสารเคมีอันตราย พ.ศ. ๒๕๕๖',
+        'scope': 'ครอบคลุมสารเคมีอันตราย กรด ด่าง ตัวทำละลาย และสารไวไฟทุกชนิดในโรงงาน',
+        'required_ppe': '["SAFETY_GLASSES","FACE_SHIELD","GLOVES","BOOTS","RESPIRATOR"]',
+        'precautions': '• ต้องอ่านเอกสารข้อมูลความปลอดภัย (SDS) ส่วนที่ 8 (PPE) ก่อนสัมผัสสารเคมีเสมอ\n• ห้ามจัดเก็บสารเคมีที่ไม่เข้ากันไว้ด้วยกัน (Incompatible Storage)\n• การถ่ายเทสารไวไฟต้องต่อสายดิน (Bonding & Grounding) ป้องกันประกายไฟสถิต',
+        'steps_json': '[{"stepNumber":1,"title":"การตรวจสอบก่อนสัมผัสสารเคมี (Pre-Handling & SDS Review)","action":"ตรวจสอบฉลาก GHS บนภาชนะบรรจุ ตรวจสอบความสมบูรณ์ของอุปกรณ์ PPE และจุดล้างตาฉุกเฉินที่ใกล้ที่สุด","safetyCheckpoint":"ต้องมีเอกสาร SDS ภาษาไทยประจำจุดใช้งาน และน้ำล้างตาฉุกเฉินพร้อมใช้งาน"},{"stepNumber":2,"title":"การถ่ายเทและลำเลียงสารเคมี (Chemical Transfer & Transport)","action":"ใช้ถาดรองรับการหก (Spill Pallet) ต่อสายดินเข้ากับถังโลหะเมื่อถ่ายเทสารไวไฟ ใช้ปั๊มสูบเฉพาะทางแทนการเทด้วยมือ","safetyCheckpoint":"สวมกระบังหน้า (Face Shield) และถุงมือยางกันสารเคมีชนิดไนไตรล์หรือนีโอพรีน"},{"stepNumber":3,"title":"การเข้าควบคุมเหตุสารเคมีรั่วไหล (Spill Containment Protocol)","action":"อพยพผู้ไม่เกี่ยวข้อง นำชุด Spill Kit เข้าพื้นที่ วางท่อนกั้นดูดซับล้อมรอบของเหลวจากด้านนอกเข้าหาศูนย์กลาง","safetyCheckpoint":"เข้าควบคุมจากทิศทางเหนือลมเท่านั้น สวมหน้ากากกรองไอระเหยสารเคมี"},{"stepNumber":4,"title":"การเก็บกู้และกำจัดกากของเสีย (Decontamination & Waste Disposal)","action":"ใช้ผงดูดซับสารเคมีโปรยบนคราบ กวาดใส่ถุงขยะอันตรายสีแดง ปิดผนึกและติดป้ายกากสารเคมีอันตรายเพื่อส่งกำจัด","safetyCheckpoint":"ห้ามใช้น้ำฉีดล้างสารเคมีลงสู่ท่อระบายน้ำสาธารณะเด็ดขาด"}]',
+        'emergency_procedure': 'กรณีสารเคมีกระเด็นเข้าตา ให้ล้างด้วยน้ำสะอาดต่อเนื่องที่อ่างล้างตาฉุกเฉินอย่างน้อย 15 นาที หากสัมผัสผิวหนังให้ถอดเสื้อผ้าที่เปื้อนออกและนำส่งห้องพยาบาลพร้อม SDS',
+        'pdf_file_path': null,
+        'author': 'เจ้าหน้าที่สุขศาสตร์อุตสาหกรรม',
+        'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
+        'approver': 'ผู้จัดการฝ่ายความปลอดภัยและสิ่งแวดล้อม',
+        'status': 'ACTIVE',
+      });
+
+      // 4. Confined Space SOP
+      await db.insert('safety_manual_sops', {
+        'doc_code': 'SOP-CNF-001',
+        'title': 'ขั้นตอนการขออนุญาตและปฏิบัติงานในสถานที่อับอากาศ (Confined Space Entry SOP)',
+        'category': 'CONFINED_SPACE',
+        'revision': 'Rev. 01',
+        'effective_date': effectiveDateStr,
+        'review_due_date': reviewDateStr,
+        'purpose': 'เพื่อกำหนดมาตรฐานความปลอดภัยในการขออนุญาต การตรวจวัดบรรยากาศ และการลงปฏิบัติงานในสถานที่อับอากาศตามกฎกระทรวงที่อับอากาศ พ.ศ. ๒๕๖๒',
+        'scope': 'ครอบคลุมถังเก็บ ไซโล บ่อพักน้ำ ท่อระบายน้ำใต้ดิน และห้องปิดทึบที่มีทางเข้าออกจำกัด',
+        'required_ppe': '["HELMET","SAFETY_GLASSES","GLOVES","BOOTS","HARNESS","RESPIRATOR"]',
+        'precautions': '• ต้องมีผู้ปฏิบัติงานครบ 4 บทบาท (ผู้อนุญาต, ผู้ควบคุม, ผู้ช่วยเหลือ, ผู้ปฏิบัติงาน)\n• ห้ามลงปฏิบัติงานหากค่าออกซิเจนต่ำกว่า 19.5% หรือสูงกว่า 23.5%\n• ผู้ช่วยเหลือต้องประจำอยู่ที่ปากทางเข้าออกตลอดเวลา ห้ามละทิ้งหน้าที่เด็ดขาด',
+        'steps_json': '[{"stepNumber":1,"title":"การเตรียมการและขออนุญาตทำงาน (Permit & 4-Roles Briefing)","action":"จัดทำใบอนุญาตทำงานในที่อับอากาศ (PTW) ตรวจสอบใบรับรองแพทย์และวุฒิบัตร 4 ผู้ของผู้ปฏิบัติงาน","safetyCheckpoint":"ใบอนุญาตทำงานต้องได้รับการลงนามอนุมัติจากผู้อนุญาตที่มีคุณสมบัติตามกฎหมาย"},{"stepNumber":2,"title":"การตัดแยกและระบายอากาศ (Isolation & Forced Ventilation)","action":"ทำการใส่แผ่นปิดกั้นท่อ (Blind Flange) ตัดแยกพลังงานไฟฟ้า LOTO ติดตั้งพัดลมเป่าอากาศบริสุทธิ์ต่อเนื่อง","safetyCheckpoint":"อัตราการเป่าระบายอากาศต้องไม่น้อยกว่า 20 เท่าของปริมาตรห้องต่อชั่วโมง"},{"stepNumber":3,"title":"การตรวจวัดสภาพบรรยากาศ (Pre-Entry Gas Testing)","action":"ใช้เครื่องตรวจวัดก๊าซแบบ 4 ก๊าซ วัดระดับความสูง 3 ระดับ (บน, กลาง, ล่าง) ก่อนอนุญาตให้ลงทำงาน","safetyCheckpoint":"O2: 19.5-23.5%, LEL: <10%, CO: <25 ppm, H2S: <10 ppm ต้องอยู่ในเกณฑ์ปลอดภัยทั้งหมด"},{"stepNumber":4,"title":"การลงปฏิบัติงานและการเฝ้าระวัง (Entry & Continuous Monitoring)","action":"ผู้ลงทำงานสวม Full Body Harness ต่อสายช่วยชีวิตเข้ากับรอกขาสามขา (Tripod) เปิดเครื่องวัดก๊าซแบบพกพาตลอดเวลา","safetyCheckpoint":"ผู้ช่วยเหลือบันทึกชื่อ เวลาเข้า-ออก และส่งสัญญาณสื่อสารกับผู้ปฏิบัติงานทุก 10 นาที"}]',
+        'emergency_procedure': 'หากสัญญาณเตือนเครื่องวัดก๊าซดังขึ้นหรือผู้ปฏิบัติงานหมดสติ ผู้ช่วยเหลือภายนอกต้องหมุนรอกกู้ภัยเพื่อดึงตัวขึ้นมาทันที ห้ามผู้ช่วยเหลือมุดลงไปโดยไม่มีอุปกรณ์ช่วยหายใจ SCBA เด็ดขาด',
+        'pdf_file_path': null,
+        'author': 'ผู้ควบคุมงานในที่อับอากาศ',
+        'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
+        'approver': 'ผู้อนุญาตปฏิบัติงานในที่อับอากาศ',
+        'status': 'ACTIVE',
+      });
+
+      // 5. Work at Heights SOP
+      await db.insert('safety_manual_sops', {
+        'doc_code': 'SOP-WGT-001',
+        'title': 'ขั้นตอนการปฏิบัติงานบนที่สูงและการใช้อุปกรณ์ป้องกันการตก (Work at Height & Fall Arrest SOP)',
+        'category': 'HEIGHTS',
+        'revision': 'Rev. 01',
+        'effective_date': effectiveDateStr,
+        'review_due_date': reviewDateStr,
+        'purpose': 'เพื่อกำหนดมาตรการป้องกันอันตรายจากการตกจากที่สูงของผู้ปฏิบัติงานตามกฎกระทรวงนั่งร้านและที่สูง พ.ศ. ๒๕๖๔',
+        'scope': 'ครอบคลุมการปฏิบัติงานบนที่สูงตั้งแต่ 2.0 เมตรขึ้นไป นั่งร้าน กระเช้าลอย และงานบนหลังคา',
+        'required_ppe': '["HELMET","BOOTS","HARNESS"]',
+        'precautions': '• ต้องใช้ระบบผูกยึด 100% (100% Tie-off) ตลอดเวลาที่อยู่บนที่สูง\n• ห้ามใช้นั่งร้านที่มีป้ายสีแดง (Red Tag) หรือไม่มีราวกันตก\n• ห้ามปฏิบัติงานบนหลังคาหรือนั่งร้านกลางแจ้งขณะฝนตกหนักหรือลมแรง',
+        'steps_json': '[{"stepNumber":1,"title":"การตรวจสอบพื้นที่และสภาพนั่งร้าน (Scaffold & Site Inspection)","action":"ตรวจสอบว่านั่งร้านมีแผ่นป้ายสีเขียว (Green Tag) ตรวจสอบราวกั้นตก (Guardrail) สูง 90-110 ซม. และแผ่นกันของตก (Toe board)","safetyCheckpoint":"นั่งร้านต้องผ่านการตรวจสอบจากผู้มีอำนาจและบันทึกผลไม่เกิน 7 วัน"},{"stepNumber":2,"title":"การตรวจสอบและสวมใส่ชุดนิรภัย (Full Body Harness Inspection)","action":"ตรวจสอบสายรัดตัว (Webbing) ตะขอสแน็ปฮุก และชุดดูดซับแรงกระแทก (Shock Absorber) สวมใส่และปรับสายให้แนบกระชับ","safetyCheckpoint":"ห่วง D-Ring ด้านหลังต้องอยู่ระดับกึ่งกลางระหว่างสะบักทั้งสองข้าง"},{"stepNumber":3,"title":"การเกี่ยวคล้องจุดยึดเหนี่ยว (100% Tie-off Anchor Connection)","action":"คล้องตะขอนิรภัยเข้ากับจุดยึดเหนี่ยว (Anchor Point) หรือสายช่วยชีวิตแนวนอน (Lifeline) ที่อยู่เหนือศีรษะขึ้นไป","safetyCheckpoint":"จุดยึดเหนี่ยวต้องสามารถรับแรงดึงได้อย่างน้อย 2,270 กิโลกรัม (5,000 ปอนด์) ต่อคน"}]',
+        'emergency_procedure': 'กรณีผู้ปฏิบัติงานพลัดตกและติดค้างอยู่กับสายรัดตัว ให้ทีมกู้ภัยฉุกเฉินใช้อุปกรณ์กู้ภัยเข้าช่วยเหลือลงสู่พื้นภายใน 15 นาที เพื่อป้องกันอาการ Suspension Trauma',
+        'pdf_file_path': null,
+        'author': 'วิศวกรความปลอดภัยงานก่อสร้าง',
+        'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
+        'approver': 'ผู้จัดการฝ่ายความปลอดภัยและอาชีวอนามัย',
+        'status': 'ACTIVE',
+      });
+
+      // 6. Fire Emergency & Evacuation SOP
+      await db.insert('safety_manual_sops', {
+        'doc_code': 'SOP-EMG-001',
+        'title': 'ขั้นตอนการระงับเหตุเพลิงไหม้เบื้องต้นและการอพยพหนีไฟ (Fire Suppression & Evacuation SOP)',
+        'category': 'EMERGENCY',
+        'revision': 'Rev. 01',
+        'effective_date': effectiveDateStr,
+        'review_due_date': reviewDateStr,
+        'purpose': 'เพื่อกำหนดขั้นตอนการปฏิบัติเมื่อเกิดเหตุเพลิงไหม้ฉุกเฉินและการอพยพหนีไฟตามกฎกระทรวงป้องกันและระงับอัคคีภัย พ.ศ. ๒๕๕๕',
+        'scope': 'ครอบคลุมพนักงาน ผู้รับเหมา และผู้มาติดต่อทุกคนในทุกอาคารของสถานประกอบการ',
+        'required_ppe': '["HELMET","BOOTS"]',
+        'precautions': '• ห้ามใช้ลิฟต์โดยสารในขณะเกิดเพลิงไหม้เด็ดขาด ให้ใช้บันไดหนีไฟเท่านั้น\n• เมื่อได้ยินสัญญาณเตือนภัย ให้หยุดการทำงานและอพยพทันที ห้ามมัวเก็บสิ่งของ\n• ห้ามย้อนกลับเข้าไปในอาคารจนกว่าผู้บัญชาการเหตุการณ์จะประกาศปลอดภัย',
+        'steps_json': '[{"stepNumber":1,"title":"การแจ้งเหตุและส่งสัญญาณเตือนภัย (Alarm & Communication)","action":"ผู้พบเห็นเพลิงไหม้กดปุ่มสัญญาณเตือนเพลิงไหม้ (Manual Call Point) และตะโกนแจ้งเตือนเพื่อนร่วมงาน พร้อมโทรแจ้งศูนย์ควบคุมเหตุฉุกเฉิน","safetyCheckpoint":"ระบุสถานที่เกิดเหตุ แผนก ชนิดของเชื้อเพลิง และจำนวนผู้ได้รับบาดเจ็บให้ชัดเจน"},{"stepNumber":2,"title":"การเข้าระงับเหตุเพลิงไหม้ขั้นต้น (Initial Fire Suppression)","action":"ทีมดับเพลิงเบื้องต้นนำถังดับเพลิงมือถือเข้าฉีดดับ โดยใช้หลักการ ดึง-ปลด-กด-ส่าย (P-A-S-S) ยืนเหนือลมระยะ 2-3 เมตร","safetyCheckpoint":"หากเพลิงลุกไหม้เกิน 2 นาที หรือควันหนาแน่น ให้ถอนตัวและปิดประตูกั้นไฟทันที"},{"stepNumber":3,"title":"การอพยพหนีไฟสู่จุดรวมพล (Evacuation to Assembly Point)","action":"หัวหน้าทีมอพยพนำพนักงานเดินตามป้ายทางหนีไฟลงทางบันไดหนีไฟ ก้มต่ำเมื่อมีควัน และเดินตรงไปยังจุดรวมพลหลัก","safetyCheckpoint":"เดินอย่างเป็นระเบียบ ไม่วิ่ง ไม่ผลักกัน ห้ามใช้ลิฟต์เด็ดขาด"},{"stepNumber":4,"title":"การตรวจนับยอดพนักงานและรายงานผล (Headcount & Status Report)","action":"หัวหน้าแผนกตรวจนับยอดพนักงาน ผู้รับเหมา และผู้มาติดต่อตามรายชื่อ แล้วรายงานต่อผู้บัญชาการเหตุการณ์ (Incident Commander)","safetyCheckpoint":"รายงานสถานะพนักงานครบถ้วน หรือระบุชื่อและจุดสุดท้ายที่พบผู้สูญหายทันที"}]',
+        'emergency_procedure': 'หากพบผู้ติดค้างภายในอาคาร ให้แจ้งเจ้าหน้าที่ดับเพลิงประจำการหรือทีมกู้ภัยฉุกเฉินพร้อมอุปกรณ์ช่วยหายใจเข้าทำการค้นหา ห้ามบุคคลทั่วไปย้อนกลับเข้าไปโดยเด็ดขาด',
+        'pdf_file_path': null,
+        'author': 'ผู้ควบคุมทีมฉุกเฉินและระงับอัคคีภัย',
+        'reviewer': 'จป.วิชาชีพ ประจำโรงงาน',
+        'approver': 'ผู้อำนวยการฝ่ายบริหารโรงงาน',
+        'status': 'ACTIVE',
+      });
+    }
+  }
 }
+
 

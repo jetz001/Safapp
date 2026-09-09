@@ -56,6 +56,17 @@ Each statutory inspection model must calculate:
 - **1-Click Document Launchers**: Open attached PDF files directly with native OS viewer (`cmd.exe /c start` on Windows).
 - **Responsive Layout**: Use `Wrap` and `LayoutBuilder` with min-width bounds to prevent RenderFlex overflow.
 
+### Step 4: Digital SOP (Standard Operating Procedure) Engineering Protocol
+Every statutory domain must support actionable SOPs adhering to ISO 45001 Clause 7.5:
+1. **Identification**: SOP Code (`SOP-[DOMAIN]-[SEQ]`), Title (TH/EN), Domain Category, Revision, Effective Date, Review SLA.
+2. **Prerequisites & Safeguards**: Mandatory PPE selection (Visual badges), Operator Qualifications (e.g. กว., ๔ ผู้, ช่างไฟฟ้า), Critical Hazards & Golden Safety Rules.
+3. **Structured 3-Phase Procedures**:
+   - Phase A: Pre-Operational Checks (เตรียมการ & ตรวจสอบก่อนเริ่มงาน)
+   - Phase B: Operational Execution (ขั้นตอนปฏิบัติงานหลัก + จุดตรวจความปลอดภัย Safety Checkpoint)
+   - Phase C: Post-Operational / Restoration (การเก็บกู้ คืนสภาพ และส่งมอบงาน)
+4. **Emergency Protocols**: E-Stop actions, spill kits, eyewash, first-aid measures.
+5. **Dual-Mode Integration**: Retain in-app structured viewer/editor while supporting native external PDF viewing.
+
 ---
 
 ## Verification Protocol
