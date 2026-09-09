@@ -12,6 +12,7 @@ import 'package:safety_superapp/core/widgets/glass_container.dart';
 import 'package:safety_superapp/features/chemicals/presentation/pages/chemicals_page.dart';
 import 'package:safety_superapp/features/emergency/presentation/pages/emergency_page.dart';
 import 'package:safety_superapp/features/electrical/presentation/pages/electrical_page.dart';
+import 'package:safety_superapp/features/machinery/presentation/pages/machinery_page.dart';
 import 'package:safety_superapp/features/environment/presentation/pages/environment_page.dart';
 import 'package:safety_superapp/features/risk_assessment/presentation/pages/jsa_page.dart';
 import 'package:safety_superapp/features/ptw/presentation/pages/ptw_page.dart';
@@ -62,10 +63,11 @@ class _AppShellState extends State<AppShell> {
       const PpePage(), // 12: PPE & ASL
       const EmergencyPage(), // 13: แผนฉุกเฉิน
       const ElectricalPage(), // 14: ระบบไฟฟ้า (ตรวจรับรองประจำปี ม.๑๒ & LOTO)
-      const ManualsPage(), // 15: คู่มือ SOPs
-      const LegalPage(), // 16: กฎหมาย
-      const CpoMainPage(), // 17: คณะกรรมการ คปอ.
-      const SettingsPage(), // 18: ตั้งค่า
+      const MachineryPage(), // 15: เครื่องจักร ปั้นจั่น & หม้อน้ำ (กฎกระทรวง ๒๕๖๔)
+      const ManualsPage(), // 16: คู่มือ SOPs
+      const LegalPage(), // 17: กฎหมาย
+      const CpoMainPage(), // 18: คณะกรรมการ คปอ.
+      const SettingsPage(), // 19: ตั้งค่า
     ];
   }
 
@@ -155,6 +157,7 @@ class _AppShellState extends State<AppShell> {
                                     NavigationRailDestination(icon: Icon(Icons.construction_outlined), selectedIcon: Icon(Icons.construction), label: Text('PPE')),
                                     NavigationRailDestination(icon: Icon(Icons.local_hospital_outlined), selectedIcon: Icon(Icons.local_hospital), label: Text('ฉุกเฉิน')),
                                     NavigationRailDestination(icon: Icon(Icons.bolt_outlined), selectedIcon: Icon(Icons.bolt), label: Text('ระบบไฟฟ้า')),
+                                    NavigationRailDestination(icon: Icon(Icons.precision_manufacturing_outlined), selectedIcon: Icon(Icons.precision_manufacturing), label: Text('เครื่องจักร')),
                                     NavigationRailDestination(icon: Icon(Icons.menu_book_outlined), selectedIcon: Icon(Icons.menu_book), label: Text('SOPs')),
                                     NavigationRailDestination(icon: Icon(Icons.gavel_outlined), selectedIcon: Icon(Icons.gavel), label: Text('กฎหมาย')),
                                     NavigationRailDestination(icon: Icon(Icons.diversity_3_outlined), selectedIcon: Icon(Icons.diversity_3), label: Text('คปอ.')),

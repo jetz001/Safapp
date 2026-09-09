@@ -41,7 +41,7 @@ class DatabaseHelper {
     return await databaseFactory.openDatabase(
       dbPath,
       options: OpenDatabaseOptions(
-        version: 13,
+        version: 14,
         onCreate: _onCreate,
         onUpgrade: _onUpgrade,
         onOpen: _onOpen,
@@ -105,6 +105,7 @@ class DatabaseHelper {
     await _createEmergencyTables(db);
     await _createElectricalInspectionTable(db);
     await _createElectricalLotoTable(db);
+    await _createMachineryTables(db);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -163,6 +164,9 @@ class DatabaseHelper {
     if (oldVersion < 13) {
       await _createElectricalLotoTable(db);
     }
+    if (oldVersion < 14) {
+      await _createMachineryTables(db);
+    }
   }
 
   Future<void> _onOpen(Database db) async {
@@ -176,6 +180,7 @@ class DatabaseHelper {
     await _createEmergencyTables(db);
     await _createElectricalInspectionTable(db);
     await _createElectricalLotoTable(db);
+    await _createMachineryTables(db);
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_policy TEXT');
     } catch (_) {}
@@ -1886,6 +1891,251 @@ class DatabaseHelper {
         'authorized_operator': 'ผู้ดูแลระบบ IT & หัวหน้าช่างอาคาร',
         'single_line_diagram_ref': 'SLD-DWG-003',
         'notes': 'ห้ามปลดวงจรโดยไม่แจ้งฝ่าย IT ล่วงหน้าอย่างน้อย 24 ชม.',
+      });
+    }
+  }
+
+  Future<void> _createMachineryTables(Database db) async {
+    // 1. ตารางบันทึกผลการตรวจสอบปั้นจั่น (แบบ ปจ.๑ / ปจ.๒ ตามกฎกระทรวงเครื่องจักร ปั้นจั่น หม้อน้ำ ๒๕๖๔)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS machinery_crane_inspections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        crane_name TEXT NOT NULL,
+        crane_tag TEXT NOT NULL,
+        crane_type TEXT NOT NULL,
+        inspection_form TEXT NOT NULL,
+        location_building TEXT NOT NULL,
+        location_area TEXT,
+        safe_working_load_ton REAL NOT NULL,
+        test_weight_ton REAL,
+        load_test_percent REAL,
+        inspection_cycle_months INTEGER NOT NULL DEFAULT 12,
+        wire_rope_status TEXT NOT NULL DEFAULT 'PASS',
+        hook_latch_status TEXT NOT NULL DEFAULT 'PASS',
+        limit_switch_status TEXT NOT NULL DEFAULT 'PASS',
+        brake_system_status TEXT NOT NULL DEFAULT 'PASS',
+        structure_status TEXT NOT NULL DEFAULT 'PASS',
+        engineer_name TEXT NOT NULL,
+        engineer_license_no TEXT NOT NULL,
+        contractor_company TEXT,
+        inspection_date TEXT NOT NULL,
+        expiry_date TEXT NOT NULL,
+        overall_result TEXT NOT NULL DEFAULT 'PASS',
+        defects_found TEXT,
+        corrective_actions TEXT,
+        vendor_report_pdf_path TEXT,
+        load_test_cert_pdf_path TEXT,
+        engineer_license_pdf_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_crane_tag ON machinery_crane_inspections(crane_tag)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_crane_date ON machinery_crane_inspections(inspection_date)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_crane_expiry ON machinery_crane_inspections(expiry_date)');
+
+    // 2. ตารางบันทึกผลการตรวจรับรองหม้อน้ำและภาชนะรับแรงดัน (Boiler & Pressure Vessel Inspections)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS machinery_boiler_inspections (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        boiler_name TEXT NOT NULL,
+        boiler_tag TEXT NOT NULL,
+        boiler_type TEXT NOT NULL,
+        capacity_ton_hr REAL,
+        location_building TEXT NOT NULL,
+        location_area TEXT,
+        max_allowable_working_pressure_bar REAL NOT NULL,
+        hydro_test_pressure_bar REAL,
+        hydro_test_result TEXT NOT NULL DEFAULT 'PASS',
+        safety_valve_test_result TEXT NOT NULL DEFAULT 'PASS',
+        safety_valve_pop_pressure_bar REAL,
+        water_treatment_status TEXT NOT NULL DEFAULT 'PASS',
+        burner_control_status TEXT NOT NULL DEFAULT 'PASS',
+        engineer_name TEXT NOT NULL,
+        engineer_license_no TEXT NOT NULL,
+        contractor_company TEXT,
+        inspection_date TEXT NOT NULL,
+        expiry_date TEXT NOT NULL,
+        overall_result TEXT NOT NULL DEFAULT 'PASS',
+        defects_found TEXT,
+        corrective_actions TEXT,
+        report_pdf_path TEXT,
+        engineer_license_pdf_path TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_boiler_tag ON machinery_boiler_inspections(boiler_tag)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_boiler_expiry ON machinery_boiler_inspections(expiry_date)');
+
+    // 3. ตารางทะเบียนเครื่องจักร & อุปกรณ์ช่วยยก (Machinery & Lifting Gear Inventory)
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS machinery_assets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        asset_tag TEXT NOT NULL UNIQUE,
+        asset_name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        rated_capacity TEXT,
+        location TEXT NOT NULL,
+        manufacturer_brand TEXT,
+        serial_no TEXT,
+        status TEXT NOT NULL DEFAULT 'READY',
+        last_inspected_date TEXT,
+        notes TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+      )
+    ''');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mach_asset_tag ON machinery_assets(asset_tag)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mach_asset_cat ON machinery_assets(category)');
+    await db.execute('CREATE INDEX IF NOT EXISTS idx_mach_asset_stat ON machinery_assets(status)');
+
+    // Pre-populate standard sample records if empty
+    final craneCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM machinery_crane_inspections')) ?? 0;
+    if (craneCount == 0) {
+      final now = DateTime.now();
+      final inspDate = DateTime(now.year, now.month - 1, now.day);
+      final expDate = DateTime(inspDate.year, inspDate.month + 6, inspDate.day); // 6 months cycle for 5 tons
+
+      await db.insert('machinery_crane_inspections', {
+        'crane_name': 'ปั้นจั่นเหนือศีรษะ อาคารผลิต 1 (Overhead Crane 5T)',
+        'crane_tag': 'CRANE-01-OH',
+        'crane_type': 'OVERHEAD',
+        'inspection_form': 'PJ1',
+        'location_building': 'อาคารผลิต 1 (Plant 1)',
+        'location_area': 'Bay 1 โซนประกอบชิ้นงานหนัก',
+        'safe_working_load_ton': 5.0,
+        'test_weight_ton': 6.25,
+        'load_test_percent': 125.0,
+        'inspection_cycle_months': 6,
+        'wire_rope_status': 'PASS',
+        'hook_latch_status': 'PASS',
+        'limit_switch_status': 'PASS',
+        'brake_system_status': 'PASS',
+        'structure_status': 'PASS',
+        'engineer_name': 'ธีรพงษ์ วิศวกรเครื่องกล',
+        'engineer_license_no': 'สค. 8891 (สามัญวิศวกรเครื่องกล)',
+        'contractor_company': 'บริษัท สยามเครน อินสเปคชั่น แอนด์ เอ็นจิเนียริ่ง จำกัด',
+        'inspection_date': inspDate.toIso8601String().substring(0, 10),
+        'expiry_date': expDate.toIso8601String().substring(0, 10),
+        'overall_result': 'PASS',
+        'defects_found': 'ระบบพร้อมใช้งาน สลิงไม่มีรอยแตกร้าว ลิมิตตัดตามพิกัด',
+        'corrective_actions': 'อัดจารบีลูกปืนล้อเลื่อนและตรวจสลิงสม่ำเสมอทุกเดือน',
+      });
+
+      final hoistInspDate = DateTime(now.year, now.month - 2, now.day);
+      final hoistExpDate = DateTime(hoistInspDate.year + 1, hoistInspDate.month, hoistInspDate.day); // 12 months for 2 tons
+      await db.insert('machinery_crane_inspections', {
+        'crane_name': 'รอกโซ่ไฟฟ้า คลังสินค้า (Electric Chain Hoist 2T)',
+        'crane_tag': 'HOIST-01-WH',
+        'crane_type': 'JIB',
+        'inspection_form': 'PJ1',
+        'location_building': 'อาคารคลังสินค้า (Warehouse)',
+        'location_area': 'จุดรับจ่ายสินค้า Loading Dock',
+        'safe_working_load_ton': 2.0,
+        'test_weight_ton': 2.5,
+        'load_test_percent': 125.0,
+        'inspection_cycle_months': 12,
+        'wire_rope_status': 'PASS',
+        'hook_latch_status': 'PASS',
+        'limit_switch_status': 'PASS',
+        'brake_system_status': 'PASS',
+        'structure_status': 'PASS',
+        'engineer_name': 'สมศักดิ์ ช่างเครื่องกล กว.',
+        'engineer_license_no': 'ภค. 14205 (ภาคีวิศวกรเครื่องกล)',
+        'contractor_company': 'บริษัท เอ็นจิเนียริ่ง เทสติ้ง เซอร์วิส จำกัด',
+        'inspection_date': hoistInspDate.toIso8601String().substring(0, 10),
+        'expiry_date': hoistExpDate.toIso8601String().substring(0, 10),
+        'overall_result': 'PASS',
+        'defects_found': 'ตะขอมี Safety Latch สมบูรณ์ โซ่ยกอยู่ในเกณฑ์มาตรฐาน',
+        'corrective_actions': 'ตรวจความตึงของโซ่และทำความสะอาดรางวิ่ง',
+      });
+    }
+
+    final boilerCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM machinery_boiler_inspections')) ?? 0;
+    if (boilerCount == 0) {
+      final now = DateTime.now();
+      final bInspDate = DateTime(now.year, now.month - 3, now.day);
+      final bExpDate = DateTime(bInspDate.year + 1, bInspDate.month, bInspDate.day);
+
+      await db.insert('machinery_boiler_inspections', {
+        'boiler_name': 'หม้อน้ำไอน้ำแบบท่อไฟ (Fire Tube Steam Boiler 2 T/h)',
+        'boiler_tag': 'BOILER-01-STM',
+        'boiler_type': 'STEAM_BOILER',
+        'capacity_ton_hr': 2.0,
+        'location_building': 'อาคาร Utility & Energy',
+        'location_area': 'ห้องหม้อน้ำ (Boiler Room)',
+        'max_allowable_working_pressure_bar': 10.0,
+        'hydro_test_pressure_bar': 15.0,
+        'hydro_test_result': 'PASS',
+        'safety_valve_test_result': 'PASS',
+        'safety_valve_pop_pressure_bar': 10.5,
+        'water_treatment_status': 'PASS',
+        'burner_control_status': 'PASS',
+        'engineer_name': 'ณรงค์ศักดิ์ กว.เครื่องกล',
+        'engineer_license_no': 'สค. 3312 (สามัญวิศวกรเครื่องกล)',
+        'contractor_company': 'บริษัท บอยเลอร์ แอนด์ คอมบัชชั่น เอ็นจิเนียริ่ง จำกัด',
+        'inspection_date': bInspDate.toIso8601String().substring(0, 10),
+        'expiry_date': bExpDate.toIso8601String().substring(0, 10),
+        'overall_result': 'PASS',
+        'defects_found': 'ผ่านการทดสอบ Hydrostatic test และ Safety Valve ปลดปล่อยแรงดันถูกต้อง',
+        'corrective_actions': 'ควบคุมค่าน้ำเลี้ยงหม้อน้ำ (TDS / Hardness) ให้เป็นไปตามประกาศกรมโรงงานฯ',
+      });
+    }
+
+    final assetCount = Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM machinery_assets')) ?? 0;
+    if (assetCount == 0) {
+      final nowStr = DateTime.now().toIso8601String().substring(0, 10);
+      await db.insert('machinery_assets', {
+        'asset_tag': 'SLING-WR-01',
+        'asset_name': 'ลวดสลิงถัก 4 ขา ขนาด 16 มม. (Wire Rope Sling 4-Legs)',
+        'category': 'SLING_WIRE',
+        'rated_capacity': 'WLL 5.0 Ton',
+        'location': 'อาคารผลิต 1 แผนกประกอบ',
+        'manufacturer_brand': 'KISWIRE',
+        'serial_no': 'KW-2025-081',
+        'status': 'READY',
+        'last_inspected_date': nowStr,
+        'notes': 'มีป้ายแท็กโลหะแสดงพิกัดน้ำหนักชัดเจน ไม่มีเส้นลวดขาด',
+      });
+
+      await db.insert('machinery_assets', {
+        'asset_tag': 'SLING-WB-02',
+        'asset_name': 'สายรัดผ้าใบโพลีเอสเตอร์แถบสีเหลือง (Webbing Sling)',
+        'category': 'SLING_WEBBING',
+        'rated_capacity': 'WLL 3.0 Ton (ยาว 4 ม.)',
+        'location': 'อาคารคลังสินค้า',
+        'manufacturer_brand': 'SPANSET',
+        'serial_no': 'SS-3T-4M-09',
+        'status': 'READY',
+        'last_inspected_date': nowStr,
+        'notes': 'สภาพดี ไม่ฉีกขาด ไม่โดนกรดหรือประกายไฟ',
+      });
+
+      await db.insert('machinery_assets', {
+        'asset_tag': 'SHACKLE-G209-01',
+        'asset_name': 'สะเก็นโอเมก้าชนิดเกลียวขัน (Bow Shackle)',
+        'category': 'SHACKLE',
+        'rated_capacity': 'WLL 4.75 Ton (ขนาด 3/4 นิ้ว)',
+        'location': 'อาคารผลิต 1',
+        'manufacturer_brand': 'Crosby G-209',
+        'serial_no': 'CB-4.75-22',
+        'status': 'READY',
+        'last_inspected_date': nowStr,
+        'notes': 'สลักเกลียวไม่คดงอ ตัวอักษรปั๊มพิกัดชัดเจน',
+      });
+
+      await db.insert('machinery_assets', {
+        'asset_tag': 'GUARD-PRESS-01',
+        'asset_name': 'ม่านแสงนิรภัยป้องกันจุดหนีบตัด (Safety Light Curtain)',
+        'category': 'MACHINE_GUARD',
+        'rated_capacity': 'Type 4 (ความเร็วหยุด <0.1 วินาที)',
+        'location': 'แผนกปั๊มขึ้นรูปโลหะ เครื่องปั๊ม Press 100T',
+        'manufacturer_brand': 'KEYENCE GL-R Series',
+        'serial_no': 'KY-GLR-100P',
+        'status': 'READY',
+        'last_inspected_date': nowStr,
+        'notes': 'ตัดการทำงานทันทีเมื่อมือล่วงล้ำเข้าเขตอันตราย',
       });
     }
   }
