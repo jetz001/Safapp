@@ -188,20 +188,6 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
             ),
-            if (isTotalEmpty) ...[
-              const SizedBox(height: 16),
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D9488),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                icon: const Icon(Icons.add, size: 16),
-                label: const Text('นัดหมายครั้งแรก', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                onPressed: () => _openCreateMeetingDialog(context),
-              ),
-            ],
           ],
         ),
       ),
@@ -280,22 +266,6 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                     _buildPlaceholderAgendaItem('๖', 'เรื่องอื่นๆ (ถ้ามี)', 'ข้อปรึกษาหารือเพิ่มเติมของกรรมการทั้งฝ่ายนายจ้างและลูกจ้าง'),
                   ],
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D9488),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                icon: const Icon(Icons.add_circle_outline, size: 20),
-                label: const Text(
-                  'นัดหมายการประชุมใหม่ทันที',
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                ),
-                onPressed: () => _openCreateMeetingDialog(context),
               ),
             ],
           ),
