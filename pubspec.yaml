@@ -71,7 +71,17 @@ flutter:
 
   assets:
     - google_fonts/
-    - assets/images/modules/
+
+  fonts:
+    - family: Prompt
+      fonts:
+        - asset: google_fonts/Prompt-Regular.ttf
+        - asset: google_fonts/Prompt-Medium.ttf
+          weight: 500
+        - asset: google_fonts/Prompt-SemiBold.ttf
+          weight: 600
+        - asset: google_fonts/Prompt-Bold.ttf
+          weight: 700
 
 
 

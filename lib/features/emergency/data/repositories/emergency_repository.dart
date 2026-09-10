@@ -43,10 +43,16 @@ class EmergencyRepository {
       orderBy: 'id DESC',
     );
 
-    // If table is empty, auto-seed default Fire and Chemical presets
+    // If table has never had any records in history, auto-seed default Fire and Chemical presets once
     if (maps.isEmpty && hazardType == null && status == null) {
-      await seedDefaultPlans();
-      return getAllPlans();
+      final seqRes = await db.rawQuery(
+        "SELECT seq FROM sqlite_sequence WHERE name = 'emergency_plans'",
+      );
+      final hasHistory = seqRes.isNotEmpty && (seqRes.first['seq'] as int? ?? 0) > 0;
+      if (!hasHistory) {
+        await seedDefaultPlans();
+        return getAllPlans();
+      }
     }
 
     return maps.map((e) => EmergencyPlanModel.fromMap(e)).toList();
@@ -118,18 +124,63 @@ class EmergencyRepository {
   }
 
   Future<void> seedDefaultPlans() async {
-    final firePlan = EmergencyPresetsData.getPreset(
-      hazardType: HazardType.fire,
-      businessType: BusinessType.factory,
-    );
-    await insertPlan(firePlan);
-
-    final chemPlan = EmergencyPresetsData.getPreset(
-      hazardType: HazardType.chemicalSpill,
-      businessType: BusinessType.chemicalStorage,
-    );
-    await insertPlan(chemPlan);
+    final presets = [
+      EmergencyPresetsData.getPreset(hazardType: HazardType.fire, businessType: BusinessType.factory),
+      EmergencyPresetsData.getPreset(hazardType: HazardType.chemicalSpill, businessType: BusinessType.chemicalStorage),
+      EmergencyPresetsData.getPreset(hazardType: HazardType.flood, businessType: BusinessType.factory),
+      EmergencyPresetsData.getPreset(hazardType: HazardType.earthquake, businessType: BusinessType.office),
+      EmergencyPresetsData.getPreset(hazardType: HazardType.electrical, businessType: BusinessType.factory),
+    ];
+    for (final plan in presets) {
+      await insertPlan(plan);
+    }
   }
+
+  /// เติมแม่แบบแผนฉุกเฉินเฉพาะประเภทภัยที่ยังไม่มีในฐานข้อมูล
+  Future<int> seedMissingPresets() async {
+    final db = await _dbHelper.database;
+    final existingMaps = await db.query('emergency_plans', columns: ['hazard_type']);
+    final existingHazards = existingMaps.map((m) => m['hazard_type'] as String).toSet();
+
+    final presetsToSeed = <(HazardType, BusinessType)>[
+      (HazardType.fire, BusinessType.factory),
+      (HazardType.chemicalSpill, BusinessType.chemicalStorage),
+      (HazardType.flood, BusinessType.factory),
+      (HazardType.earthquake, BusinessType.office),
+      (HazardType.electrical, BusinessType.factory),
+    ];
+
+    var addedCount = 0;
+    for (final item in presetsToSeed) {
+      if (!existingHazards.contains(item.$1.code)) {
+        final preset = EmergencyPresetsData.getPreset(
+          hazardType: item.$1,
+          businessType: item.$2,
+        );
+        await insertPlan(preset);
+        addedCount++;
+      }
+    }
+    return addedCount;
+  }
+
+  /// สร้างและบันทึกแม่แบบตามประเภทภัยที่เลือก
+  Future<int> insertPresetForHazard(HazardType hazardType) async {
+    final businessType = switch (hazardType) {
+      HazardType.fire => BusinessType.factory,
+      HazardType.chemicalSpill => BusinessType.chemicalStorage,
+      HazardType.flood => BusinessType.factory,
+      HazardType.earthquake => BusinessType.office,
+      HazardType.electrical => BusinessType.factory,
+      HazardType.custom => BusinessType.other,
+    };
+    final preset = EmergencyPresetsData.getPreset(
+      hazardType: hazardType,
+      businessType: businessType,
+    );
+    return await insertPlan(preset);
+  }
+
 
   // ==========================================
   // 2. DRILL SESSIONS (สปร. ๔)

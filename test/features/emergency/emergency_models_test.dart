@@ -197,5 +197,38 @@ void main() {
       );
       expect(fail.isGroundingStandardPass, isFalse);
     });
+
+    test('All 5 hazard presets return complete 6-subplan models', () {
+      final hazards = [
+        HazardType.fire,
+        HazardType.chemicalSpill,
+        HazardType.flood,
+        HazardType.earthquake,
+        HazardType.electrical,
+      ];
+
+      for (final hazard in hazards) {
+        final plan = EmergencyPresetsData.getPreset(
+          hazardType: hazard,
+          businessType: BusinessType.factory,
+        );
+        expect(plan.hazardType, hazard);
+        expect(plan.planTitle.isNotEmpty, isTrue);
+        expect(plan.inspectionPlan.items.isNotEmpty, isTrue);
+        expect(plan.trainingPlan.courses.isNotEmpty, isTrue);
+        expect(plan.campaignPlan.activities.isNotEmpty, isTrue);
+        expect(plan.suppressionPlan.regularShiftTeam.isNotEmpty, isTrue);
+        expect(plan.evacuationPlan.assemblyPoints.isNotEmpty, isTrue);
+        expect(plan.reliefPlan.governmentContacts.isNotEmpty, isTrue);
+
+        // Verify roundtrip to SQLite map
+        final map = plan.toMap();
+        final restored = EmergencyPlanModel.fromMap(map);
+        expect(restored.hazardType, hazard);
+        expect(restored.planTitle, plan.planTitle);
+        expect(restored.inspectionPlan.items.length, plan.inspectionPlan.items.length);
+      }
+    });
   });
 }
+

@@ -23,7 +23,7 @@ class SafetySuperapp extends StatelessWidget {
       title: 'Safety Superapp',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A8A)),
-        textTheme: GoogleFonts.promptTextTheme(Theme.of(context).textTheme),
+        fontFamily: 'Prompt',
         useMaterial3: true,
       ),
       home: const AppShell(),

@@ -99,17 +99,44 @@ class EmergencyPlanListNotifier extends AsyncNotifier<List<EmergencyPlanModel>> 
       await repo.updatePlan(plan);
       id = plan.id!;
     }
-    ref.invalidateSelf();
+    final savedPlan = plan.copyWith(id: id);
+    final current = state.value ?? [];
+    final index = current.indexWhere((p) => p.id == id);
+    if (index >= 0) {
+      final updated = List<EmergencyPlanModel>.from(current);
+      updated[index] = savedPlan;
+      state = AsyncValue.data(updated);
+    } else {
+      state = AsyncValue.data([savedPlan, ...current]);
+    }
     return id;
   }
 
   Future<int> deletePlan(int id) async {
     final repo = ref.read(emergencyRepositoryProvider);
     final count = await repo.deletePlan(id);
+    final current = state.value ?? [];
+    state = AsyncValue.data(current.where((p) => p.id != id).toList());
+    return count;
+  }
+
+  /// เติมแม่แบบสำหรับประเภทภัยที่ยังไม่มีในระบบ
+  Future<int> loadMissingPresets() async {
+    final repo = ref.read(emergencyRepositoryProvider);
+    final count = await repo.seedMissingPresets();
     ref.invalidateSelf();
     return count;
   }
+
+  /// บันทึกแม่แบบตามประเภทภัยที่เลือกเข้าสู่ระบบ
+  Future<int> addPreset(HazardType hazardType) async {
+    final repo = ref.read(emergencyRepositoryProvider);
+    final id = await repo.insertPresetForHazard(hazardType);
+    ref.invalidateSelf();
+    return id;
+  }
 }
+
 
 final emergencyPlanListProvider = AsyncNotifierProvider<EmergencyPlanListNotifier, List<EmergencyPlanModel>>(
   EmergencyPlanListNotifier.new,
@@ -299,3 +326,18 @@ final emergencyKpiProvider = Provider<EmergencyKpiSummary>((ref) {
     latestElectricalInspection: latestElectrical,
   );
 });
+
+/// Manages the currently selected Emergency Plan for editing in ERP Builder
+class SelectedErpPlanNotifier extends Notifier<EmergencyPlanModel?> {
+  @override
+  EmergencyPlanModel? build() => null;
+
+  void selectPlan(EmergencyPlanModel? plan) {
+    state = plan;
+  }
+}
+
+final selectedErpPlanProvider = NotifierProvider<SelectedErpPlanNotifier, EmergencyPlanModel?>(
+  SelectedErpPlanNotifier.new,
+);
+

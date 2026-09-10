@@ -203,6 +203,18 @@ class InspectionSubPlan {
     );
   }
 
+  InspectionSubPlan copyWith({
+    List<InspectionItem>? items,
+    String? frequencyDescription,
+    String? reportingProcedure,
+  }) {
+    return InspectionSubPlan(
+      items: items ?? this.items,
+      frequencyDescription: frequencyDescription ?? this.frequencyDescription,
+      reportingProcedure: reportingProcedure ?? this.reportingProcedure,
+    );
+  }
+
   factory InspectionSubPlan.fromRawJson(dynamic raw) {
     if (raw == null || raw is! String || raw.isEmpty) return const InspectionSubPlan();
     try {
@@ -266,6 +278,18 @@ class TrainingSubPlan {
       basicFireQuotaPercent: (map['basicFireQuotaPercent'] as num?)?.toDouble() ?? 40.0,
       annualDrillTargetMonth: map['annualDrillTargetMonth'] as String? ?? 'พฤศจิกายน',
       courses: rawList.map((e) => TrainingCourseItem.fromMap(e as Map<String, dynamic>)).toList(),
+    );
+  }
+
+  TrainingSubPlan copyWith({
+    double? basicFireQuotaPercent,
+    String? annualDrillTargetMonth,
+    List<TrainingCourseItem>? courses,
+  }) {
+    return TrainingSubPlan(
+      basicFireQuotaPercent: basicFireQuotaPercent ?? this.basicFireQuotaPercent,
+      annualDrillTargetMonth: annualDrillTargetMonth ?? this.annualDrillTargetMonth,
+      courses: courses ?? this.courses,
     );
   }
 
@@ -335,6 +359,18 @@ class CampaignSubPlan {
     );
   }
 
+  CampaignSubPlan copyWith({
+    List<String>? activities,
+    String? smokingControlPolicy,
+    String? hotWorkSafetyReminder,
+  }) {
+    return CampaignSubPlan(
+      activities: activities ?? this.activities,
+      smokingControlPolicy: smokingControlPolicy ?? this.smokingControlPolicy,
+      hotWorkSafetyReminder: hotWorkSafetyReminder ?? this.hotWorkSafetyReminder,
+    );
+  }
+
   factory CampaignSubPlan.fromRawJson(dynamic raw) {
     if (raw == null || raw is! String || raw.isEmpty) return const CampaignSubPlan();
     try {
@@ -375,6 +411,20 @@ class SuppressionSubPlan {
       majorEmergencyProtocol: map['majorEmergencyProtocol'] as String? ?? '',
       regularShiftTeam: regList.map((e) => EmergencyTeamRole.fromMap(e as Map<String, dynamic>)).toList(),
       offHoursTeam: offList.map((e) => EmergencyTeamRole.fromMap(e as Map<String, dynamic>)).toList(),
+    );
+  }
+
+  SuppressionSubPlan copyWith({
+    String? initialResponseProtocol,
+    String? majorEmergencyProtocol,
+    List<EmergencyTeamRole>? regularShiftTeam,
+    List<EmergencyTeamRole>? offHoursTeam,
+  }) {
+    return SuppressionSubPlan(
+      initialResponseProtocol: initialResponseProtocol ?? this.initialResponseProtocol,
+      majorEmergencyProtocol: majorEmergencyProtocol ?? this.majorEmergencyProtocol,
+      regularShiftTeam: regularShiftTeam ?? this.regularShiftTeam,
+      offHoursTeam: offHoursTeam ?? this.offHoursTeam,
     );
   }
 
@@ -621,6 +671,20 @@ class ReliefSubPlan {
       searchAndRescueProtocol: map['searchAndRescueProtocol'] as String? ?? '',
       damageAssessmentProtocol: map['damageAssessmentProtocol'] as String? ?? '',
       businessContinuityProtocol: map['businessContinuityProtocol'] as String? ?? '',
+    );
+  }
+
+  ReliefSubPlan copyWith({
+    List<EmergencyContactAgency>? governmentContacts,
+    String? searchAndRescueProtocol,
+    String? damageAssessmentProtocol,
+    String? businessContinuityProtocol,
+  }) {
+    return ReliefSubPlan(
+      governmentContacts: governmentContacts ?? this.governmentContacts,
+      searchAndRescueProtocol: searchAndRescueProtocol ?? this.searchAndRescueProtocol,
+      damageAssessmentProtocol: damageAssessmentProtocol ?? this.damageAssessmentProtocol,
+      businessContinuityProtocol: businessContinuityProtocol ?? this.businessContinuityProtocol,
     );
   }
 

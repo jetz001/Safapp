@@ -24,58 +24,20 @@ class EmergencyDashboardTab extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Top Summary Header & Action Bar ──
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Wrap(
-                alignment: WrapAlignment.spaceBetween,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 16,
-                runSpacing: 12,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'ศูนย์ควบคุมและประเมินความพร้อมรับมือภาวะฉุกเฉิน',
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Multi-Hazard Emergency Management (กฎกระทรวงอัคคีภัย ๒๕๕๕ ข้อ ๔ & ข้อ ๓๐)',
-                        style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                      ),
-                    ],
-                  ),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 8,
-                    children: [
-                      OutlinedButton.icon(
-                        onPressed: onNavigateToDrills,
-                        icon: const Icon(Icons.assignment_outlined, size: 16),
-                        label: const Text('บันทึก/แนบรายงานฝึกซ้อม'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF2563EB),
-                          side: const BorderSide(color: Color(0xFF2563EB)),
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        ),
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: onNavigateToBuilder,
-                        icon: const Icon(Icons.add_circle_outline, size: 16),
-                        label: const Text('จัดทำ/ปรับปรุงแผนฉุกเฉิน'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFDC2626),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-            },
+          // ── Top Summary Header ──
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'ศูนย์ควบคุมและประเมินความพร้อมรับมือภาวะฉุกเฉิน',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Multi-Hazard Emergency Management (กฎกระทรวงอัคคีภัย ๒๕๕๕ ข้อ ๔ & ข้อ ๓๐)',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+              ),
+            ],
           ),
 
           const SizedBox(height: 20),
@@ -135,7 +97,7 @@ class EmergencyDashboardTab extends ConsumerWidget {
                   children: [
                     _buildRecentDrillsCard(drillsAsync, onNavigateToDrills),
                     const SizedBox(height: 16),
-                    _buildRecentPlansCard(plansAsync, onNavigateToBuilder),
+                    _buildRecentPlansCard(context, ref, plansAsync, onNavigateToBuilder),
                   ],
                 );
               }
@@ -144,7 +106,7 @@ class EmergencyDashboardTab extends ConsumerWidget {
                 children: [
                   Expanded(child: _buildRecentDrillsCard(drillsAsync, onNavigateToDrills)),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildRecentPlansCard(plansAsync, onNavigateToBuilder)),
+                  Expanded(child: _buildRecentPlansCard(context, ref, plansAsync, onNavigateToBuilder)),
                 ],
               );
             },
@@ -519,7 +481,12 @@ class EmergencyDashboardTab extends ConsumerWidget {
     );
   }
 
-  Widget _buildRecentPlansCard(AsyncValue<List<dynamic>> plansAsync, VoidCallback onNavigateToBuilder) {
+  Widget _buildRecentPlansCard(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<dynamic>> plansAsync,
+    VoidCallback onNavigateToBuilder,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -534,9 +501,10 @@ class EmergencyDashboardTab extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('เล่มแผนฉุกเฉินที่ดูแล (ERP Plans)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-              TextButton(
+              TextButton.icon(
                 onPressed: onNavigateToBuilder,
-                child: const Text('จัดการแผน >', style: TextStyle(fontSize: 11)),
+                icon: const Icon(Icons.tune_outlined, size: 13),
+                label: const Text('จัดการแผน >', style: TextStyle(fontSize: 11)),
               ),
             ],
           ),
@@ -554,43 +522,122 @@ class EmergencyDashboardTab extends ConsumerWidget {
                 );
               }
               return Column(
-                children: plans.take(3).map((p) {
+                children: plans.map((p) {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       color: Colors.grey.shade50,
                       borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 12,
-                                backgroundColor: p.hazardType.color.withValues(alpha: 0.15),
-                                child: Icon(p.hazardType.icon, size: 13, color: p.hazardType.color),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(8),
+                      onTap: () {
+                        ref.read(selectedErpPlanProvider.notifier).selectPlan(p);
+                        onNavigateToBuilder();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 13,
+                                    backgroundColor: p.hazardType.color.withValues(alpha: 0.15),
+                                    child: Icon(p.hazardType.icon, size: 14, color: p.hazardType.color),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(p.planTitle, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
+                                        Text('ฉบับที่ ${p.version} | ${p.companyName}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(p.planTitle, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold), overflow: TextOverflow.ellipsis),
-                                    Text('ฉบับที่ ${p.version} | ${p.companyName}', style: TextStyle(fontSize: 10, color: Colors.grey.shade600), overflow: TextOverflow.ellipsis),
-                                  ],
+                            ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: p.status.color.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    p.status.label,
+                                    style: TextStyle(fontSize: 9.5, color: p.status.color, fontWeight: FontWeight.w600),
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
+                                const SizedBox(width: 4),
+                                IconButton(
+                                  icon: const Icon(Icons.edit_outlined, size: 16, color: Color(0xFF2563EB)),
+                                  tooltip: 'แก้ไขแผนนี้',
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(6),
+                                  onPressed: () {
+                                    ref.read(selectedErpPlanProvider.notifier).selectPlan(p);
+                                    onNavigateToBuilder();
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete_outline, size: 16, color: Color(0xFFDC2626)),
+                                  tooltip: 'ลบแผนนี้',
+                                  constraints: const BoxConstraints(),
+                                  padding: const EdgeInsets.all(6),
+                                  onPressed: () async {
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder: (ctx) => AlertDialog(
+                                        title: const Row(
+                                          children: [
+                                            Icon(Icons.warning_amber_rounded, color: Colors.red),
+                                            SizedBox(width: 8),
+                                            Text('ยืนยันการลบแผนฉุกเฉิน', style: TextStyle(fontSize: 16)),
+                                          ],
+                                        ),
+                                        content: Text('ต้องการลบแผน "${p.planTitle}" ออกจากระบบหรือไม่?\nการดำเนินการนี้ไม่สามารถเรียกคืนได้'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.pop(ctx, false),
+                                            child: const Text('ยกเลิก'),
+                                          ),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFFDC2626),
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            onPressed: () => Navigator.pop(ctx, true),
+                                            child: const Text('ลบแผน'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                    if (confirm == true) {
+                                      await ref.read(emergencyPlanListProvider.notifier).deletePlan(p.id!);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('ลบแผน "${p.planTitle}" เรียบร้อยแล้ว'),
+                                            backgroundColor: const Color(0xFFDC2626),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        Text(
-                          p.status.label,
-                          style: TextStyle(fontSize: 10, color: p.status.color, fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 }).toList(),
