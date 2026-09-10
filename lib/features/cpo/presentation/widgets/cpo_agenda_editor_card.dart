@@ -88,6 +88,7 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
   }
 
   Future<void> _pullPreviousPendingItems() async {
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isPulling = true);
     try {
       final repo = ref.read(cpoRepositoryProvider);
@@ -99,19 +100,20 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
           _discussionCtrl.text = text;
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('ดึงเรื่องสืบเนื่องจากรอบก่อนหน้าสำเร็จ'), backgroundColor: Colors.teal),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text('ดึงข้อมูลไม่สำเร็จ: $e'), backgroundColor: Colors.red),
       );
     } finally {
-      setState(() => _isPulling = false);
+      if (mounted) setState(() => _isPulling = false);
     }
   }
 
   Future<void> _pullMonthlySafetyStats() async {
+    final messenger = ScaffoldMessenger.of(context);
     setState(() => _isPulling = true);
     try {
       final repo = ref.read(cpoRepositoryProvider);
@@ -124,15 +126,15 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
           _discussionCtrl.text = summaryText;
         }
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         const SnackBar(content: Text('ดึงสถิติความปลอดภัยประจำเดือนสำเร็จ'), backgroundColor: Colors.indigo),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.showSnackBar(
         SnackBar(content: Text('ดึงสถิติไม่สำเร็จ: $e'), backgroundColor: Colors.red),
       );
     } finally {
-      setState(() => _isPulling = false);
+      if (mounted) setState(() => _isPulling = false);
     }
   }
 
@@ -144,6 +146,83 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
         agendaNo: widget.agenda.agendaNo,
       ),
     );
+  }
+
+  Future<void> _editAgendaTitle() async {
+    final titleCtrl = TextEditingController(text: widget.agenda.agendaTitle);
+    final newTitle = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('แก้ไขชื่อวาระที่ ${widget.agenda.agendaNo}'),
+        content: TextField(
+          controller: titleCtrl,
+          decoration: const InputDecoration(
+            labelText: 'ชื่อหัวข้อวาระ *',
+            border: OutlineInputBorder(),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('ยกเลิก')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9488), foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, titleCtrl.text.trim()),
+            child: const Text('บันทึกชื่อวาระ'),
+          ),
+        ],
+      ),
+    );
+
+    if (newTitle != null && newTitle.isNotEmpty && newTitle != widget.agenda.agendaTitle) {
+      final updated = widget.agenda.copyWith(agendaTitle: newTitle);
+      await ref.read(cpoMeetingsProvider.notifier).updateAgenda(updated);
+      widget.onAgendaUpdated?.call();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('แก้ไขชื่อหัวข้อวาระสำเร็จ'), backgroundColor: Colors.green),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteAgenda() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.delete_outline, color: Colors.red),
+            SizedBox(width: 8),
+            Text('ยืนยันลบวาระการประชุม'),
+          ],
+        ),
+        content: Text(
+          'คุณต้องการลบ "วาระที่ ${widget.agenda.agendaNo} ${widget.agenda.agendaTitle}" '
+          'ออกจากการประชุมนี้หรือไม่?\n\n'
+          '⚠️ สาระสำคัญและมติที่ประชุมในวาระนี้จะถูกลบออก',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('ยืนยันลบวาระ'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && widget.agenda.id != null) {
+      await ref.read(cpoMeetingsProvider.notifier).deleteAgenda(widget.agenda.id!);
+      widget.onAgendaUpdated?.call();
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('ลบวาระที่ ${widget.agenda.agendaNo} เรียบร้อยแล้ว'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
   }
 
   @override
@@ -187,9 +266,9 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: headerColor.withOpacity(0.12),
+                    color: headerColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: headerColor.withOpacity(0.3)),
+                    border: Border.all(color: headerColor.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     'วาระที่ ${ag.agendaNo}',
@@ -198,9 +277,25 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    ag.agendaTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  child: InkWell(
+                    onTap: _editAgendaTitle,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              ag.agendaTitle,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(Icons.edit_outlined, size: 15, color: Colors.grey.shade500),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 // Helper buttons based on agenda type
@@ -237,6 +332,13 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                       elevation: 0,
                     ),
                   ),
+                const SizedBox(width: 4),
+                IconButton(
+                  icon: Icon(Icons.delete_outline, size: 18, color: Colors.red.shade400),
+                  tooltip: 'ลบวาระที่ ${ag.agendaNo}',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: _confirmDeleteAgenda,
+                ),
               ],
             ),
             const SizedBox(height: 12),

@@ -145,21 +145,30 @@ class LandingPage extends ConsumerWidget {
             height: 80,
             decoration: BoxDecoration(
               color: Colors.white,
-              shape: BoxShape.circle,
+              borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.15),
+                  color: const Color(0xFF1E3A8A).withValues(alpha: 0.12),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
               ],
               border: Border.all(color: Colors.white, width: 3),
             ),
-            child: logoPath != null && File(logoPath).existsSync()
-                ? ClipOval(child: Image.file(File(logoPath), fit: BoxFit.cover))
-                : const Center(
-                    child: Icon(Icons.shield_rounded, size: 44, color: Color(0xFF1E3A8A)),
-                  ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: logoPath != null && File(logoPath).existsSync()
+                  ? Padding(
+                      padding: const EdgeInsets.all(6.0),
+                      child: Image.file(
+                        File(logoPath),
+                        fit: BoxFit.contain,
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(Icons.shield_rounded, size: 44, color: Color(0xFF1E3A8A)),
+                    ),
+            ),
           );
 
           final titleContent = Column(
@@ -463,6 +472,7 @@ class LandingPage extends ConsumerWidget {
         icon: Icons.warning_amber_rounded,
         color: const Color(0xFFE11D48),
         targetIndex: AppRoutes.nearMiss, // 6
+        imagePath: 'assets/images/modules/mod_nearmiss.jpg',
       ),
       _QuickAction(
         title: 'ขอเปิดใบงาน PTW',
@@ -470,6 +480,7 @@ class LandingPage extends ConsumerWidget {
         icon: Icons.assignment_turned_in_rounded,
         color: const Color(0xFFD97706),
         targetIndex: AppRoutes.ptw, // 4
+        imagePath: 'assets/images/modules/mod_ptw.jpg',
       ),
       _QuickAction(
         title: 'ประเมินความเสี่ยง JSA',
@@ -477,6 +488,7 @@ class LandingPage extends ConsumerWidget {
         icon: Icons.assignment_rounded,
         color: const Color(0xFF2563EB),
         targetIndex: AppRoutes.jsa, // 3
+        imagePath: 'assets/images/modules/mod_jsa.jpg',
       ),
       _QuickAction(
         title: 'ตรวจความปลอดภัย Audit',
@@ -484,6 +496,7 @@ class LandingPage extends ConsumerWidget {
         icon: Icons.fact_check_rounded,
         color: const Color(0xFF059669),
         targetIndex: AppRoutes.audit, // 5
+        imagePath: 'assets/images/modules/mod_audit.jpg',
       ),
     ];
 
@@ -527,16 +540,8 @@ class LandingPage extends ConsumerWidget {
                   onTap: () => onNavigate(action.targetIndex),
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          action.color.withValues(alpha: 0.08),
-                          Colors.white.withValues(alpha: 0.85),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(color: action.color.withValues(alpha: 0.25), width: 1.2),
                       boxShadow: [
@@ -547,46 +552,86 @@ class LandingPage extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: action.color,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: action.color.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          if (action.imagePath != null)
+                            Positioned.fill(
+                              child: Opacity(
+                                opacity: 0.80, // Transparency 20% (0.80 opacity)
+                                child: Image.asset(
+                                  action.imagePath!,
+                                  fit: BoxFit.cover,
+                                  alignment: Alignment.centerRight,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const SizedBox.shrink(),
+                                ),
                               ),
-                            ],
+                            ),
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Colors.white,
+                                    Colors.white.withValues(alpha: 0.88),
+                                    Colors.white.withValues(alpha: 0.15),
+                                  ],
+                                  stops: const [0.0, 0.35, 0.80],
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Icon(action.icon, color: Colors.white, size: 20),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                action.title,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                action.subtitle,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                              ),
-                            ],
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: action.color,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: action.color.withValues(alpha: 0.3),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Icon(action.icon, color: Colors.white, size: 20),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        action.title,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        action.subtitle,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 );
@@ -607,6 +652,7 @@ class LandingPage extends ConsumerWidget {
         title: 'หมวดที่ ๑: ภาพรวม & การควบคุม (Overview & Control)',
         icon: Icons.dashboard_outlined,
         color: const Color(0xFF1E3A8A),
+        imagePath: 'assets/images/modules/mod_dashboard.jpg',
         modules: [
           _ModuleItem(
             name: 'แดชบอร์ดสรุปสถิติผู้บริหาร',
@@ -614,6 +660,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.dashboard_rounded,
             color: const Color(0xFF1E3A8A),
             targetIndex: AppRoutes.dashboard, // 1
+            imagePath: 'assets/images/modules/mod_dashboard.jpg',
           ),
           _ModuleItem(
             name: 'ข้อมูลองค์กร & ตั้งค่า SMS',
@@ -621,6 +668,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.domain_rounded,
             color: const Color(0xFF6366F1),
             targetIndex: AppRoutes.smsSetup, // 2
+            imagePath: 'assets/images/modules/mod_enterprise.jpg',
           ),
         ],
       ),
@@ -628,6 +676,7 @@ class LandingPage extends ConsumerWidget {
         title: 'หมวดที่ ๒: การควบคุมความเสี่ยงหน้างาน (Risk & Site Operations)',
         icon: Icons.shield_outlined,
         color: const Color(0xFF2563EB),
+        imagePath: 'assets/images/modules/mod_audit.jpg',
         modules: [
           _ModuleItem(
             name: 'JSA & ประเมินความเสี่ยง',
@@ -635,6 +684,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.assignment_rounded,
             color: const Color(0xFF2563EB),
             targetIndex: AppRoutes.jsa, // 3
+            imagePath: 'assets/images/modules/mod_jsa.jpg',
           ),
           _ModuleItem(
             name: 'PTW ใบอนุญาตทำงาน',
@@ -642,6 +692,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.assignment_turned_in_rounded,
             color: const Color(0xFFD97706),
             targetIndex: AppRoutes.ptw, // 4
+            imagePath: 'assets/images/modules/mod_ptw.jpg',
           ),
           _ModuleItem(
             name: 'Audit & Safety Inspection',
@@ -649,6 +700,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.fact_check_rounded,
             color: const Color(0xFF059669),
             targetIndex: AppRoutes.audit, // 5
+            imagePath: 'assets/images/modules/mod_audit.jpg',
           ),
           _ModuleItem(
             name: 'รายงานอุบัติเหตุ & Near Miss',
@@ -656,6 +708,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.warning_amber_rounded,
             color: const Color(0xFFE11D48),
             targetIndex: AppRoutes.nearMiss, // 6
+            imagePath: 'assets/images/modules/mod_nearmiss.jpg',
           ),
         ],
       ),
@@ -663,6 +716,7 @@ class LandingPage extends ConsumerWidget {
         title: 'หมวดที่ ๓: บุคลากร สุขอนามัย & ผู้รับเหมา (People & Health)',
         icon: Icons.people_outline_rounded,
         color: const Color(0xFF7C3AED),
+        imagePath: 'assets/images/modules/mod_health.jpg',
         modules: [
           _ModuleItem(
             name: 'ทะเบียนพนักงาน & ฝึกอบรม',
@@ -670,6 +724,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.people_alt_rounded,
             color: const Color(0xFF4F46E5),
             targetIndex: AppRoutes.employee, // 7
+            imagePath: 'assets/images/modules/mod_training.jpg',
           ),
           _ModuleItem(
             name: 'คณะกรรมการ คปอ.',
@@ -677,6 +732,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.diversity_3_rounded,
             color: const Color(0xFF0D9488),
             targetIndex: AppRoutes.cpo, // 8
+            imagePath: 'assets/images/modules/mod_cpo.jpg',
           ),
           _ModuleItem(
             name: 'จัดการผู้รับเหมา Contractor',
@@ -684,6 +740,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.engineering_rounded,
             color: const Color(0xFFEA580C),
             targetIndex: AppRoutes.contractor, // 9
+            imagePath: 'assets/images/modules/mod_contractor.jpg',
           ),
           _ModuleItem(
             name: 'อาชีวอนามัย & ตรวจสุขภาพ',
@@ -691,6 +748,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.health_and_safety_rounded,
             color: const Color(0xFF059669),
             targetIndex: AppRoutes.health, // 10
+            imagePath: 'assets/images/modules/mod_health.jpg',
           ),
           _ModuleItem(
             name: 'อุปกรณ์ PPE & มาตรฐาน ASL',
@@ -698,6 +756,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.construction_rounded,
             color: const Color(0xFF0284C7),
             targetIndex: AppRoutes.ppe, // 11
+            imagePath: 'assets/images/modules/mod_ppe.jpg',
           ),
         ],
       ),
@@ -705,6 +764,7 @@ class LandingPage extends ConsumerWidget {
         title: 'หมวดที่ ๔: เทคนิควิศวกรรม & สิ่งแวดล้อม (Engineering & Environment)',
         icon: Icons.precision_manufacturing_outlined,
         color: const Color(0xFF059669),
+        imagePath: 'assets/images/modules/mod_machinery.jpg',
         modules: [
           _ModuleItem(
             name: 'เครื่องจักร ปั้นจั่น & หม้อน้ำ',
@@ -712,6 +772,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.precision_manufacturing_rounded,
             color: const Color(0xFF0284C7),
             targetIndex: AppRoutes.machinery, // 12
+            imagePath: 'assets/images/modules/mod_machinery.jpg',
           ),
           _ModuleItem(
             name: 'ระบบความปลอดภัยทางไฟฟ้า',
@@ -719,6 +780,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.bolt_rounded,
             color: const Color(0xFFD97706),
             targetIndex: AppRoutes.electrical, // 13
+            imagePath: 'assets/images/modules/mod_electrical.jpg',
           ),
           _ModuleItem(
             name: 'บัญชีสารเคมีอันตราย & SDS',
@@ -726,6 +788,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.science_rounded,
             color: const Color(0xFF9333EA),
             targetIndex: AppRoutes.chemicals, // 14
+            imagePath: 'assets/images/modules/mod_chemical.jpg',
           ),
           _ModuleItem(
             name: 'สิ่งแวดล้อม แสง เสียง ความร้อน',
@@ -733,6 +796,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.thermostat_rounded,
             color: const Color(0xFF16A34A),
             targetIndex: AppRoutes.environment, // 15
+            imagePath: 'assets/images/modules/mod_environment.jpg',
           ),
           _ModuleItem(
             name: 'แผนตอบโต้ภาวะฉุกเฉิน',
@@ -740,6 +804,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.local_hospital_rounded,
             color: const Color(0xFFDC2626),
             targetIndex: AppRoutes.emergency, // 16
+            imagePath: 'assets/images/modules/mod_emergency.jpg',
           ),
         ],
       ),
@@ -747,6 +812,7 @@ class LandingPage extends ConsumerWidget {
         title: 'หมวดที่ ๕: การกำกับดูแล นโยบาย & ตั้งค่า (Governance & System)',
         icon: Icons.gavel_rounded,
         color: const Color(0xFF475569),
+        imagePath: 'assets/images/modules/mod_legal.jpg',
         modules: [
           _ModuleItem(
             name: 'ทะเบียนกฎหมายความปลอดภัย',
@@ -754,6 +820,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.gavel_rounded,
             color: const Color(0xFF334155),
             targetIndex: AppRoutes.legal, // 17
+            imagePath: 'assets/images/modules/mod_legal.jpg',
           ),
           _ModuleItem(
             name: 'คู่มือความปลอดภัย & SOPs',
@@ -761,6 +828,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.menu_book_rounded,
             color: const Color(0xFFC2410C),
             targetIndex: AppRoutes.manuals, // 18
+            imagePath: 'assets/images/modules/mod_sop.jpg',
           ),
           _ModuleItem(
             name: 'ตั้งค่าระบบ (Settings)',
@@ -768,6 +836,7 @@ class LandingPage extends ConsumerWidget {
             icon: Icons.settings_rounded,
             color: const Color(0xFF64748B),
             targetIndex: AppRoutes.settings, // 19
+            imagePath: 'assets/images/modules/mod_settings.jpg',
           ),
         ],
       ),
@@ -852,69 +921,130 @@ class LandingPage extends ConsumerWidget {
                     crossAxisCount: crossCount,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: crossCount == 1 ? 3.5 : 2.4,
+                    childAspectRatio: crossCount == 1
+                        ? 3.5
+                        : crossCount == 2
+                            ? 3.6
+                            : 2.4,
                   ),
                   itemBuilder: (context, index) {
                     final mod = group.modules[index];
+                    final cardImage = mod.imagePath;
                     return InkWell(
                       onTap: () => onNavigate(mod.targetIndex),
                       borderRadius: BorderRadius.circular(14),
                       child: Container(
-                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.75),
+                          color: Colors.white,
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: Colors.grey.shade200),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.02),
-                              blurRadius: 6,
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: mod.color.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              // 1. Realistic background image (Transparency 20% = 0.80 opacity)
+                              Positioned.fill(
+                                child: Opacity(
+                                  opacity: 0.80, // Transparency 20%
+                                  child: Image.asset(
+                                    cardImage,
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.centerRight,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        const SizedBox.shrink(),
+                                  ),
+                                ),
                               ),
-                              child: Icon(mod.icon, color: mod.color, size: 22),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    mod.name,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF1E293B),
+                              // 2. White-to-transparent gradient overlay
+                              Positioned.fill(
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.centerLeft,
+                                      end: Alignment.centerRight,
+                                      colors: [
+                                        Colors.white,
+                                        Colors.white.withValues(alpha: 0.88),
+                                        Colors.white.withValues(alpha: 0.15),
+                                      ],
+                                      stops: const [0.0, 0.35, 0.80],
                                     ),
                                   ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    mod.desc,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey.shade600,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                            const Icon(Icons.arrow_forward_ios_rounded, size: 12, color: Colors.grey),
-                          ],
+                              // 3. Foreground content
+                              Padding(
+                                padding: const EdgeInsets.all(14),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: mod.color.withValues(alpha: 0.25),
+                                          width: 1.2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: mod.color.withValues(alpha: 0.12),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(mod.icon, color: mod.color, size: 22),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            mod.name,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.bold,
+                                              color: Color(0xFF1E293B),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            mod.desc,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              color: Colors.blueGrey.shade700,
+                                              height: 1.2,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 13,
+                                      color: mod.color.withValues(alpha: 0.6),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
@@ -1062,6 +1192,7 @@ class _QuickAction {
   final IconData icon;
   final Color color;
   final int targetIndex;
+  final String? imagePath;
 
   _QuickAction({
     required this.title,
@@ -1069,6 +1200,7 @@ class _QuickAction {
     required this.icon,
     required this.color,
     required this.targetIndex,
+    this.imagePath,
   });
 }
 
@@ -1076,12 +1208,14 @@ class _CategoryGroup {
   final String title;
   final IconData icon;
   final Color color;
+  final String imagePath;
   final List<_ModuleItem> modules;
 
   _CategoryGroup({
     required this.title,
     required this.icon,
     required this.color,
+    required this.imagePath,
     required this.modules,
   });
 }
@@ -1092,6 +1226,7 @@ class _ModuleItem {
   final IconData icon;
   final Color color;
   final int targetIndex;
+  final String imagePath;
 
   _ModuleItem({
     required this.name,
@@ -1099,5 +1234,7 @@ class _ModuleItem {
     required this.icon,
     required this.color,
     required this.targetIndex,
+    required this.imagePath,
   });
 }
+

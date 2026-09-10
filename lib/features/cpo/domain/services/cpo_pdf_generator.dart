@@ -1,19 +1,45 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
+import 'package:printing/printing.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../../data/models/cpo_election_model.dart';
 
 /// PDF Exporter สำหรับเอกสารทางการ คปอ. ตามแบบฟอร์มคู่มือ กสร. ๑/๒๕๖๑
 class CpoPdfGenerator {
+  static Future<pw.ThemeData> _buildTheme() async {
+    pw.Font? regular;
+    pw.Font? bold;
+
+    try {
+      regular = await PdfGoogleFonts.sarabunRegular();
+      bold = await PdfGoogleFonts.sarabunBold();
+    } catch (_) {
+      try {
+        final regData = await rootBundle.load('google_fonts/Prompt-Regular.ttf');
+        final boldData = await rootBundle.load('google_fonts/Prompt-Bold.ttf');
+        regular = pw.Font.ttf(regData);
+        bold = pw.Font.ttf(boldData);
+      } catch (_) {}
+    }
+
+    if (regular != null && bold != null) {
+      return pw.ThemeData.withFont(base: regular, bold: bold);
+    }
+    return pw.ThemeData.base();
+  }
+
   /// สร้างรายงานการประชุม คปอ. ฉบับสมบูรณ์ (๖ วาระ) ตามคู่มือ กสร. หน้า ๓๒-๓๖
   static Future<Uint8List> generateMeetingMinutesPdf(
     CpoMeetingModel meeting, {
     String companyName = 'สถานประกอบกิจการ',
   }) async {
+    final theme = await _buildTheme();
     final doc = pw.Document(
+      theme: theme,
       title: 'รายงานการประชุม คปอ. ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear}',
       author: meeting.secretaryName,
     );
@@ -222,7 +248,9 @@ class CpoPdfGenerator {
     CpoMeetingModel meeting, {
     String companyName = 'สถานประกอบกิจการ',
   }) async {
+    final theme = await _buildTheme();
     final doc = pw.Document(
+      theme: theme,
       title: 'หนังสือเชิญประชุม คปอ. ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear}',
     );
 
@@ -290,7 +318,9 @@ class CpoPdfGenerator {
     CpoElectionModel election, {
     String companyName = 'สถานประกอบกิจการ',
   }) async {
+    final theme = await _buildTheme();
     final doc = pw.Document(
+      theme: theme,
       title: 'ประกาศผลการเลือกตั้งผู้แทนลูกจ้าง คปอ. ${election.termYear}',
     );
 

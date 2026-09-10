@@ -59,8 +59,9 @@ class CompanyProfileNotifier extends AsyncNotifier<CompanyProfile?> {
 
   Future<void> saveProfile(CompanyProfile profile) async {
     final repo = ref.read(riskAssessmentRepoProvider);
-    await repo.saveCompanyProfile(profile);
-    ref.invalidateSelf();
+    final id = await repo.saveCompanyProfile(profile);
+    final saved = CompanyProfile.fromMap({'id': id, ...profile.toMap()});
+    state = AsyncData(saved);
   }
 }
 

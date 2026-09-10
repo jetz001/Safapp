@@ -1,4 +1,3 @@
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../../../core/database/database_helper.dart';
 import '../models/cpo_committee_model.dart';
 import '../models/cpo_election_model.dart';
@@ -132,9 +131,23 @@ class CpoRepository {
     }
   }
 
+  Future<void> deleteElection(int electionId) async {
+    final db = await _dbHelper.database;
+    await db.transaction((txn) async {
+      await txn.delete('cpo_election_candidates', where: 'election_id = ?', whereArgs: [electionId]);
+      await txn.delete('cpo_election_officers', where: 'election_id = ?', whereArgs: [electionId]);
+      await txn.delete('cpo_elections', where: 'id = ?', whereArgs: [electionId]);
+    });
+  }
+
   Future<int> addElectionOfficer(CpoElectionOfficerModel officer) async {
     final db = await _dbHelper.database;
     return await db.insert('cpo_election_officers', officer.toMap());
+  }
+
+  Future<void> updateElectionOfficer(CpoElectionOfficerModel officer) async {
+    final db = await _dbHelper.database;
+    await db.update('cpo_election_officers', officer.toMap(), where: 'id = ?', whereArgs: [officer.id]);
   }
 
   Future<void> deleteElectionOfficer(int officerId) async {
@@ -281,6 +294,19 @@ class CpoRepository {
   Future<void> deleteMeeting(int meetingId) async {
     final db = await _dbHelper.database;
     await db.delete('cpo_meetings', where: 'id = ?', whereArgs: [meetingId]);
+    await db.delete('cpo_meeting_agendas', where: 'meeting_id = ?', whereArgs: [meetingId]);
+    await db.delete('cpo_meeting_attendees', where: 'meeting_id = ?', whereArgs: [meetingId]);
+    await db.delete('cpo_action_items', where: 'meeting_id = ?', whereArgs: [meetingId]);
+  }
+
+  Future<int> addAgenda(CpoAgendaModel agenda) async {
+    final db = await _dbHelper.database;
+    return await db.insert('cpo_meeting_agendas', agenda.toMap());
+  }
+
+  Future<void> deleteAgenda(int agendaId) async {
+    final db = await _dbHelper.database;
+    await db.delete('cpo_meeting_agendas', where: 'id = ?', whereArgs: [agendaId]);
   }
 
   Future<void> updateAgenda(CpoAgendaModel agenda) async {
@@ -338,8 +364,8 @@ class CpoRepository {
       {
         'status': status,
         'progress_percent': progress,
-        if (notes != null) 'resolution_notes': notes,
-        if (completedDate != null) 'completed_date': completedDate,
+        'resolution_notes': ?notes,
+        'completed_date': ?completedDate,
         'updated_at': DateTime.now().toIso8601String(),
       },
       where: 'id = ?',

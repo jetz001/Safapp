@@ -292,7 +292,7 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<CpoMeetingStatus>(
-                  value: _status,
+                  initialValue: _status,
                   decoration: const InputDecoration(
                     labelText: 'สถานะการประชุม',
                     border: OutlineInputBorder(),
@@ -336,6 +336,46 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
         ),
       ),
       actions: [
+        if (widget.existingMeeting != null) ...[
+          TextButton.icon(
+            style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
+            icon: const Icon(Icons.delete_outline, size: 18),
+            label: const Text('ลบการประชุมนี้'),
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (ctx) => AlertDialog(
+                  title: const Row(
+                    children: [
+                      Icon(Icons.delete_forever, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('ยืนยันลบการประชุม'),
+                    ],
+                  ),
+                  content: Text('คุณต้องการลบการประชุมครั้งที่ ${widget.existingMeeting!.meetingNumber}/${widget.existingMeeting!.meetingYear} ("${widget.existingMeeting!.meetingTitle}") ออกจากระบบหรือไม่?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+                      onPressed: () => Navigator.pop(ctx, true),
+                      child: const Text('ยืนยันลบ'),
+                    ),
+                  ],
+                ),
+              );
+              if (confirm == true && widget.existingMeeting!.id != null) {
+                await ref.read(cpoMeetingsProvider.notifier).deleteMeeting(widget.existingMeeting!.id!);
+                if (context.mounted) {
+                  Navigator.pop(context, true);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('ลบการประชุมเรียบร้อยแล้ว'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+          ),
+          const Spacer(),
+        ],
         TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
         ElevatedButton(
           onPressed: _isSaving ? null : _save,

@@ -130,65 +130,47 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
     _profileId = profile.id;
     _logoPath = profile.logoPath;
 
-    _companyNameController.text = (profile.companyName.isEmpty || profile.companyName.toLowerCase() == 'safapp')
-        ? 'บริษัท ไทยพัฒนาอุตสาหกรรมชิ้นส่วนยานยนต์ จำกัด (มหาชน)'
-        : profile.companyName;
-    _employerNameController.text = (profile.employerName == null || profile.employerName!.toLowerCase().contains('safapp') || profile.employerName!.isEmpty)
-        ? 'นายสมชาย เจริญสุขวัฒนา (กรรมการผู้จัดการ)'
-        : profile.employerName!;
-    _taxIdController.text = (profile.taxId == '1122334455' || profile.taxId == null || profile.taxId!.isEmpty)
-        ? '0107558000891'
-        : profile.taxId!;
-    _employeeCountController.text = '${profile.employeeCount > 0 ? profile.employeeCount : 89}';
-    _areaSqmController.text = (profile.areaSqm == null || profile.areaSqm == 1000.0)
-        ? '12500.0'
-        : '${profile.areaSqm}';
+    _companyNameController.text = profile.companyName;
+    _employerNameController.text = profile.employerName ?? '';
+    _taxIdController.text = profile.taxId ?? '';
+    _employeeCountController.text = profile.employeeCount > 0 ? '${profile.employeeCount}' : '';
+    _areaSqmController.text = profile.areaSqm != null ? '${profile.areaSqm}' : '';
 
     _selectedSchedule = profile.businessCategorySchedule > 0 ? profile.businessCategorySchedule : 2;
-    final validCategory = RiskMatrixCriteria.schedule2Categories.contains(profile.businessCategoryTitle)
+    final categoriesList = _selectedSchedule == 1
+        ? RiskMatrixCriteria.schedule1Categories
+        : RiskMatrixCriteria.schedule2Categories;
+    final validCategory = categoriesList.contains(profile.businessCategoryTitle)
         ? profile.businessCategoryTitle
-        : RiskMatrixCriteria.schedule2Categories[18];
+        : (categoriesList.isNotEmpty ? categoriesList.first : null);
     _selectedCategoryTitle = validCategory;
 
-    _addressNumberController.text = (profile.addressNumber == null || profile.addressNumber == 'safapp') ? '88/9' : profile.addressNumber!;
-    _mooController.text = (profile.moo == null || profile.moo == 'safapp') ? '4' : profile.moo!;
-    _soiController.text = (profile.soi == null || profile.soi == 'safapp') ? 'นิคมฯ ซอย 12' : profile.soi!;
-    _roadController.text = (profile.road == null || profile.road == 'safapp') ? 'พัฒนา 1' : profile.road!;
-    _subdistrictController.text = (profile.subdistrict == null || profile.subdistrict == 'safapp') ? 'แพรกษา' : profile.subdistrict!;
-    _districtController.text = (profile.district == null || profile.district == 'safapp') ? 'เมืองสมุทรปราการ' : profile.district!;
-    _provinceController.text = (profile.province == null || profile.province == 'safapp') ? 'สมุทรปราการ' : profile.province!;
-    _postalCodeController.text = (profile.postalCode == null || profile.postalCode == 'safapp') ? '10280' : profile.postalCode!;
-    _phoneController.text = (profile.phone == null || profile.phone == 'safapp') ? '02-709-1234' : profile.phone!;
+    _addressNumberController.text = profile.addressNumber ?? '';
+    _mooController.text = profile.moo ?? '';
+    _soiController.text = profile.soi ?? '';
+    _roadController.text = profile.road ?? '';
+    _subdistrictController.text = profile.subdistrict ?? '';
+    _districtController.text = profile.district ?? '';
+    _provinceController.text = profile.province ?? '';
+    _postalCodeController.text = profile.postalCode ?? '';
+    _phoneController.text = profile.phone ?? '';
     _faxController.text = profile.fax ?? '';
-    _mobileController.text = (profile.mobile == null || profile.mobile == 'safapp') ? '081-890-5678' : profile.mobile!;
+    _mobileController.text = profile.mobile ?? '';
 
-    _safetyExpertNameController.text = (profile.safetyExpertName == null || profile.safetyExpertName!.isEmpty)
-        ? 'นายวรวิทย์ สันติสุขไพศาล'
-        : profile.safetyExpertName!;
-    _safetyExpertLicenseNoController.text = (profile.safetyExpertLicenseNo == null || profile.safetyExpertLicenseNo!.isEmpty)
-        ? 'ผช.๑๒๓๔/๒๕๖๔'
-        : profile.safetyExpertLicenseNo!;
-    _safetyExpertValidFromController.text = profile.safetyExpertValidFrom ?? '2024-01-01';
-    _safetyExpertValidToController.text = profile.safetyExpertValidTo ?? '2027-12-31';
+    _safetyExpertNameController.text = profile.safetyExpertName ?? '';
+    _safetyExpertLicenseNoController.text = profile.safetyExpertLicenseNo ?? '';
+    _safetyExpertValidFromController.text = profile.safetyExpertValidFrom ?? '';
+    _safetyExpertValidToController.text = profile.safetyExpertValidTo ?? '';
 
-    _safetyOfficerNameController.text = (profile.safetyOfficerName == null || profile.safetyOfficerName!.toLowerCase().contains('safapp') || profile.safetyOfficerName!.isEmpty)
-        ? 'นางสาวพัชราภรณ์ สุขสวัสดิ์'
-        : profile.safetyOfficerName!;
+    _safetyOfficerNameController.text = profile.safetyOfficerName ?? '';
     if (profile.safetyOfficerLevel != null && profile.safetyOfficerLevel!.isNotEmpty) {
       _safetyOfficerLevel = profile.safetyOfficerLevel!;
     } else {
       _safetyOfficerLevel = 'จป.วิชาชีพ';
     }
-    _safetyOfficerCertNoController.text = (profile.safetyOfficerCertNo == null || profile.safetyOfficerCertNo!.isEmpty)
-        ? 'ว.๕๖๒๘๙-๒๕๖๒'
-        : profile.safetyOfficerCertNo!;
-    _safetyOfficerPhoneController.text = (profile.safetyOfficerPhone == null || profile.safetyOfficerPhone!.isEmpty)
-        ? '02-709-1234 ต่อ 105'
-        : profile.safetyOfficerPhone!;
-
-    _safetyPolicyController.text = (profile.safetyPolicy == null || profile.safetyPolicy!.contains('safapp') || profile.safetyPolicy!.isEmpty)
-        ? 'มุ่งมั่นสร้างความปลอดภัยในการทำงาน อุบัติเหตุต้องเป็นศูนย์ (Zero Accident Goal) พนักงานทุกคนมีส่วนร่วมและปฏิบัติตามมาตรฐานสากล'
-        : profile.safetyPolicy!;
+    _safetyOfficerCertNoController.text = profile.safetyOfficerCertNo ?? '';
+    _safetyOfficerPhoneController.text = profile.safetyOfficerPhone ?? '';
+    _safetyPolicyController.text = profile.safetyPolicy ?? '';
   }
 
   @override
@@ -273,6 +255,8 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
   }
 
   Future<void> _save() async {
+    final currentTabIndex = _tabController.index;
+
     // Smart Cross-Tab Validation
     if (_companyNameController.text.trim().isEmpty) {
       _tabController.animateTo(0);
@@ -335,6 +319,12 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
     );
 
     await ref.read(companyProfileNotifierProvider.notifier).saveProfile(updatedProfile);
+    _currentProfile = updatedProfile;
+    _profileId = updatedProfile.id;
+
+    if (mounted && _tabController.index != currentTabIndex) {
+      _tabController.index = currentTabIndex;
+    }
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -352,10 +342,7 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
     ref.listen<AsyncValue<CompanyProfile?>>(companyProfileNotifierProvider, (_, next) {
       next.whenData((profile) {
         if (profile != null) {
-          if (_companyNameController.text.isEmpty ||
-              _employerNameController.text.toLowerCase().contains('safapp') ||
-              _taxIdController.text == '1122334455' ||
-              _selectedCategoryTitle == null) {
+          if (_currentProfile == null && _companyNameController.text.isEmpty) {
             _populateFields(profile);
             setState(() {});
           }
@@ -400,6 +387,7 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
         ],
       ),
       body: profileAsync.when(
+        skipLoadingOnReload: true,
         data: (profile) {
           if (profile != null && _companyNameController.text.isEmpty && _currentProfile == null) {
             _populateFields(profile);
@@ -503,22 +491,33 @@ class _SmsSetupPageState extends ConsumerState<SmsSetupPage> with SingleTickerPr
                 children: [
                   InkWell(
                     onTap: _pickLogo,
-                    borderRadius: BorderRadius.circular(60),
+                    borderRadius: BorderRadius.circular(20),
                     child: Container(
                       width: 110,
                       height: 110,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
                         border: Border.all(color: Colors.grey.shade300, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: _logoPath != null && File(_logoPath!).existsSync()
-                          ? ClipOval(
-                              child: Image.file(
-                                File(_logoPath!),
-                                width: 110,
-                                height: 110,
-                                fit: BoxFit.cover,
+                          ? ClipRRect(
+                              borderRadius: BorderRadius.circular(18),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.file(
+                                  File(_logoPath!),
+                                  width: 110,
+                                  height: 110,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             )
                           : const Icon(Icons.domain, size: 44, color: Colors.grey),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../tabs/cpo_dashboard_tab.dart';
 import '../tabs/cpo_election_tab.dart';
-import '../tabs/cpo_structure_tab.dart';
 import '../tabs/cpo_meetings_tab.dart';
 import '../tabs/cpo_action_tracker_tab.dart';
 
@@ -19,7 +18,7 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -42,7 +41,7 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.12),
+                color: primaryColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.shield_outlined, color: primaryColor, size: 24),
@@ -83,23 +82,19 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
               tabs: const [
                 Tab(
                   icon: Icon(Icons.dashboard_outlined, size: 18),
-                  text: 'ภาพรวม & การปฏิบัติตามกฎหมาย',
+                  text: 'ภาพรวม',
                 ),
                 Tab(
                   icon: Icon(Icons.how_to_vote_outlined, size: 18),
-                  text: 'คณะกรรมการ กกต. & การเลือกตั้ง',
-                ),
-                Tab(
-                  icon: Icon(Icons.diversity_3_outlined, size: 18),
-                  text: 'โครงสร้าง คปอ. & วาระ ๒ ปี',
+                  text: 'การเลือกตั้ง & คณะกรรมการ คปอ.',
                 ),
                 Tab(
                   icon: Icon(Icons.event_note_outlined, size: 18),
-                  text: 'การประชุม ๖ วาระ & รายงาน',
+                  text: 'การประชุม คปอ. (๖ วาระ)',
                 ),
                 Tab(
-                  icon: Icon(Icons.playlist_add_check, size: 18),
-                  text: 'ติดตามมติที่ประชุม & แจกจ่าย',
+                  icon: Icon(Icons.checklist_rounded, size: 18),
+                  text: 'มติที่ประชุม & ติดตามงาน',
                 ),
               ],
             ),
@@ -111,7 +106,6 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
         children: const [
           CpoDashboardTab(),
           CpoElectionTab(),
-          CpoStructureTab(),
           CpoMeetingsTab(),
           CpoActionTrackerTab(),
         ],

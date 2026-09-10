@@ -10,22 +10,33 @@ import '../../features/ppe_asl/data/datasources/ppe_statutory_master_data.dart';
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
   static Database? _database;
+  static Future<Database>? _initFuture;
+  static bool _ffiInitialized = false;
 
   factory DatabaseHelper() => _instance;
 
   DatabaseHelper._internal();
 
   Future<Database> get database async {
-    if (_database != null) return _database!;
-    _database = await _initDatabase();
-    return _database!;
+    if (_database != null && _database!.isOpen) return _database!;
+    if (_initFuture != null) return _initFuture!;
+
+    _initFuture = _initDatabase();
+    try {
+      _database = await _initFuture!;
+      return _database!;
+    } catch (e) {
+      _initFuture = null;
+      rethrow;
+    }
   }
 
   Future<Database> _initDatabase() async {
-    // Initialize FFI for Windows/Desktop
-    if (Platform.isWindows || Platform.isLinux) {
+    // Initialize FFI for Windows/Desktop only once
+    if (!_ffiInitialized && (Platform.isWindows || Platform.isLinux)) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
+      _ffiInitialized = true;
     }
 
     // เก็บ Database ไว้ที่โฟลเดอร์ My Documents / SafetySuperapp

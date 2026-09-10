@@ -117,7 +117,7 @@ class _AppShellState extends State<AppShell> {
                 bottomRight: Radius.circular(24),
               ),
               child: SizedBox(
-                width: 104, // Compact, ergonomic width
+                width: 106, // Clean, uniform ergonomic width
                 child: Column(
                   children: [
                     // ── App Brand Logo ────────────────────────────────────────
@@ -161,6 +161,7 @@ class _AppShellState extends State<AppShell> {
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(vertical: 8.0),
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             // หมวด ๑: ภาพรวม & สถิติ
                             _buildSectionDivider('ภาพรวม'),
@@ -335,20 +336,22 @@ class _AppShellState extends State<AppShell> {
 
   Widget _buildSectionDivider(String label) {
     return Padding(
-      padding: const EdgeInsets.only(top: 12.0, bottom: 6.0, left: 10.0, right: 10.0),
+      padding: const EdgeInsets.only(top: 14.0, bottom: 6.0, left: 10.0, right: 10.0),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
             height: 1,
-            color: const Color(0xFF1E3A8A).withValues(alpha: 0.12),
+            color: const Color(0xFF1E3A8A).withValues(alpha: 0.10),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             label,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 9.5,
               fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
+              letterSpacing: 0.5,
               color: Color(0xFF94A3B8),
             ),
           ),
@@ -370,50 +373,79 @@ class _AppShellState extends State<AppShell> {
       waitDuration: const Duration(milliseconds: 300),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.5),
-        child: InkWell(
-          onTap: () {
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
+        child: Material(
+          color: Colors.transparent,
           borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(vertical: 7.0, horizontal: 4.0),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFF1E3A8A) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isSelected ? selectedIcon : icon,
-                  color: isSelected ? Colors.white : const Color(0xFF64748B),
-                  size: 20,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                    color: isSelected ? Colors.white : const Color(0xFF64748B),
+          child: InkWell(
+            onTap: () {
+              setState(() {
+                _selectedIndex = index;
+              });
+            },
+            borderRadius: BorderRadius.circular(12),
+            hoverColor: Colors.white.withValues(alpha: 0.35),
+            splashColor: const Color(0xFF1E3A8A).withValues(alpha: 0.15),
+            highlightColor: const Color(0xFF1E3A8A).withValues(alpha: 0.08),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              width: double.infinity,
+              height: 56, // Exactly uniform size for every item - prevents size jumping
+              decoration: BoxDecoration(
+                gradient: isSelected
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF1E40AF), // Deep Royal OSH Blue
+                          Color(0xFF2563EB), // Vibrant OSH Blue
+                        ],
+                      )
+                    : null,
+                color: isSelected ? null : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+                border: isSelected
+                    ? Border.all(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        width: 1,
+                      )
+                    : null,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isSelected ? selectedIcon : icon,
+                    color: isSelected ? Colors.white : const Color(0xFF475569),
+                    size: 21,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 3),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                    child: Text(
+                      label,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                        letterSpacing: -0.1,
+                        color: isSelected ? Colors.white : const Color(0xFF475569),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

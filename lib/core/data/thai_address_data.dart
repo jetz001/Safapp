@@ -156,15 +156,79 @@ class ThaiAddressRepository {
     const ThaiAddressModel(province: 'นนทบุรี', district: 'ไทรน้อย', subdistrict: 'ไทรน้อย', zipCode: '11150'),
 
     // ปทุมธานี
+    // อำเภอลาดหลุมแก้ว (ครบทั้ง ๗ ตำบล รหัสไปรษณีย์ 12140)
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'ระแหง', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'ลาดหลุมแก้ว', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'คูบางหลวง', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'คูขวาง', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'คลองพระอุดม', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'บ่อเงิน', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'หน้าไม้', zipCode: '12140'),
+
+    // อำเภอเมืองปทุมธานี
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางปรอก', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บ้านใหม่', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บ้านกลาง', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บ้านฉาง', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บ้านกระแชง', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางขะแยง', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางคูวัด', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางหลวง', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางเดื่อ', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางพูด', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางพูน', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'บางกะดี', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'สวนพริกไทย', zipCode: '12000'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'เมืองปทุมธานี', subdistrict: 'หลักหก', zipCode: '12000'),
+
+    // อำเภอคลองหลวง
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองหนึ่ง', zipCode: '12120'),
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองสอง', zipCode: '12120'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองสาม', zipCode: '12120'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองสี่', zipCode: '12120'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองห้า', zipCode: '12120'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองหก', zipCode: '12120'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'คลองหลวง', subdistrict: 'คลองเจ็ด', zipCode: '12120'),
+
+    // อำเภอธัญบุรี
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'ธัญบุรี', subdistrict: 'ประชาธิปัตย์', zipCode: '12130'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ธัญบุรี', subdistrict: 'บึงยี่โถ', zipCode: '12130'),
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'ธัญบุรี', subdistrict: 'รังสิต', zipCode: '12110'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ธัญบุรี', subdistrict: 'ลำผักกูด', zipCode: '12110'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ธัญบุรี', subdistrict: 'บึงสนั่น', zipCode: '12110'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ธัญบุรี', subdistrict: 'บึงน้ำรักษ์', zipCode: '12110'),
+
+    // อำเภอลำลูกกา
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'คูคต', zipCode: '12130'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'ลาดสวาย', zipCode: '12150'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'บึงคำพร้อย', zipCode: '12150'),
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'ลำลูกกา', zipCode: '12150'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'บึงทองหลาง', zipCode: '12150'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'ลำไทร', zipCode: '12150'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'บึงคอไห', zipCode: '12150'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลำลูกกา', subdistrict: 'พืชอุดม', zipCode: '12150'),
+
+    // อำเภอสามโคก
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'บางเตย', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'คลองควาย', zipCode: '12160'),
     const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'สามโคก', zipCode: '12160'),
-    const ThaiAddressModel(province: 'ปทุมธานี', district: 'ลาดหลุมแก้ว', subdistrict: 'ลาดหลุมแก้ว', zipCode: '12140'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'กระแชง', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'บางโพธิ์เหนือ', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'เชียงรากใหญ่', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'เชียงรากน้อย', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'บ้านปทุม', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'บ้านงิ้ว', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'บางกระบือ', zipCode: '12160'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'สามโคก', subdistrict: 'ท้ายเกาะ', zipCode: '12160'),
+
+    // อำเภอหนองเสือ
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'บึงบา', zipCode: '12170'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'บึงบอน', zipCode: '12170'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'บึงชำอ้อ', zipCode: '12170'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'บึงกาสาม', zipCode: '12170'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'ศาลาครุ', zipCode: '12170'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'หนองเสือ', zipCode: '12170'),
+    const ThaiAddressModel(province: 'ปทุมธานี', district: 'หนองเสือ', subdistrict: 'นพรัตน์', zipCode: '12170'),
 
     // ชลบุรี
     const ThaiAddressModel(province: 'ชลบุรี', district: 'เมืองชลบุรี', subdistrict: 'บางปลาสร้อย', zipCode: '20000'),

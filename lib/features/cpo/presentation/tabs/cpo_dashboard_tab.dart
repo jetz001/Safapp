@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/cpo_providers.dart';
 import '../../domain/services/cpo_statutory_evaluator.dart';
 import '../../data/models/cpo_committee_model.dart';
-import '../widgets/cpo_meeting_edit_dialog.dart';
-import '../widgets/cpo_election_wizard_dialog.dart';
 
 class CpoDashboardTab extends ConsumerWidget {
   final Function(int tabIndex)? onNavigateToTab;
@@ -77,23 +75,6 @@ class CpoDashboardTab extends ConsumerWidget {
                           ),
                         ],
                       ),
-                    ),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => showDialog(context: context, builder: (ctx) => const CpoMeetingEditDialog()),
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('นัดประชุมใหม่'),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF1E3A8A)),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () => showDialog(context: context, builder: (ctx) => const CpoElectionWizardDialog()),
-                          icon: const Icon(Icons.how_to_vote, size: 18),
-                          label: const Text('จัดตั้ง กกต.'),
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.amber.shade400, foregroundColor: Colors.black87),
-                        ),
-                      ],
                     ),
                   ],
                 ),

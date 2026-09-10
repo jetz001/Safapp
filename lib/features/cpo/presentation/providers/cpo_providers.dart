@@ -5,11 +5,133 @@ import '../../data/models/cpo_election_model.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../../data/models/cpo_action_item_model.dart';
 import '../../domain/services/cpo_statutory_evaluator.dart';
+import '../../data/datasources/cpo_statutory_standards.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
+import '../../../risk_assessment/domain/models/risk_assessment_models.dart';
+import '../../domain/enums/cpo_member_role.dart';
 
 final cpoRepositoryProvider = Provider<CpoRepository>((ref) {
   return CpoRepository();
 });
+
+/// โหลดรายการวาระ คปอ. ทั้งหมด
+final cpoAllTermsProvider = AsyncNotifierProvider<CpoAllTermsNotifier, List<CpoTermModel>>(
+  CpoAllTermsNotifier.new,
+);
+
+class CpoAllTermsNotifier extends AsyncNotifier<List<CpoTermModel>> {
+  @override
+  Future<List<CpoTermModel>> build() async {
+    final repo = ref.watch(cpoRepositoryProvider);
+    return await repo.getAllTerms();
+  }
+
+  Future<void> refresh() async {
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => ref.read(cpoRepositoryProvider).getAllTerms());
+  }
+
+  Future<int> saveTerm(CpoTermModel term) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    final id = await repo.saveTerm(term);
+    await refresh();
+    ref.read(cpoActiveTermProvider.notifier).refresh();
+    return id;
+  }
+
+  Future<void> addMember(CpoMemberModel member) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.addMember(member);
+    await refresh();
+    ref.read(cpoActiveTermProvider.notifier).refresh();
+  }
+
+  Future<void> updateMember(CpoMemberModel member) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.updateMember(member);
+    await refresh();
+    ref.read(cpoActiveTermProvider.notifier).refresh();
+  }
+
+  Future<void> deleteMember(int memberId) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.deleteMember(memberId);
+    await refresh();
+    ref.read(cpoActiveTermProvider.notifier).refresh();
+  }
+
+  /// ค้นหาหรือสร้างวาระ คปอ. สำหรับรอบการเลือกตั้งนั้นๆ
+  Future<CpoTermModel> findOrCreateTermForElection(CpoElectionModel election, {int employeeCount = 100}) async {
+    final allTerms = state.asData?.value ?? await build();
+
+    final match = allTerms.cast<CpoTermModel?>().firstWhere(
+      (t) => t != null && (t.termCode == 'TERM-${election.termYear}' || t.termTitle.contains(election.termYear)),
+      orElse: () => null,
+    );
+
+    if (match != null) {
+      return match;
+    }
+
+    final yearInt = int.tryParse(election.termYear) ?? (DateTime.now().year + 543);
+    final nextTwoYears = yearInt + 2;
+    final quota = CpoStatutoryStandards.calculateQuota(employeeCount);
+
+    final newTerm = CpoTermModel(
+      termCode: 'TERM-${election.termYear}',
+      termTitle: 'คณะกรรมการ คปอ. วาระปี $yearInt - $nextTwoYears',
+      startDate: election.votingDate.isNotEmpty ? election.votingDate : DateTime.now().toIso8601String().substring(0, 10),
+      endDate: '$nextTwoYears-12-31',
+      employeeCount: employeeCount,
+      requiredQuota: quota['total'] ?? 5,
+      employerRepCount: quota['employer_rep'] ?? 2,
+      employeeRepCount: quota['employee_rep'] ?? 2,
+      secretaryCount: quota['secretary'] ?? 1,
+      status: 'ACTIVE',
+      notes: 'จัดตั้งสืบเนื่องจากรอบการเลือกตั้ง ${election.electionCode}',
+    );
+
+    final newId = await saveTerm(newTerm);
+    await refresh();
+    final updatedList = state.asData?.value ?? [];
+    return updatedList.firstWhere((t) => t.id == newId, orElse: () => newTerm.copyWith(id: newId));
+  }
+
+  /// ดึง จป. จากข้อมูลองค์กร (CompanyProfile) มาตั้งเป็นเลขานุการ คปอ. อัตโนมัติ
+  Future<void> autoAssignSecretaryFromProfile(int termId, CompanyProfile profile) async {
+    if (profile.safetyOfficerName == null || profile.safetyOfficerName!.trim().isEmpty) return;
+
+    final allTerms = state.asData?.value ?? await build();
+    final term = allTerms.firstWhere(
+      (t) => t.id == termId,
+      orElse: () => const CpoTermModel(termCode: '', termTitle: '', startDate: '', endDate: ''),
+    );
+
+    final existingSec = term.members.where((m) => m.cpoRole == CpoMemberRole.secretary).toList();
+
+    if (existingSec.isNotEmpty) {
+      final first = existingSec.first;
+      final updated = first.copyWith(
+        fullName: profile.safetyOfficerName!.trim(),
+        companyPosition: profile.safetyOfficerLevel ?? first.companyPosition,
+        phone: profile.safetyOfficerPhone ?? first.phone,
+      );
+      await updateMember(updated);
+    } else {
+      final sec = CpoMemberModel(
+        termId: termId,
+        fullName: profile.safetyOfficerName!.trim(),
+        companyPosition: profile.safetyOfficerLevel ?? 'จป.วิชาชีพ',
+        phone: profile.safetyOfficerPhone,
+        department: 'ความปลอดภัยและอาชีวอนามัย (EHS)',
+        cpoRole: CpoMemberRole.secretary,
+        appointmentType: 'EX_OFFICIO',
+        status: 'ACTIVE',
+      );
+      await addMember(sec);
+    }
+  }
+}
 
 /// โหลดข้อมูลวาระ คปอ. ปัจจุบัน
 final cpoActiveTermProvider = AsyncNotifierProvider<CpoActiveTermNotifier, CpoTermModel?>(
@@ -78,9 +200,21 @@ class CpoElectionsNotifier extends AsyncNotifier<List<CpoElectionModel>> {
     return id;
   }
 
+  Future<void> deleteElection(int electionId) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.deleteElection(electionId);
+    await refresh();
+  }
+
   Future<void> addOfficer(CpoElectionOfficerModel officer) async {
     final repo = ref.read(cpoRepositoryProvider);
     await repo.addElectionOfficer(officer);
+    await refresh();
+  }
+
+  Future<void> updateOfficer(CpoElectionOfficerModel officer) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.updateElectionOfficer(officer);
     await refresh();
   }
 
@@ -154,6 +288,18 @@ class CpoMeetingsNotifier extends AsyncNotifier<List<CpoMeetingModel>> {
   Future<void> updateAgenda(CpoAgendaModel agenda) async {
     final repo = ref.read(cpoRepositoryProvider);
     await repo.updateAgenda(agenda);
+    await refresh();
+  }
+
+  Future<void> addAgenda(CpoAgendaModel agenda) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.addAgenda(agenda);
+    await refresh();
+  }
+
+  Future<void> deleteAgenda(int agendaId) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.deleteAgenda(agendaId);
     await refresh();
   }
 

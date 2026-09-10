@@ -114,5 +114,44 @@ void main() {
       expect(incident.unsafeConditions.length, 1);
       expect(incident.managementErrors.length, 1);
     });
+
+    test('Custom CompanyProfile persists custom area, Schedule 1, and custom subdistrict correctly', () {
+      final customProfile = CompanyProfile(
+        id: 2,
+        companyName: 'บริษัท ก้าวหน้าวิศวกรรม จำกัด',
+        employerName: 'นายประสิทธิ์ มั่นคง',
+        taxId: '0105561001234',
+        businessCategorySchedule: 1,
+        businessCategoryNumber: 1,
+        businessCategoryTitle: '๑. การทำเหมืองแร่ เหมืองหิน หรือปิโตรเลียม',
+        employeeCount: 45,
+        areaSqm: 500.0,
+        addressNumber: '123/45',
+        moo: '2',
+        subdistrict: 'ระแหง',
+        district: 'ลาดหลุมแก้ว',
+        province: 'ปทุมธานี',
+        postalCode: '12140',
+        safetyOfficerName: 'นายวิชัย สุขใจ',
+        safetyOfficerLevel: 'จป.เทคนิคขั้นสูง',
+        safetyPolicy: 'ความปลอดภัยคือหน้าที่ของทุกคน',
+      );
+
+      final map = customProfile.toMap();
+      expect(map['business_category_schedule'], 1);
+      expect(map['area_sqm'], 500.0);
+      expect(map['district'], 'ลาดหลุมแก้ว');
+      expect(map['subdistrict'], 'ระแหง');
+      expect(map['postal_code'], '12140');
+
+      final restored = CompanyProfile.fromMap(map);
+      expect(restored.companyName, 'บริษัท ก้าวหน้าวิศวกรรม จำกัด');
+      expect(restored.businessCategorySchedule, 1);
+      expect(restored.areaSqm, 500.0);
+      expect(restored.district, 'ลาดหลุมแก้ว');
+      expect(restored.subdistrict, 'ระแหง');
+      expect(restored.fullAddress, contains('ลาดหลุมแก้ว'));
+      expect(restored.fullAddress, contains('ระแหง'));
+    });
   });
 }

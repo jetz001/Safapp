@@ -58,20 +58,20 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
             children: [
               _buildTopBar(context, theme, meetings.length),
               Expanded(
-                child: meetings.isEmpty
-                    ? _buildEmptyState(context)
-                    : Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Left column: Meetings list
-                          SizedBox(
-                            width: 340,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border(right: BorderSide(color: Colors.grey.shade200)),
-                              ),
-                              child: ListView.separated(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left column: Meetings list (ALWAYS SHOWN from the start)
+                    SizedBox(
+                      width: 350,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border(right: BorderSide(color: Colors.grey.shade200)),
+                        ),
+                        child: filtered.isEmpty
+                            ? _buildLeftEmptyState(context, meetings.isEmpty)
+                            : ListView.separated(
                                 padding: const EdgeInsets.symmetric(vertical: 8),
                                 itemCount: filtered.length,
                                 separatorBuilder: (ctx, i) => Divider(height: 1, color: Colors.grey.shade100),
@@ -81,17 +81,17 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                                   return _buildMeetingListItem(context, m, isSelected);
                                 },
                               ),
-                            ),
-                          ),
-
-                          // Right column: Detailed view with 6 Agendas & Attendees
-                          Expanded(
-                            child: selectedMeeting == null
-                                ? const Center(child: Text('เลือกการประชุมจากรายการทางซ้ายเพื่อดูและบันทึกรายละเอียด'))
-                                : _buildMeetingDetailView(context, selectedMeeting, activeTerm?.members.length ?? 0),
-                          ),
-                        ],
                       ),
+                    ),
+
+                    // Right column: Detailed view with Agendas or Full Placeholder
+                    Expanded(
+                      child: selectedMeeting != null
+                          ? _buildMeetingDetailView(context, selectedMeeting, activeTerm?.members.length ?? 0)
+                          : _buildRightPlaceholder(context, meetings.isEmpty),
+                    ),
+                  ],
+                ),
               ),
             ],
           );
@@ -160,25 +160,171 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildLeftEmptyState(BuildContext context, bool isTotalEmpty) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.event_note_outlined, size: 64, color: Colors.grey.shade400),
-          const SizedBox(height: 12),
-          Text('ยังไม่มีการประชุม คปอ.', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
-          const SizedBox(height: 6),
-          Text('กฎหมายกำหนดให้ คปอ. ประชุมอย่างน้อยเดือนละ ๑ ครั้ง (๑๒ ครั้งต่อปี)', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D9488),
-              foregroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.event_note_outlined, size: 36, color: Color(0xFF0D9488)),
             ),
-            icon: const Icon(Icons.add),
-            label: const Text('นัดหมายการประชุมครั้งแรก'),
-            onPressed: () => _openCreateMeetingDialog(context),
+            const SizedBox(height: 14),
+            Text(
+              isTotalEmpty ? 'ยังไม่มีรอบการประชุม' : 'ไม่พบผลการค้นหา',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B)),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              isTotalEmpty
+                  ? 'กฎหมายกำหนดให้ คปอ. ประชุมอย่างน้อยเดือนละ ๑ ครั้ง'
+                  : 'ลองเปลี่ยนคำค้นหาหรือตัวกรองสถานะ',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            ),
+            if (isTotalEmpty) ...[
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('นัดหมายครั้งแรก', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                onPressed: () => _openCreateMeetingDialog(context),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRightPlaceholder(BuildContext context, bool isTotalEmpty) {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(32),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.meeting_room_outlined, size: 48, color: Color(0xFF0D9488)),
+              ),
+              const SizedBox(height: 18),
+              Text(
+                isTotalEmpty ? 'ระบบบันทึกการประชุม คปอ. ๖ วาระตามกฎหมาย' : 'เลือกการประชุมจากรายการทางซ้าย',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                isTotalEmpty
+                    ? 'กฎกระทรวงความปลอดภัยฯ พ.ศ. ๒๕๖๕ กำหนดให้คณะกรรมการ คปอ. ต้องจัดประชุมอย่างน้อยเดือนละ ๑ ครั้ง '
+                      'และบันทึกระเบียบวาระ ๖ วาระตามคู่มือแนวทางปฏิบัติ กสร. ๑/๒๕๖๑'
+                    : 'คลิกเลือกรอบการประชุมจากคอลัมน์ด้านซ้ายเพื่อเปิดดูรายละเอียด องค์ประชุม บันทึกสาระสำคัญ และมติที่ประชุมในแต่ละวาระ',
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600, height: 1.4),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+
+              // 6 Statutory Agendas Overview Preview Cards
+              Container(
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.format_list_numbered, color: Color(0xFF0D9488), size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          'ระเบียบวาระการประชุมมาตรฐาน ๖ วาระ (กสร. ๑/๒๕๖๑)',
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        ),
+                      ],
+                    ),
+                    const Divider(height: 20),
+                    _buildPlaceholderAgendaItem('๑', 'เรื่องที่ประธานแจ้งให้ที่ประชุมทราบ', 'นโยบาย ข้อสั่งการ หรือข่าวสารด้านความปลอดภัยจากฝ่ายบริหาร'),
+                    _buildPlaceholderAgendaItem('๒', 'พิจารณารับรองรายงานการประชุมครั้งที่ผ่านมา', 'ตรวจสอบความถูกต้องของรายงานการประชุมและมติรอบก่อนหน้า'),
+                    _buildPlaceholderAgendaItem('๓', 'เรื่องสืบเนื่องจากการประชุมครั้งที่ผ่านมา', 'ติดตามความคืบหน้า Action Items ที่ได้มอบหมายไว้'),
+                    _buildPlaceholderAgendaItem('๔', 'เรื่องเสนอเพื่อทราบ (สถิติอุบัติเหตุ/ผลการตรวจ)', 'รายงานสถิติประสบอันตรายและผลการตรวจความปลอดภัยประจำเดือน'),
+                    _buildPlaceholderAgendaItem('๕', 'เรื่องเพื่อพิจารณา (แผนงาน/อบรม/แก้ไขจุดเสี่ยง)', 'พิจารณาข้อเสนอแนะ แผนงานอบรม และมาตรการป้องกันอันตราย'),
+                    _buildPlaceholderAgendaItem('๖', 'เรื่องอื่นๆ (ถ้ามี)', 'ข้อปรึกษาหารือเพิ่มเติมของกรรมการทั้งฝ่ายนายจ้างและลูกจ้าง'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.add_circle_outline, size: 20),
+                label: const Text(
+                  'นัดหมายการประชุมใหม่ทันที',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                ),
+                onPressed: () => _openCreateMeetingDialog(context),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderAgendaItem(String no, String title, String desc) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 11,
+            backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.12),
+            child: Text(no, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF0D9488))),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                const SizedBox(height: 1),
+                Text(desc, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+              ],
+            ),
           ),
         ],
       ),
@@ -209,7 +355,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
       onTap: () => setState(() => _selectedMeetingId = m.id),
       child: Container(
         padding: const EdgeInsets.all(14),
-        color: isSelected ? const Color(0xFF0D9488).withOpacity(0.08) : Colors.transparent,
+        color: isSelected ? const Color(0xFF0D9488).withValues(alpha: 0.08) : Colors.transparent,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -218,7 +364,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF0D9488).withOpacity(0.12),
+                    color: const Color(0xFF0D9488).withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
@@ -230,13 +376,47 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.1),
+                    color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     m.status.thaiLabel,
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
                   ),
+                ),
+                const SizedBox(width: 4),
+                PopupMenuButton<String>(
+                  icon: Icon(Icons.more_vert, size: 18, color: Colors.grey.shade500),
+                  padding: EdgeInsets.zero,
+                  itemBuilder: (ctx) => [
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit_outlined, size: 16, color: Color(0xFF0D9488)),
+                          SizedBox(width: 8),
+                          Text('แก้ไขรายละเอียด'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          Icon(Icons.delete_outline, size: 16, color: Colors.red.shade700),
+                          const SizedBox(width: 8),
+                          Text('ลบการประชุม', style: TextStyle(color: Colors.red.shade700)),
+                        ],
+                      ),
+                    ),
+                  ],
+                  onSelected: (val) {
+                    if (val == 'edit') {
+                      _openEditMeetingDialog(context, m);
+                    } else if (val == 'delete') {
+                      _confirmDeleteMeeting(context, m);
+                    }
+                  },
                 ),
               ],
             ),
@@ -262,7 +442,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                 const SizedBox(width: 2),
                 Expanded(
                   child: Text(
-                    m.location ?? '-',
+                    m.location.isNotEmpty ? m.location : '-',
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -318,7 +498,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF0D9488).withOpacity(0.1),
+                                    color: const Color(0xFF0D9488).withValues(alpha: 0.1),
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: Text(
@@ -333,19 +513,42 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                               spacing: 16,
                               children: [
                                 _buildIconLabel(Icons.calendar_month, 'วันที่: ${meeting.meetingDate}'),
-                                _buildIconLabel(Icons.access_time, 'เวลา: ${meeting.startTime ?? "-"} - ${meeting.endTime ?? "-"} น.'),
-                                _buildIconLabel(Icons.room, 'สถานที่: ${meeting.location ?? "-"}'),
-                                _buildIconLabel(Icons.person, 'ประธาน: ${meeting.chairmanName ?? "-"}'),
-                                _buildIconLabel(Icons.edit_note, 'เลขานุการ: ${meeting.secretaryName ?? "-"}'),
+                                _buildIconLabel(Icons.access_time, 'เวลา: ${meeting.startTime} - ${meeting.endTime} น.'),
+                                _buildIconLabel(Icons.room, 'สถานที่: ${meeting.location.isNotEmpty ? meeting.location : "-"}'),
+                                _buildIconLabel(Icons.person, 'ประธาน: ${meeting.chairName.isNotEmpty ? meeting.chairName : "-"}'),
+                                _buildIconLabel(Icons.edit_note, 'เลขานุการ: ${meeting.secretaryName.isNotEmpty ? meeting.secretaryName : "-"}'),
                               ],
                             ),
                           ],
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.edit_outlined, size: 20),
-                        tooltip: 'แก้ไขรายละเอียดการประชุม',
-                        onPressed: () => _openEditMeetingDialog(context, meeting),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              foregroundColor: const Color(0xFF0D9488),
+                              side: const BorderSide(color: Color(0xFF0D9488)),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            icon: const Icon(Icons.edit_outlined, size: 15),
+                            label: const Text('แก้ไข', style: TextStyle(fontSize: 12)),
+                            onPressed: () => _openEditMeetingDialog(context, meeting),
+                          ),
+                          const SizedBox(width: 8),
+                          OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              visualDensity: VisualDensity.compact,
+                              foregroundColor: Colors.red.shade700,
+                              side: BorderSide(color: Colors.red.shade200),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            ),
+                            icon: const Icon(Icons.delete_outline, size: 15),
+                            label: const Text('ลบการประชุม', style: TextStyle(fontSize: 12)),
+                            onPressed: () => _confirmDeleteMeeting(context, meeting),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -442,7 +645,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                 initiallyExpanded: false,
                 leading: const Icon(Icons.people_outline, color: Color(0xFF0D9488)),
                 title: Text(
-                  'รายชื่อกรรมการผู้เข้าร่วมประชุม (${presentCount}/${meeting.attendees.length} คน)',
+                  'รายชื่อกรรมการผู้เข้าร่วมประชุม ($presentCount/${meeting.attendees.length} คน)',
                   style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 children: [
@@ -491,27 +694,56 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
           ),
           const SizedBox(height: 16),
 
-          // 6 Agendas Section Header
+          // Agendas Section Header
           Row(
             children: [
               const Icon(Icons.list_alt, size: 20, color: Color(0xFF0D9488)),
               const SizedBox(width: 8),
-              const Text(
-                'ระเบียบวาระการประชุม ๖ วาระ (ตามคู่มือ กสร. ๑/๒๕๖๑)',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              Text(
+                'ระเบียบวาระการประชุม (${meeting.agendas.length} วาระ)',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
-              Text('บันทึกรายละเอียดและมติของแต่ละวาระด้านล่าง', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  visualDensity: VisualDensity.compact,
+                ),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('เพิ่มวาระใหม่', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                onPressed: () => _openAddAgendaDialog(context, meeting),
+              ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Render 6 Agendas using CpoAgendaEditorCard
+          // Render Agendas using CpoAgendaEditorCard
           for (final agenda in meeting.agendas)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: CpoAgendaEditorCard(agenda: agenda, meetingId: meeting.id!),
+              child: CpoAgendaEditorCard(
+                agenda: agenda,
+                meetingId: meeting.id!,
+                onAgendaUpdated: () => ref.read(cpoMeetingsProvider.notifier).refresh(),
+              ),
             ),
+
+          // Button at bottom to add extra agenda
+          const SizedBox(height: 4),
+          Center(
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF0D9488),
+                side: const BorderSide(color: Color(0xFF0D9488)),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              ),
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: const Text('เพิ่มระเบียบวาระเพิ่มเติมในการประชุมนี้', style: TextStyle(fontWeight: FontWeight.bold)),
+              onPressed: () => _openAddAgendaDialog(context, meeting),
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -567,6 +799,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
   }
 
   Future<void> _markMeetingCompleted(BuildContext context, CpoMeetingModel meeting) async {
+    final messenger = ScaffoldMessenger.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -589,11 +822,110 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
     if (confirm == true) {
       final updated = meeting.copyWith(status: CpoMeetingStatus.completed);
       await ref.read(cpoMeetingsProvider.notifier).updateMeeting(updated);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('เปลี่ยนสถานะการประชุมเป็นเสร็จสิ้นแล้ว')),
-        );
-      }
+      messenger.showSnackBar(
+        const SnackBar(content: Text('เปลี่ยนสถานะการประชุมเป็นเสร็จสิ้นแล้ว')),
+      );
+    }
+  }
+
+  Future<void> _confirmDeleteMeeting(BuildContext context, CpoMeetingModel meeting) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever, color: Colors.red),
+            SizedBox(width: 8),
+            Text('ยืนยันลบการประชุม'),
+          ],
+        ),
+        content: Text(
+          'คุณต้องการลบการประชุมครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear} '
+          '("${meeting.meetingTitle}") ใช่หรือไม่?\n\n'
+          '⚠️ ข้อมูลระเบียบวาระ, มติที่ประชุม, บันทึกการเข้าร่วม และ Action Items ทั้งหมดในการประชุมนี้จะถูกลบอย่างถาวร',
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('ลบการประชุม'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && meeting.id != null) {
+      await ref.read(cpoMeetingsProvider.notifier).deleteMeeting(meeting.id!);
+      setState(() {
+        if (_selectedMeetingId == meeting.id) {
+          _selectedMeetingId = null;
+        }
+      });
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('ลบการประชุมครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear} เรียบร้อยแล้ว'),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openAddAgendaDialog(BuildContext context, CpoMeetingModel meeting) async {
+    final nextNo = (meeting.agendas.map((a) => a.agendaNo).fold<int>(0, (max, no) => no > max ? no : max)) + 1;
+    final noCtrl = TextEditingController(text: nextNo.toString());
+    final titleCtrl = TextEditingController();
+    final messenger = ScaffoldMessenger.of(context);
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.add_circle_outline, color: Color(0xFF0D9488)),
+            SizedBox(width: 8),
+            Text('เพิ่มวาระการประชุม'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: noCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'ลำดับวาระที่ (ตัวเลข) *', border: OutlineInputBorder()),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: titleCtrl,
+              decoration: const InputDecoration(labelText: 'ชื่อหัวข้อวาระ *', hintText: 'เช่น วาระพิเศษ การเตรียมรับการตรวจประเมิน ISO 45001', border: OutlineInputBorder()),
+              autofocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D9488), foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('เพิ่มวาระ'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && titleCtrl.text.trim().isNotEmpty && meeting.id != null) {
+      final newAgenda = CpoAgendaModel(
+        meetingId: meeting.id!,
+        agendaNo: int.tryParse(noCtrl.text.trim()) ?? nextNo,
+        agendaTitle: titleCtrl.text.trim(),
+        sortOrder: int.tryParse(noCtrl.text.trim()) ?? nextNo,
+      );
+      await ref.read(cpoMeetingsProvider.notifier).addAgenda(newAgenda);
+      messenger.showSnackBar(
+        SnackBar(content: Text('เพิ่มวาระที่ ${newAgenda.agendaNo} เรียบร้อยแล้ว'), backgroundColor: Colors.green),
+      );
     }
   }
 }

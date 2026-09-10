@@ -1,6 +1,5 @@
 import '../../../../core/database/database_helper.dart';
 import '../../domain/models/risk_assessment_models.dart';
-import '../../domain/models/risk_matrix_criteria.dart';
 
 class RiskAssessmentRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
@@ -51,49 +50,37 @@ class RiskAssessmentRepository {
 
     final existing = CompanyProfile.fromMap(maps.first);
     final rawName = existing.companyName.trim().toLowerCase();
-    final rawEmployer = (existing.employerName ?? '').trim().toLowerCase();
-    final rawTax = (existing.taxId ?? '').trim();
-    final rawPolicy = (existing.safetyPolicy ?? '').trim().toLowerCase();
-    final rawCategory = (existing.businessCategoryTitle ?? '').trim();
 
-    final isDummyName = rawName == 'safapp' || rawName.isEmpty;
-    final isDummyEmployer = rawEmployer.contains('safapp') || rawEmployer.contains('safarttt') || rawEmployer.isEmpty;
-    final isDummyTax = rawTax == '1122334455' || rawTax == '1234567890123' || rawTax.isEmpty;
-    final isDummyPolicy = rawPolicy.isEmpty || rawPolicy.contains('safapp') || rawPolicy == '"" safapp"';
-    final isInvalidCategory = !RiskMatrixCriteria.schedule2Categories.contains(rawCategory);
-    final isDummyArea = (existing.areaSqm ?? 0) <= 1000.0;
-
-    // If company has any dummy placeholder data or missing statutory category
-    if (isDummyName || isDummyEmployer || isDummyTax || isDummyPolicy || isInvalidCategory || isDummyArea) {
+    // Only migrate if strictly an uninitialized legacy record ('safapp' or blank)
+    final isLegacyPlaceholder = rawName == 'safapp' || rawName.isEmpty;
+    if (isLegacyPlaceholder) {
       final updated = CompanyProfile(
         id: existing.id,
-        companyName: isDummyName ? defaultProfile.companyName : existing.companyName,
-        employerName: isDummyEmployer ? defaultProfile.employerName : existing.employerName,
-        taxId: isDummyTax ? defaultProfile.taxId : existing.taxId,
-        businessCategorySchedule: 2,
-        businessCategoryNumber: 19,
+        companyName: defaultProfile.companyName,
+        employerName: defaultProfile.employerName,
+        taxId: defaultProfile.taxId,
+        businessCategorySchedule: defaultProfile.businessCategorySchedule,
+        businessCategoryNumber: defaultProfile.businessCategoryNumber,
         businessCategoryTitle: defaultProfile.businessCategoryTitle,
-        employeeCount: existing.employeeCount > 0 ? existing.employeeCount : 89,
-        addressNumber: (existing.addressNumber != null && existing.addressNumber!.isNotEmpty && existing.addressNumber != 'safapp') ? existing.addressNumber : defaultProfile.addressNumber,
-        moo: (existing.moo != null && existing.moo!.isNotEmpty && existing.moo != 'safapp') ? existing.moo : defaultProfile.moo,
-        soi: (existing.soi != null && existing.soi!.isNotEmpty && existing.soi != 'safapp') ? existing.soi : defaultProfile.soi,
-        road: (existing.road != null && existing.road!.isNotEmpty && existing.road != 'safapp') ? existing.road : defaultProfile.road,
-        subdistrict: (existing.subdistrict != null && existing.subdistrict!.isNotEmpty && existing.subdistrict != 'safapp') ? existing.subdistrict : defaultProfile.subdistrict,
-        district: (existing.district != null && existing.district!.isNotEmpty && existing.district != 'safapp') ? existing.district : defaultProfile.district,
-        province: (existing.province != null && existing.province!.isNotEmpty && existing.province != 'safapp') ? existing.province : defaultProfile.province,
-        postalCode: (existing.postalCode != null && existing.postalCode!.isNotEmpty && existing.postalCode != 'safapp') ? existing.postalCode : defaultProfile.postalCode,
-        phone: (existing.phone != null && existing.phone!.isNotEmpty && existing.phone != 'safapp') ? existing.phone : defaultProfile.phone,
-        mobile: (existing.mobile != null && existing.mobile!.isNotEmpty && existing.mobile != 'safapp') ? existing.mobile : defaultProfile.mobile,
-        safetyOfficerName: (existing.safetyOfficerName != null && existing.safetyOfficerName!.isNotEmpty && !existing.safetyOfficerName!.toLowerCase().contains('safapp'))
-            ? existing.safetyOfficerName
-            : defaultProfile.safetyOfficerName,
-        safetyOfficerLevel: (existing.safetyOfficerLevel != null && existing.safetyOfficerLevel!.isNotEmpty) ? existing.safetyOfficerLevel : defaultProfile.safetyOfficerLevel,
-        safetyOfficerCertNo: (existing.safetyOfficerCertNo != null && existing.safetyOfficerCertNo!.isNotEmpty) ? existing.safetyOfficerCertNo : defaultProfile.safetyOfficerCertNo,
-        safetyOfficerPhone: (existing.safetyOfficerPhone != null && existing.safetyOfficerPhone!.isNotEmpty) ? existing.safetyOfficerPhone : defaultProfile.safetyOfficerPhone,
-        safetyExpertName: (existing.safetyExpertName != null && existing.safetyExpertName!.isNotEmpty) ? existing.safetyExpertName : defaultProfile.safetyExpertName,
-        safetyExpertLicenseNo: (existing.safetyExpertLicenseNo != null && existing.safetyExpertLicenseNo!.isNotEmpty) ? existing.safetyExpertLicenseNo : defaultProfile.safetyExpertLicenseNo,
-        safetyPolicy: isDummyPolicy ? defaultProfile.safetyPolicy : existing.safetyPolicy,
-        areaSqm: isDummyArea ? defaultProfile.areaSqm : existing.areaSqm,
+        employeeCount: defaultProfile.employeeCount,
+        addressNumber: defaultProfile.addressNumber,
+        moo: defaultProfile.moo,
+        soi: defaultProfile.soi,
+        road: defaultProfile.road,
+        subdistrict: defaultProfile.subdistrict,
+        district: defaultProfile.district,
+        province: defaultProfile.province,
+        postalCode: defaultProfile.postalCode,
+        phone: defaultProfile.phone,
+        mobile: defaultProfile.mobile,
+        safetyOfficerName: defaultProfile.safetyOfficerName,
+        safetyOfficerLevel: defaultProfile.safetyOfficerLevel,
+        safetyOfficerCertNo: defaultProfile.safetyOfficerCertNo,
+        safetyOfficerPhone: defaultProfile.safetyOfficerPhone,
+        safetyExpertName: defaultProfile.safetyExpertName,
+        safetyExpertLicenseNo: defaultProfile.safetyExpertLicenseNo,
+        safetyPolicy: defaultProfile.safetyPolicy,
+        areaSqm: defaultProfile.areaSqm,
         logoPath: existing.logoPath,
       );
       await db.update('company_profiles', updated.toMap(), where: 'id = ?', whereArgs: [existing.id]);

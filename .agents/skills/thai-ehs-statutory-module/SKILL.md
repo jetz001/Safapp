@@ -100,6 +100,38 @@ Under Thai Ministerial Regulation on Safety Management Systems B.E. 2565 (กฎ
    - Produces official bilingual PDF Audit Reports with Auditor, Safety Officer (จป.วิชาชีพ), and Employer signature blocks for Section 8(3) 2-year statutory retention.
    - Produces detailed Excel Compliance Worksheets for Department of Labour Protection and Welfare (สปภ.) inspector verification.
 
+### Step 7: Statutory CPO Election & Committee Unified Architecture Protocol
+Under Thai Ministerial Regulation on Safety Officers, Personnel, and Committees B.E. 2565 (กฎกระทรวงการจัดให้มีเจ้าหน้าที่ความปลอดภัยในการทำงาน บุคลากร หน่วยงาน หรือคณะบุคคลเพื่อดำเนินการด้านความปลอดภัยในสถานประกอบกิจการ พ.ศ. ๒๕๖๕, หมวด ๓ ข้อ ๒๓-๓๒) and Department of Labour Protection and Welfare Manual Form กสร. ๑/๒๕๖๑:
+
+1. **Statutory Quota Thresholds (ข้อ ๒๕)**:
+   - Workplace employee thresholds:
+     - 50 - 99 employees: ≥ 5 members (Employer Rep: 2, Employee Rep: 2, Secretary: 1)
+     - 100 - 499 employees: ≥ 7 members (Employer Rep: 3, Employee Rep: 3, Secretary: 1)
+     - ≥ 500 employees: ≥ 11 members (Employer Rep: 5, Employee Rep: 5, Secretary: 1)
+   - Chairperson (ประธาน คปอ.): Employer or Executive Management representative.
+   - Parity Principle: Employer representatives and elected Employee representatives must be strictly equal in count.
+
+2. **Election Committee (กกต. เฉพาะกิจ) & Ballot Lifecycle (ข้อ ๒๖-๒๗)**:
+   - Election Committee consists of at least 3-5 appointed employees to organize, oversee, and supervise the election.
+   - 5 Statutory Milestone Cards:
+     - Card 1: Election Committee Setup (กกต.)
+     - Card 2: Candidate Nomination & Screening (ผู้สมัครรับเลือกตั้ง)
+     - Card 3: Secret Ballot Voting & Official Tally (ลงคะแนน & นับคะแนน)
+     - Card 4: Overrideable Certification Dialog (สรุปผล & รับรองผล กกต. พร้อมแก้ไขคะแนนและสถานะ คปอ. อิสระ)
+     - Card 5: Official Announcement (ประกาศ กกต. ภาษาไทยคมชัด) & Auto-Transfer to CPO Committee.
+
+3. **Cross-Module Safety Officer Integration (SMS Context จป. -> เลขานุการ คปอ.)**:
+   - Under Section 25(4), the Secretary must be the Professional Safety Officer (จป.วิชาชีพ) or an authorized designee.
+   - **Auto-Pull Protocol**: Automatically query `CompanyProfile` from the Organization module (SMS Context):
+     - Safely extract `safetyOfficerName`, `safetyOfficerLevel`, and `safetyOfficerPhone`.
+     - Provide a 1-click auto-assign button `[⚡ ดึงอัตโนมัติจาก จป. ในโมดูลองค์กร]` to register the Secretary into SQLite instantly.
+     - Provide seamless manual fallback: allow editing, custom text input, or selecting any employee from the 69-person employee registry.
+
+4. **Unified Term-Round Architecture (การหลอมรวมการ์ด คปอ. เข้ากับรอบการเลือกตั้ง)**:
+   - Avoid creating disjointed, standalone committee tabs that disconnect members from their originating election.
+   - Instead, embed the 4 statutory committee groups (ประธาน, ผู้แทนนายจ้าง, ผู้แทนลูกจ้างจากรอบนี้, เลขานุการ) directly inside the active Election Round card view.
+   - This provides immediate end-to-end statutory audit traceability: auditors can verify the exact election round, vote tally, and กกต. announcement that formed the 2-year committee term.
+
 ---
 
 ## Verification Protocol

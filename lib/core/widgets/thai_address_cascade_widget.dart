@@ -140,12 +140,17 @@ class _ThaiAddressCascadeWidgetState extends State<ThaiAddressCascadeWidget> {
           onChanged: _onProvinceSelected,
         );
 
-        final districtField = _districts.isNotEmpty
+        final districtList = List<String>.from(_districts);
+        if (currentDist.isNotEmpty && !districtList.contains(currentDist)) {
+          districtList.add(currentDist);
+        }
+
+        final districtField = districtList.isNotEmpty
             ? DropdownButtonFormField<String>(
                 isExpanded: true,
-                value: _districts.contains(currentDist) ? currentDist : null,
+                value: districtList.contains(currentDist) ? currentDist : null,
                 decoration: _inputDecoration('อำเภอ / เขต *', icon: Icons.map),
-                items: _districts.map((d) {
+                items: districtList.map((d) {
                   return DropdownMenuItem<String>(
                     value: d,
                     child: Text(d, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
@@ -160,12 +165,17 @@ class _ThaiAddressCascadeWidgetState extends State<ThaiAddressCascadeWidget> {
                 onChanged: (v) => _updateCascades(),
               );
 
-        final subdistrictField = _subdistricts.isNotEmpty
+        final subdistrictList = List<String>.from(_subdistricts);
+        if (currentSubdist.isNotEmpty && !subdistrictList.contains(currentSubdist)) {
+          subdistrictList.add(currentSubdist);
+        }
+
+        final subdistrictField = subdistrictList.isNotEmpty
             ? DropdownButtonFormField<String>(
                 isExpanded: true,
-                value: _subdistricts.contains(currentSubdist) ? currentSubdist : null,
+                value: subdistrictList.contains(currentSubdist) ? currentSubdist : null,
                 decoration: _inputDecoration('ตำบล / แขวง *', icon: Icons.location_city),
-                items: _subdistricts.map((sd) {
+                items: subdistrictList.map((sd) {
                   return DropdownMenuItem<String>(
                     value: sd,
                     child: Text(sd, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
@@ -229,84 +239,31 @@ class _ThaiAddressCascadeWidgetState extends State<ThaiAddressCascadeWidget> {
           decoration: _inputDecoration('โทรศัพท์มือถือ', icon: Icons.phone_android),
         );
 
+        final countryField = DropdownButtonFormField<String>(
+          isExpanded: true,
+          value: _selectedCountry,
+          decoration: _inputDecoration('ประเทศ (Country)', icon: Icons.public),
+          items: const [
+            DropdownMenuItem(
+              value: 'ประเทศไทย (Thailand)',
+              child: Text('ประเทศไทย (Thailand)', style: TextStyle(fontSize: 13)),
+            ),
+          ],
+          onChanged: (v) {
+            if (v != null) setState(() => _selectedCountry = v);
+          },
+        );
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 0. ประเทศ & ข้อความแนะนำ
-            if (isCompact) ...[
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                value: _selectedCountry,
-                decoration: _inputDecoration('ประเทศ (Country)', icon: Icons.public),
-                items: const [
-                  DropdownMenuItem(value: 'ประเทศไทย (Thailand)', child: Text('ประเทศไทย (Thailand)', style: TextStyle(fontSize: 13))),
-                ],
-                onChanged: (v) {
-                  if (v != null) setState(() => _selectedCountry = v);
-                },
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.auto_awesome_rounded, color: Colors.blue.shade700, size: 16),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: Text(
-                        'ระบบเชื่อมโยง: เลือกจังหวัด -> อำเภอ -> ตำบล -> รหัสไปรษณีย์อัตโนมัติ',
-                        style: TextStyle(fontSize: 11, color: Colors.indigo, fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ] else
+            // 0. ประเทศ
+            if (isCompact)
+              countryField
+            else
               Row(
                 children: [
-                  Expanded(
-                    flex: 4,
-                    child: DropdownButtonFormField<String>(
-                      isExpanded: true,
-                      value: _selectedCountry,
-                      decoration: _inputDecoration('ประเทศ (Country)', icon: Icons.public),
-                      items: const [
-                        DropdownMenuItem(value: 'ประเทศไทย (Thailand)', child: Text('ประเทศไทย (Thailand)', style: TextStyle(fontSize: 13))),
-                      ],
-                      onChanged: (v) {
-                        if (v != null) setState(() => _selectedCountry = v);
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 6,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.blue.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.auto_awesome_rounded, color: Colors.blue.shade700, size: 18),
-                          const SizedBox(width: 8),
-                          const Expanded(
-                            child: Text(
-                              'ระบบเชื่อมโยงอัตโนมัติ: เลือกจังหวัด -> กรองอำเภอ -> กรองตำบล -> กรอกรหัสไปรษณีย์ให้อัตโนมัติ',
-                              style: TextStyle(fontSize: 11, color: Colors.indigo, fontWeight: FontWeight.w500),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  SizedBox(width: 280, child: countryField),
                 ],
               ),
             const SizedBox(height: 12),
