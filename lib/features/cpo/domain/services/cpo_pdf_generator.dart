@@ -32,6 +32,12 @@ class CpoPdfGenerator {
     return pw.ThemeData.base();
   }
 
+  static String _cleanPdfContent(String? raw, {String fallback = ''}) {
+    if (raw == null || raw.trim().isEmpty) return fallback;
+    final cleaned = raw.replaceAll(RegExp(r'<!--SUB_ITEMS_JSON:[\s\S]*?-->'), '').trim();
+    return cleaned.isEmpty ? fallback : cleaned;
+  }
+
   /// สร้างรายงานการประชุม คปอ. ฉบับสมบูรณ์ (๖ วาระ) ตามคู่มือ กสร. หน้า ๓๒-๓๖
   static Future<Uint8List> generateMeetingMinutesPdf(
     CpoMeetingModel meeting, {
@@ -99,14 +105,14 @@ class CpoPdfGenerator {
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text('วัน/เดือน/ปี: ${meeting.meetingDate}', style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text('เวลา: ${meeting.startTime ?? "-"} - ${meeting.endTime ?? "-"} น.', style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('เวลา: ${meeting.startTime} - ${meeting.endTime} น.', style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
                 pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Text('สถานที่: ${meeting.location ?? "-"}', style: const pw.TextStyle(fontSize: 10)),
-                    pw.Text('ประธานในที่ประชุม: ${meeting.chairmanName ?? "-"}', style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('สถานที่: ${meeting.location}', style: const pw.TextStyle(fontSize: 10)),
+                    pw.Text('ประธานในที่ประชุม: ${meeting.chairmanName}', style: const pw.TextStyle(fontSize: 10)),
                   ],
                 ),
               ],
@@ -189,7 +195,7 @@ class CpoPdfGenerator {
                   pw.Padding(
                     padding: const pw.EdgeInsets.only(left: 8, top: 2, bottom: 4),
                     child: pw.Text(
-                      ag.discussionContent?.isNotEmpty == true ? ag.discussionContent! : 'ไม่มีข้อหารือเพิ่มเติม',
+                      _cleanPdfContent(ag.discussionContent, fallback: 'ไม่มีข้อหารือเพิ่มเติม'),
                       style: const pw.TextStyle(fontSize: 9),
                     ),
                   ),
@@ -202,7 +208,7 @@ class CpoPdfGenerator {
                         pw.Text('มติที่ประชุม: ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.green900)),
                         pw.Expanded(
                           child: pw.Text(
-                            ag.resolutionContent?.isNotEmpty == true ? ag.resolutionContent! : 'รับทราบ',
+                            _cleanPdfContent(ag.resolutionContent, fallback: 'รับทราบ'),
                             style: const pw.TextStyle(fontSize: 9),
                           ),
                         ),
@@ -222,7 +228,7 @@ class CpoPdfGenerator {
                 children: [
                   pw.SizedBox(height: 30),
                   pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('( ${meeting.secretaryName ?? "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('( ${meeting.secretaryName.isNotEmpty ? meeting.secretaryName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
                   pw.Text('เลขานุการ คปอ. / ผู้จดรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
                 ],
               ),
@@ -230,7 +236,7 @@ class CpoPdfGenerator {
                 children: [
                   pw.SizedBox(height: 30),
                   pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('( ${meeting.chairmanName ?? "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
                   pw.Text('ประธาน คปอ. / ผู้รับรองรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
                 ],
               ),
@@ -278,8 +284,8 @@ class CpoPdfGenerator {
             pw.SizedBox(height: 8),
             pw.Text(
               '  ด้วยคณะกรรมการความปลอดภัยฯ จะจัดให้มีการประชุมประจำเดือน ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear} '
-              'ในวัน ${meeting.meetingDate} เวลา ${meeting.startTime ?? "09:00"} - ${meeting.endTime ?? "12:00"} น. '
-              'ณ ${meeting.location ?? "ห้องประชุมความปลอดภัย"} เพื่อติดตามผลการดำเนินงานและพิจารณาข้อเสนอแนะด้านความปลอดภัยในการทำงาน',
+              'ในวัน ${meeting.meetingDate} เวลา ${meeting.startTime} - ${meeting.endTime} น. '
+              'ณ ${meeting.location} เพื่อติดตามผลการดำเนินงานและพิจารณาข้อเสนอแนะด้านความปลอดภัยในการทำงาน',
               style: const pw.TextStyle(fontSize: 10, lineSpacing: 2),
             ),
             pw.SizedBox(height: 12),
@@ -300,7 +306,7 @@ class CpoPdfGenerator {
                 crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
                   pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('( ${meeting.chairmanName ?? "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
+                  pw.Text('( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
                   pw.Text('ประธานคณะกรรมการ คปอ.', style: const pw.TextStyle(fontSize: 9)),
                 ],
               ),
@@ -351,7 +357,7 @@ class CpoPdfGenerator {
             pw.SizedBox(height: 10),
             pw.Text(
               '  ตามที่คณะกรรมการการเลือกตั้งได้ดำเนินการจัดการเลือกตั้งผู้แทนลูกจ้างเป็นกรรมการ คปอ. '
-              'เมื่อวันที่ ${election.votingDate ?? "-"} โดยมีผู้มีสิทธิเลือกตั้งจำนวน ${election.eligibleVotersCount} คน '
+              'เมื่อวันที่ ${election.votingDate} โดยมีผู้มีสิทธิเลือกตั้งจำนวน ${election.eligibleVotersCount} คน '
               'และกำหนดให้มีผู้แทนลูกจ้างจำนวน ${election.requiredRepsCount} คน นั้น',
               style: const pw.TextStyle(fontSize: 10, lineSpacing: 2),
             ),

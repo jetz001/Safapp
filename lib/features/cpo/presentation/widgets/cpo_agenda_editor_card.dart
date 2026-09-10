@@ -1,8 +1,41 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../providers/cpo_providers.dart';
 import 'cpo_action_item_dialog.dart';
+
+class _SubTopicItem {
+  final TextEditingController titleCtrl;
+  final TextEditingController discussionCtrl;
+  final TextEditingController resolutionCtrl;
+  final TextEditingController presenterCtrl;
+
+  _SubTopicItem({
+    String title = '',
+    String discussion = '',
+    String resolution = '',
+    String presenter = '',
+  })  : titleCtrl = TextEditingController(text: title),
+        discussionCtrl = TextEditingController(text: discussion),
+        resolutionCtrl = TextEditingController(text: resolution),
+        presenterCtrl = TextEditingController(text: presenter);
+
+  void dispose() {
+    titleCtrl.dispose();
+    discussionCtrl.dispose();
+    resolutionCtrl.dispose();
+    presenterCtrl.dispose();
+  }
+
+  Map<String, dynamic> toJson(String subNo) => {
+        'sub_no': subNo,
+        'title': titleCtrl.text.trim(),
+        'discussion': discussionCtrl.text.trim(),
+        'resolution': resolutionCtrl.text.trim(),
+        'presenter': presenterCtrl.text.trim(),
+      };
+}
 
 class CpoAgendaEditorCard extends ConsumerStatefulWidget {
   final CpoAgendaModel agenda;
@@ -23,54 +56,179 @@ class CpoAgendaEditorCard extends ConsumerStatefulWidget {
 }
 
 class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
-  late TextEditingController _discussionCtrl;
-  late TextEditingController _resolutionCtrl;
-  late TextEditingController _presenterCtrl;
+  final List<_SubTopicItem> _subItems = [];
   bool _isSaving = false;
   bool _isPulling = false;
 
   @override
   void initState() {
     super.initState();
-    _discussionCtrl = TextEditingController(text: widget.agenda.discussionContent ?? '');
-    _resolutionCtrl = TextEditingController(text: widget.agenda.resolutionContent ?? '');
-    _presenterCtrl = TextEditingController(text: widget.agenda.presenterName ?? '');
+    _initSubItems();
   }
 
   @override
   void didUpdateWidget(covariant CpoAgendaEditorCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.agenda != widget.agenda) {
-      _discussionCtrl.text = widget.agenda.discussionContent ?? '';
-      _resolutionCtrl.text = widget.agenda.resolutionContent ?? '';
-      _presenterCtrl.text = widget.agenda.presenterName ?? '';
+      _disposeSubItems();
+      _initSubItems();
     }
+  }
+
+  void _disposeSubItems() {
+    for (final item in _subItems) {
+      item.dispose();
+    }
+    _subItems.clear();
+  }
+
+  void _initSubItems() {
+    final disc = widget.agenda.discussionContent ?? '';
+    final match = RegExp(r'<!--SUB_ITEMS_JSON:(.*?)-->', dotAll: true).firstMatch(disc);
+
+    if (match != null) {
+      try {
+        final jsonString = match.group(1)!;
+        final List<dynamic> list = jsonDecode(jsonString);
+        if (list.isNotEmpty) {
+          for (final item in list) {
+            final m = item as Map<String, dynamic>;
+            _subItems.add(_SubTopicItem(
+              title: m['title']?.toString() ?? '',
+              discussion: m['discussion']?.toString() ?? '',
+              resolution: m['resolution']?.toString() ?? '',
+              presenter: m['presenter']?.toString() ?? '',
+            ));
+          }
+          return;
+        }
+      } catch (_) {}
+    }
+
+    // Fallback / legacy format
+    final cleanDisc = disc.replaceAll(RegExp(r'<!--SUB_ITEMS_JSON:[\s\S]*?-->'), '').trim();
+    _subItems.add(_SubTopicItem(
+      title: '',
+      discussion: cleanDisc,
+      resolution: widget.agenda.resolutionContent ?? '',
+      presenter: widget.agenda.presenterName ?? '',
+    ));
   }
 
   @override
   void dispose() {
-    _discussionCtrl.dispose();
-    _resolutionCtrl.dispose();
-    _presenterCtrl.dispose();
+    _disposeSubItems();
     super.dispose();
+  }
+
+  void _addSubTopic() {
+    setState(() {
+      _subItems.add(_SubTopicItem());
+    });
+  }
+
+  Future<void> _confirmDeleteSubTopic(int index) async {
+    final item = _subItems[index];
+    final subNo = '${widget.agenda.agendaNo}.${index + 1}';
+    final hasContent = item.titleCtrl.text.trim().isNotEmpty ||
+        item.discussionCtrl.text.trim().isNotEmpty ||
+        item.resolutionCtrl.text.trim().isNotEmpty;
+
+    if (hasContent) {
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.delete_outline, color: Colors.red),
+              SizedBox(width: 8),
+              Text('ยืนยันลบเรื่องย่อย'),
+            ],
+          ),
+          content: Text('คุณต้องการลบเรื่องย่อย $subNo ออกจากวาระนี้หรือไม่?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('ยืนยันลบ'),
+            ),
+          ],
+        ),
+      );
+      if (confirm != true) return;
+    }
+
+    setState(() {
+      final removed = _subItems.removeAt(index);
+      removed.dispose();
+      if (_subItems.isEmpty) {
+        _subItems.add(_SubTopicItem());
+      }
+    });
   }
 
   Future<void> _save() async {
     setState(() => _isSaving = true);
     try {
+      final List<Map<String, dynamic>> jsonList = [];
+      final StringBuffer displayDisc = StringBuffer();
+      final StringBuffer displayRes = StringBuffer();
+      final List<String> presenters = [];
+
+      final hasMultiple = _subItems.length > 1;
+
+      for (int i = 0; i < _subItems.length; i++) {
+        final item = _subItems[i];
+        final subNo = '${widget.agenda.agendaNo}.${i + 1}';
+        final title = item.titleCtrl.text.trim();
+        final discussion = item.discussionCtrl.text.trim();
+        final resolution = item.resolutionCtrl.text.trim();
+        final presenter = item.presenterCtrl.text.trim();
+
+        jsonList.add(item.toJson(subNo));
+
+        if (presenter.isNotEmpty && !presenters.contains(presenter)) {
+          presenters.add(presenter);
+        }
+
+        if (hasMultiple || title.isNotEmpty) {
+          if (displayDisc.isNotEmpty) displayDisc.writeln('\n');
+          displayDisc.writeln('$subNo ${title.isNotEmpty ? title : "เรื่องย่อยที่ ${i + 1}"}');
+          if (discussion.isNotEmpty) displayDisc.writeln(discussion);
+          if (presenter.isNotEmpty) displayDisc.writeln('(ผู้รายงาน: $presenter)');
+
+          if (displayRes.isNotEmpty) displayRes.writeln();
+          displayRes.write('$subNo: ${resolution.isNotEmpty ? resolution : "รับทราบ"}');
+        } else {
+          // Single item without sub-title
+          displayDisc.write(discussion);
+          displayRes.write(resolution);
+        }
+      }
+
+      final metadata = '<!--SUB_ITEMS_JSON:${jsonEncode(jsonList)}-->';
+      final savedDiscussion = displayDisc.isEmpty && jsonList.isEmpty
+          ? null
+          : '${displayDisc.toString().trim()}\n\n$metadata'.trim();
+
+      final savedResolution = displayRes.isEmpty ? null : displayRes.toString().trim();
+      final savedPresenter = presenters.isEmpty ? null : presenters.join(', ');
+
       final updated = widget.agenda.copyWith(
-        discussionContent: _discussionCtrl.text.trim(),
-        resolutionContent: _resolutionCtrl.text.trim(),
-        presenterName: _presenterCtrl.text.trim().isEmpty ? null : _presenterCtrl.text.trim(),
+        discussionContent: savedDiscussion,
+        resolutionContent: savedResolution,
+        presenterName: savedPresenter,
       );
 
       await ref.read(cpoMeetingsProvider.notifier).updateAgenda(updated);
       widget.onAgendaUpdated?.call();
 
       if (mounted) {
+        final countText = _subItems.length > 1 ? ' (${_subItems.length} เรื่องย่อย)' : '';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('บันทึกระเบียบวาระที่ ${widget.agenda.agendaNo} เรียบร้อยแล้ว'),
+            content: Text('บันทึกระเบียบวาระที่ ${widget.agenda.agendaNo} เรียบร้อยแล้ว$countText'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
@@ -94,10 +252,18 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
       final repo = ref.read(cpoRepositoryProvider);
       final text = await repo.getRolledForwardAgenda3Content(widget.previousMeetingId);
       setState(() {
-        if (_discussionCtrl.text.isNotEmpty && !_discussionCtrl.text.contains('ติดตามความคืบหน้า')) {
-          _discussionCtrl.text = '${_discussionCtrl.text}\n\n$text';
+        if (_subItems.length == 1 &&
+            _subItems.first.discussionCtrl.text.isEmpty &&
+            _subItems.first.titleCtrl.text.isEmpty) {
+          _subItems.first.titleCtrl.text = 'ติดตามงานจากการประชุมครั้งก่อนหน้า';
+          _subItems.first.discussionCtrl.text = text;
+          _subItems.first.resolutionCtrl.text = 'รับทราบความคืบหน้า';
         } else {
-          _discussionCtrl.text = text;
+          _subItems.add(_SubTopicItem(
+            title: 'ติดตามงานจากการประชุมครั้งก่อนหน้า',
+            discussion: text,
+            resolution: 'รับทราบความคืบหน้า',
+          ));
         }
       });
       messenger.showSnackBar(
@@ -120,10 +286,20 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
       final stats = await repo.fetchMonthlySafetyStats(DateTime.now().toIso8601String());
       final summaryText = stats['summary_text'] as String? ?? '';
       setState(() {
-        if (_discussionCtrl.text.isNotEmpty) {
-          _discussionCtrl.text = '${_discussionCtrl.text}\n\n$summaryText';
+        if (_subItems.length == 1 &&
+            _subItems.first.discussionCtrl.text.isEmpty &&
+            _subItems.first.titleCtrl.text.isEmpty) {
+          _subItems.first.titleCtrl.text = 'รายงานสถิติความปลอดภัยและอุบัติเหตุประจำเดือน';
+          _subItems.first.discussionCtrl.text = summaryText;
+          _subItems.first.resolutionCtrl.text = 'รับทราบรายงานสถิติ';
+          _subItems.first.presenterCtrl.text = 'จป.วิชาชีพ';
         } else {
-          _discussionCtrl.text = summaryText;
+          _subItems.add(_SubTopicItem(
+            title: 'รายงานสถิติความปลอดภัยและอุบัติเหตุประจำเดือน',
+            discussion: summaryText,
+            resolution: 'รับทราบรายงานสถิติ',
+            presenter: 'จป.วิชาชีพ',
+          ));
         }
       });
       messenger.showSnackBar(
@@ -261,6 +437,7 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top Agenda Header Row
             Row(
               children: [
                 Container(
@@ -341,60 +518,154 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _discussionCtrl,
-              maxLines: 4,
-              decoration: const InputDecoration(
-                labelText: 'ข้อความหารือ / สรุปสาระสำคัญในที่ประชุม',
-                hintText: 'บันทึกการรายงาน ความเห็นของกรรมการ หรือข้อเสนอแนะด้านความปลอดภัย',
-                border: OutlineInputBorder(),
-                alignLabelWithHint: true,
+            const SizedBox(height: 14),
+
+            // Sub-topics List
+            for (int i = 0; i < _subItems.length; i++) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: headerColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '${ag.agendaNo}.${i + 1}',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                              color: headerColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: _subItems[i].titleCtrl,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                              labelText: 'หัวข้อเรื่องย่อย (${ag.agendaNo}.${i + 1})',
+                              hintText: 'ระบุหัวข้อเรื่อง เช่น ติดตามการซ่อมแซมจุดเสี่ยง, เสนอจัดซื้อ...',
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        if (_subItems.length > 1) ...[
+                          const SizedBox(width: 4),
+                          IconButton(
+                            icon: Icon(Icons.remove_circle_outline, size: 20, color: Colors.red.shade400),
+                            tooltip: 'ลบเรื่องย่อยนี้',
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => _confirmDeleteSubTopic(i),
+                          ),
+                        ],
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _subItems[i].discussionCtrl,
+                      minLines: 2,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        labelText: 'ข้อความหารือ / สรุปสาระสำคัญ (${ag.agendaNo}.${i + 1})',
+                        hintText: 'บันทึกการรายงาน ความเห็นของกรรมการ หรือข้อเสนอแนะด้านความปลอดภัย',
+                        border: const OutlineInputBorder(),
+                        alignLabelWithHint: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: TextField(
+                            controller: _subItems[i].resolutionCtrl,
+                            maxLines: 2,
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              labelText: 'มติที่ประชุมเฉพาะเรื่องนี้',
+                              hintText: 'เช่น รับทราบ, อนุมัติงบประมาณ ๕๐,๐๐๐ บาท',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 2,
+                          child: TextField(
+                            controller: _subItems[i].presenterCtrl,
+                            decoration: const InputDecoration(
+                              isDense: true,
+                              labelText: 'ผู้เสนอ/ผู้รายงาน',
+                              hintText: 'เช่น จป.วิชาชีพ / ตัวแทนฝ่ายผลิต',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.person_outline, size: 18),
+                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
+            ],
+
+            const SizedBox(height: 4),
+            // Bottom Action Row: Add Sub-Topic and Save Agenda
             Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  flex: 3,
-                  child: TextField(
-                    controller: _resolutionCtrl,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'มติที่ประชุม (Resolution)',
-                      hintText: 'เช่น รับทราบ, รับรองรายงาน, หรือมีมติอนุมัติงบประมาณและมอบหมายงาน',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.check_circle_outline, color: Colors.green),
-                    ),
+                OutlinedButton.icon(
+                  onPressed: _addSubTopic,
+                  icon: const Icon(Icons.add, size: 16),
+                  label: Text(
+                    '+ เพิ่มเรื่องย่อย (เช่น ${ag.agendaNo}.${_subItems.length + 1})',
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: headerColor,
+                    side: BorderSide(color: headerColor.withValues(alpha: 0.5)),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: TextField(
-                    controller: _presenterCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'ผู้เสนอ/ผู้รายงาน (ถ้ามี)',
-                      hintText: 'เช่น จป.วิชาชีพ / ตัวแทนฝ่ายผลิต',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person_outline),
-                    ),
+                const Spacer(),
+                ElevatedButton.icon(
+                  onPressed: _isSaving ? null : _save,
+                  icon: _isSaving
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      : const Icon(Icons.save, size: 18),
+                  label: Text(
+                    _subItems.length > 1
+                        ? 'บันทึกวาระที่ ${ag.agendaNo} (${_subItems.length} เรื่องย่อย)'
+                        : 'บันทึกวาระที่ ${ag.agendaNo}',
                   ),
-                ),
-                const SizedBox(width: 12),
-                SizedBox(
-                  height: 54,
-                  child: ElevatedButton.icon(
-                    onPressed: _isSaving ? null : _save,
-                    icon: _isSaving
-                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Icon(Icons.save, size: 18),
-                    label: const Text('บันทึกวาระ'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A8A),
-                      foregroundColor: Colors.white,
-                    ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
               ],
