@@ -638,26 +638,25 @@ class CpoPdfGenerator {
           ],
 
           pw.SizedBox(height: 16),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: [
-              pw.Column(
-                children: [
-                  pw.SizedBox(height: 30),
-                  pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('( ${meeting.secretaryName.isNotEmpty ? meeting.secretaryName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('เลขานุการ คปอ. / ผู้จดรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
-                ],
-              ),
-              pw.Column(
-                children: [
-                  pw.SizedBox(height: 30),
-                  pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('ประธาน คปอ. / ผู้รับรองรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
-                ],
-              ),
-            ],
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                pw.SizedBox(height: 14),
+                pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 3),
+                pw.Text('( ${meeting.secretaryName.isNotEmpty ? meeting.secretaryName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 2),
+                pw.Text('เลขานุการ คปอ. / ผู้จดรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 24),
+                pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 3),
+                pw.Text('( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 2),
+                pw.Text('ประธาน คปอ. / ผู้รับรองรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
+              ],
+            ),
           ),
         ],
       ),
