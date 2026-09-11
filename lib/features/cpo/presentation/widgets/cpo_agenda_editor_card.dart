@@ -401,6 +401,33 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
     }
   }
 
+  Widget _buildQuickChip(int index, String text) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _subItems[index].resolutionCtrl.text = text;
+        });
+      },
+      borderRadius: BorderRadius.circular(4),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.green.shade50,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.green.shade200),
+        ),
+        child: Text(
+          '+ $text',
+          style: TextStyle(
+            fontSize: 11,
+            color: Colors.green.shade800,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ag = widget.agenda;
@@ -428,10 +455,20 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
         break;
     }
 
-    return Card(
-      elevation: 2,
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF0F172A).withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -441,11 +478,11 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: headerColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: headerColor.withValues(alpha: 0.3)),
+                    border: Border.all(color: headerColor.withValues(alpha: 0.25)),
                   ),
                   child: Text(
                     'วาระที่ ${ag.agendaNo}',
@@ -465,11 +502,11 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                           Flexible(
                             child: Text(
                               ag.agendaTitle,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15.5, color: Color(0xFF0F172A)),
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Icon(Icons.edit_outlined, size: 15, color: Colors.grey.shade500),
+                          Icon(Icons.edit_outlined, size: 15, color: Colors.grey.shade400),
                         ],
                       ),
                     ),
@@ -479,34 +516,46 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                 if (ag.agendaNo == 3)
                   ElevatedButton.icon(
                     onPressed: _isPulling ? null : _pullPreviousPendingItems,
-                    icon: const Icon(Icons.sync, size: 16),
+                    icon: const Icon(Icons.sync, size: 15),
                     label: const Text('ดึงเรื่องสืบเนื่อง', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.teal.shade50,
                       foregroundColor: Colors.teal.shade800,
                       elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        side: BorderSide(color: Colors.teal.shade200),
+                      ),
                     ),
                   ),
                 if (ag.agendaNo == 4)
                   ElevatedButton.icon(
                     onPressed: _isPulling ? null : _pullMonthlySafetyStats,
-                    icon: const Icon(Icons.query_stats, size: 16),
+                    icon: const Icon(Icons.query_stats, size: 15),
                     label: const Text('ดึงสถิติ SAFAPP', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.indigo.shade50,
                       foregroundColor: Colors.indigo.shade800,
                       elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        side: BorderSide(color: Colors.indigo.shade200),
+                      ),
                     ),
                   ),
                 if (ag.agendaNo == 5)
                   ElevatedButton.icon(
                     onPressed: _openAddActionItemDialog,
-                    icon: const Icon(Icons.add_task, size: 16),
+                    icon: const Icon(Icons.add_task, size: 15),
                     label: const Text('มอบหมาย Action Item', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green.shade50,
                       foregroundColor: Colors.green.shade800,
                       elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                        side: BorderSide(color: Colors.green.shade200),
+                      ),
                     ),
                   ),
                 const SizedBox(width: 4),
@@ -523,48 +572,64 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
             // Sub-topics List
             for (int i = 0; i < _subItems.length; i++) ...[
               Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Sub-topic Header & Title
                     Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: headerColor.withValues(alpha: 0.15),
+                            color: headerColor.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: headerColor.withValues(alpha: 0.25)),
                           ),
                           child: Text(
                             '${ag.agendaNo}.${i + 1}',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                              fontSize: 12.5,
                               color: headerColor,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 10),
                         Expanded(
                           child: TextField(
                             controller: _subItems[i].titleCtrl,
+                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13.5, color: Color(0xFF1E293B)),
                             decoration: InputDecoration(
                               isDense: true,
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              labelText: 'หัวข้อเรื่องย่อย (${ag.agendaNo}.${i + 1})',
-                              hintText: 'ระบุหัวข้อเรื่อง เช่น ติดตามการซ่อมแซมจุดเสี่ยง, เสนอจัดซื้อ...',
-                              border: const OutlineInputBorder(),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              hintText: 'หัวข้อเรื่องย่อย เช่น ติดตามการซ่อมแซมจุดเสี่ยง, เสนอจัดซื้ออุปกรณ์...',
+                              hintStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.normal, color: Colors.grey.shade400),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                borderSide: BorderSide(color: headerColor, width: 1.5),
+                              ),
                             ),
                           ),
                         ),
                         if (_subItems.length > 1) ...[
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           IconButton(
                             icon: Icon(Icons.remove_circle_outline, size: 20, color: Colors.red.shade400),
                             tooltip: 'ลบเรื่องย่อยนี้',
@@ -574,51 +639,145 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+
+                    // Discussion / Content Section
+                    Row(
+                      children: [
+                        Icon(Icons.notes_rounded, size: 14, color: Colors.grey.shade600),
+                        const SizedBox(width: 6),
+                        Text(
+                          'ข้อความหารือ / สรุปสาระสำคัญ',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
                     TextField(
                       controller: _subItems[i].discussionCtrl,
                       minLines: 2,
                       maxLines: 4,
+                      style: const TextStyle(fontSize: 13.5, height: 1.4, color: Color(0xFF1E293B)),
                       decoration: InputDecoration(
-                        labelText: 'ข้อความหารือ / สรุปสาระสำคัญ (${ag.agendaNo}.${i + 1})',
-                        hintText: 'บันทึกการรายงาน ความเห็นของกรรมการ หรือข้อเสนอแนะด้านความปลอดภัย',
-                        border: const OutlineInputBorder(),
-                        alignLabelWithHint: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.white,
+                        hintText: 'บันทึกการรายงาน ความเห็นของกรรมการ หรือข้อเสนอแนะด้านความปลอดภัย...',
+                        hintStyle: TextStyle(fontSize: 13, color: Colors.grey.shade400),
+                        contentPadding: const EdgeInsets.all(12),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: headerColor, width: 1.5),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+
+                    // Resolution & Presenter Row
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Resolution
                         Expanded(
                           flex: 3,
-                          child: TextField(
-                            controller: _subItems[i].resolutionCtrl,
-                            maxLines: 2,
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              labelText: 'มติที่ประชุมเฉพาะเรื่องนี้',
-                              hintText: 'เช่น รับทราบ, อนุมัติงบประมาณ ๕๐,๐๐๐ บาท',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.check_circle_outline_rounded, size: 14, color: Colors.green.shade700),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'มติที่ประชุม',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                                  ),
+                                  const Spacer(),
+                                  _buildQuickChip(i, 'รับทราบ'),
+                                  const SizedBox(width: 4),
+                                  _buildQuickChip(i, 'เห็นชอบ'),
+                                  const SizedBox(width: 4),
+                                  _buildQuickChip(i, 'อนุมัติ'),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              TextField(
+                                controller: _subItems[i].resolutionCtrl,
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  hintText: 'เช่น รับทราบ, อนุมัติงบประมาณ ๕๐,๐๐๐ บาท...',
+                                  hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey.shade400),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: Colors.green.shade600, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        const SizedBox(width: 12),
+                        // Presenter
                         Expanded(
                           flex: 2,
-                          child: TextField(
-                            controller: _subItems[i].presenterCtrl,
-                            decoration: const InputDecoration(
-                              isDense: true,
-                              labelText: 'ผู้เสนอ/ผู้รายงาน',
-                              hintText: 'เช่น จป.วิชาชีพ / ตัวแทนฝ่ายผลิต',
-                              border: OutlineInputBorder(),
-                              prefixIcon: Icon(Icons.person_outline, size: 18),
-                              contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                            ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.person_outline_rounded, size: 14, color: Colors.grey.shade600),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'ผู้เสนอ / ผู้รายงาน',
+                                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              TextField(
+                                controller: _subItems[i].presenterCtrl,
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF1E293B)),
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  hintText: 'เช่น จป.วิชาชีพ / ตัวแทนฝ่ายผลิต',
+                                  hintStyle: TextStyle(fontSize: 12.5, color: Colors.grey.shade400),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                    borderSide: BorderSide(color: headerColor, width: 1.5),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
@@ -634,15 +793,16 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
               children: [
                 OutlinedButton.icon(
                   onPressed: _addSubTopic,
-                  icon: const Icon(Icons.add, size: 16),
+                  icon: const Icon(Icons.add_rounded, size: 18),
                   label: Text(
-                    '+ เพิ่มเรื่องย่อย (เช่น ${ag.agendaNo}.${_subItems.length + 1})',
+                    'เพิ่มเรื่องย่อย (${ag.agendaNo}.${_subItems.length + 1})',
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: headerColor,
-                    side: BorderSide(color: headerColor.withValues(alpha: 0.5)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    backgroundColor: Colors.white,
+                    side: BorderSide(color: headerColor.withValues(alpha: 0.4)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
@@ -655,16 +815,18 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                         )
-                      : const Icon(Icons.save, size: 18),
+                      : const Icon(Icons.save_outlined, size: 18),
                   label: Text(
                     _subItems.length > 1
                         ? 'บันทึกวาระที่ ${ag.agendaNo} (${_subItems.length} เรื่องย่อย)'
                         : 'บันทึกวาระที่ ${ag.agendaNo}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1E3A8A),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
