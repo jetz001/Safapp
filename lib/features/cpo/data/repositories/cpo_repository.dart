@@ -393,7 +393,7 @@ class CpoRepository {
 
     // 2. Fetch agendas 4 and 5 for this meeting
     final agendaMaps = await db.query(
-      'cpo_agendas',
+      'cpo_meeting_agendas',
       where: 'meeting_id = ? AND agenda_no IN (4, 5)',
       whereArgs: [meetingId],
       orderBy: 'agenda_no ASC',
