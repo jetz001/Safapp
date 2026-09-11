@@ -9,7 +9,23 @@ import 'package:printing/printing.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../../data/models/cpo_election_model.dart';
 
-/// PDF Exporter สำหรับเอกสารทางการ คปอ. ตามแบบฟอร์มคู่มือ กสร. ๑/๒๕๖๑
+class _PdfSubTopic {
+  final String subNo;
+  final String title;
+  final String discussion;
+  final String resolution;
+  final String presenter;
+
+  _PdfSubTopic({
+    required this.subNo,
+    required this.title,
+    required this.discussion,
+    required this.resolution,
+    required this.presenter,
+  });
+}
+
+/// PDF Exporter สำหรับเอกสารทางการ คปอ.
 class CpoPdfGenerator {
   static Future<pw.ThemeData> _buildTheme() async {
     pw.Font? regular;
