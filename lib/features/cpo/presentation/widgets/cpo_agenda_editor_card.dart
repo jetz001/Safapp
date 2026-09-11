@@ -1,6 +1,10 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:file_picker/file_picker.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../providers/cpo_providers.dart';
 import 'cpo_action_item_dialog.dart';
@@ -10,16 +14,19 @@ class _SubTopicItem {
   final TextEditingController discussionCtrl;
   final TextEditingController resolutionCtrl;
   final TextEditingController presenterCtrl;
+  List<String> images;
 
   _SubTopicItem({
     String title = '',
     String discussion = '',
     String resolution = '',
     String presenter = '',
+    List<String>? images,
   })  : titleCtrl = TextEditingController(text: title),
         discussionCtrl = TextEditingController(text: discussion),
         resolutionCtrl = TextEditingController(text: resolution),
-        presenterCtrl = TextEditingController(text: presenter);
+        presenterCtrl = TextEditingController(text: presenter),
+        images = images != null ? List<String>.from(images) : [];
 
   void dispose() {
     titleCtrl.dispose();
@@ -34,6 +41,7 @@ class _SubTopicItem {
         'discussion': discussionCtrl.text.trim(),
         'resolution': resolutionCtrl.text.trim(),
         'presenter': presenterCtrl.text.trim(),
+        'images': images,
       };
 }
 
@@ -93,11 +101,21 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
         if (list.isNotEmpty) {
           for (final item in list) {
             final m = item as Map<String, dynamic>;
+            final rawImages = m['images'];
+            final List<String> imgs = [];
+            if (rawImages is List) {
+              for (final img in rawImages) {
+                if (img != null && img.toString().isNotEmpty) {
+                  imgs.add(img.toString());
+                }
+              }
+            }
             _subItems.add(_SubTopicItem(
               title: m['title']?.toString() ?? '',
               discussion: m['discussion']?.toString() ?? '',
               resolution: m['resolution']?.toString() ?? '',
               presenter: m['presenter']?.toString() ?? '',
+              images: imgs,
             ));
           }
           return;
@@ -166,6 +184,172 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
         _subItems.add(_SubTopicItem());
       }
     });
+  }
+
+  Future<void> _pickImagesForSubTopic(int index) async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'bmp'],
+        allowMultiple: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final appDocDir = await getApplicationDocumentsDirectory();
+      final targetFolder = Directory('${appDocDir.path}/SafetySuperapp/cpo_attachments');
+      if (!await targetFolder.exists()) {
+        await targetFolder.create(recursive: true);
+      }
+
+      final newPaths = <String>[];
+      for (final file in result.files) {
+        if (file.path != null && file.path!.isNotEmpty) {
+          final original = File(file.path!);
+          if (await original.exists()) {
+            final ext = p.extension(file.path!).toLowerCase();
+            final safeExt = ext.isNotEmpty ? ext : '.jpg';
+            final fileName = 'cpo_${widget.meetingId}_ag${widget.agenda.agendaNo}_sub${index + 1}_${DateTime.now().millisecondsSinceEpoch}_${newPaths.length}$safeExt';
+            final targetPath = '${targetFolder.path}/$fileName';
+            await original.copy(targetPath);
+            newPaths.add(targetPath);
+          }
+        }
+      }
+
+      if (newPaths.isNotEmpty && mounted) {
+        setState(() {
+          _subItems[index].images.addAll(newPaths);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('เกิดข้อผิดพลาดในการแนบรูปภาพ: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _removeImage(int subTopicIndex, int imageIndex) {
+    setState(() {
+      _subItems[subTopicIndex].images.removeAt(imageIndex);
+    });
+  }
+
+  void _showImagePreviewDialog(String imagePath) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.all(20),
+        child: Stack(
+          alignment: Alignment.topRight,
+          children: [
+            InteractiveViewer(
+              clipBehavior: Clip.none,
+              maxScale: 4.0,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.file(
+                  File(imagePath),
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      padding: const EdgeInsets.all(32),
+                      color: Colors.white,
+                      child: const Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.broken_image_rounded, size: 48, color: Colors.grey),
+                          SizedBox(height: 8),
+                          Text('ไม่พบไฟล์รูปภาพ', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: IconButton.filled(
+                icon: const Icon(Icons.close, size: 20),
+                style: IconButton.styleFrom(backgroundColor: Colors.black54, foregroundColor: Colors.white),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageThumbnailCard(int subTopicIndex, int imageIndex, Color headerColor) {
+    final imagePath = _subItems[subTopicIndex].images[imageIndex];
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        InkWell(
+          onTap: () => _showImagePreviewDialog(imagePath),
+          borderRadius: BorderRadius.circular(8),
+          child: Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey.shade300),
+              color: Colors.grey.shade100,
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image.file(
+                  File(imagePath),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Icon(Icons.broken_image, size: 28, color: Colors.grey),
+                  ),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    color: Colors.black54,
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Text(
+                      'รูปที่ ${imageIndex + 1}',
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: Colors.white, fontSize: 9.5, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: -6,
+          right: -6,
+          child: InkWell(
+            onTap: () => _removeImage(subTopicIndex, imageIndex),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Colors.black26, blurRadius: 3, offset: Offset(0, 1)),
+                ],
+              ),
+              child: const Icon(Icons.close, size: 12, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _save() async {
@@ -677,6 +861,77 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(color: headerColor, width: 1.5),
                         ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Image Attachments Section
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.photo_library_outlined, size: 15, color: headerColor),
+                              const SizedBox(width: 6),
+                              Text(
+                                'รูปภาพประกอบ (${_subItems[i].images.length} รูป)',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.grey.shade700),
+                              ),
+                              const Spacer(),
+                              OutlinedButton.icon(
+                                onPressed: () => _pickImagesForSubTopic(i),
+                                icon: const Icon(Icons.add_photo_alternate_outlined, size: 15),
+                                label: const Text('แนบรูปภาพ', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: headerColor,
+                                  side: BorderSide(color: headerColor.withValues(alpha: 0.5)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                              ),
+                            ],
+                          ),
+                          if (_subItems[i].images.isNotEmpty) ...[
+                            const SizedBox(height: 10),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              children: [
+                                for (int imgIdx = 0; imgIdx < _subItems[i].images.length; imgIdx++)
+                                  _buildImageThumbnailCard(i, imgIdx, headerColor),
+                              ],
+                            ),
+                          ] else ...[
+                            const SizedBox(height: 6),
+                            InkWell(
+                              onTap: () => _pickImagesForSubTopic(i),
+                              borderRadius: BorderRadius.circular(6),
+                              child: Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                alignment: Alignment.center,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.add_photo_alternate_outlined, size: 16, color: Colors.grey.shade400),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'คลิกเพื่อแนบรูปภาพประกอบ (เช่น ภาพการตรวจสภาพแวดล้อม, จุดเสี่ยง, หรือกิจกรรม)',
+                                      style: TextStyle(fontSize: 11.5, color: Colors.grey.shade500),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                     const SizedBox(height: 12),

@@ -15,6 +15,7 @@ class _PdfSubTopic {
   final String discussion;
   final String resolution;
   final String presenter;
+  final List<String> images;
 
   _PdfSubTopic({
     required this.subNo,
@@ -22,6 +23,7 @@ class _PdfSubTopic {
     required this.discussion,
     required this.resolution,
     required this.presenter,
+    this.images = const [],
   });
 }
 
@@ -99,12 +101,22 @@ class CpoPdfGenerator {
         if (list.isNotEmpty) {
           return list.map((item) {
             final m = item as Map<String, dynamic>;
+            final rawImages = m['images'];
+            final List<String> imgs = [];
+            if (rawImages is List) {
+              for (final img in rawImages) {
+                if (img != null && img.toString().isNotEmpty) {
+                  imgs.add(img.toString());
+                }
+              }
+            }
             return _PdfSubTopic(
               subNo: m['sub_no']?.toString() ?? '',
               title: m['title']?.toString() ?? '',
               discussion: m['discussion']?.toString() ?? '',
               resolution: m['resolution']?.toString() ?? '',
               presenter: m['presenter']?.toString() ?? '',
+              images: imgs,
             );
           }).toList();
         }
@@ -203,6 +215,21 @@ class CpoPdfGenerator {
                   ),
                 ),
               ],
+              // รูปภาพประกอบ (ถ้ามี)
+              if (st.images.isNotEmpty) ...[
+                pw.SizedBox(height: 3),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 6, bottom: 3),
+                  child: pw.Text(
+                    'รูปภาพประกอบ:',
+                    style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700),
+                  ),
+                ),
+                pw.Padding(
+                  padding: const pw.EdgeInsets.only(left: 6, bottom: 4),
+                  child: _buildPdfImagesWrap(st.images),
+                ),
+              ],
               // มติที่ประชุม อยู่ใต้ข้อใครข้อมัน!
               pw.Container(
                 width: double.infinity,
@@ -234,6 +261,62 @@ class CpoPdfGenerator {
       );
     }
     return widgets;
+  }
+
+  static pw.Widget _buildPdfImagesWrap(List<String> imagePaths) {
+    final imageCards = <pw.Widget>[];
+
+    for (int i = 0; i < imagePaths.length; i++) {
+      final imgPath = imagePaths[i];
+      try {
+        final f = File(imgPath);
+        if (f.existsSync()) {
+          final bytes = f.readAsBytesSync();
+          final memImg = pw.MemoryImage(bytes);
+          imageCards.add(
+            pw.Container(
+              width: 140,
+              padding: const pw.EdgeInsets.all(3),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(3)),
+                border: pw.Border.all(color: PdfColors.grey300, width: 0.5),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
+                  pw.ClipRRect(
+                    horizontalRadius: 2,
+                    verticalRadius: 2,
+                    child: pw.Image(
+                      memImg,
+                      width: 134,
+                      height: 88,
+                      fit: pw.BoxFit.cover,
+                    ),
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    'รูปภาพที่ ${i + 1}',
+                    style: const pw.TextStyle(fontSize: 7, color: PdfColors.grey700),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+      } catch (_) {}
+    }
+
+    if (imageCards.isEmpty) {
+      return pw.SizedBox.shrink();
+    }
+
+    return pw.Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: imageCards,
+    );
   }
 
   /// สร้างรายงานการประชุม คปอ. ฉบับสมบูรณ์ (๖ วาระ) พร้อมหน้าปก ๑ หน้า
