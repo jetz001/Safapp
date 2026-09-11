@@ -335,8 +335,9 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
           ),
         ),
       ),
+      actionsAlignment: widget.existingMeeting != null ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
       actions: [
-        if (widget.existingMeeting != null) ...[
+        if (widget.existingMeeting != null)
           TextButton.icon(
             style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
             icon: const Icon(Icons.delete_outline, size: 18),
@@ -374,15 +375,19 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
               }
             },
           ),
-          const Spacer(),
-        ],
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A8A)),
-          child: _isSaving
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : const Text('บันทึกการประชุม', style: TextStyle(color: Colors.white)),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _isSaving ? null : _save,
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A8A)),
+              child: _isSaving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : const Text('บันทึกการประชุม', style: TextStyle(color: Colors.white)),
+            ),
+          ],
         ),
       ],
     );
