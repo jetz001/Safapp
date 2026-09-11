@@ -649,7 +649,15 @@ class CpoPdfGenerator {
                 pw.Text('( ${meeting.secretaryName.isNotEmpty ? meeting.secretaryName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
                 pw.SizedBox(height: 2),
                 pw.Text('เลขานุการ คปอ. / ผู้จดรายงานการประชุม', style: const pw.TextStyle(fontSize: 9)),
-                pw.SizedBox(height: 24),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 24),
+          pw.Align(
+            alignment: pw.Alignment.center,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
                 pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
                 pw.SizedBox(height: 3),
                 pw.Text('( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
