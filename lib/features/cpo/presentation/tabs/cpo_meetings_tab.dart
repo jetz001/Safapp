@@ -22,6 +22,8 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
   int? _selectedMeetingId;
   String _searchQuery = '';
   CpoMeetingStatus? _filterStatus;
+  bool _allAgendasExpanded = true;
+  final Map<int, bool> _agendaExpandState = {};
 
   @override
   Widget build(BuildContext context) {
@@ -657,6 +659,30 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
               const Spacer(),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF475569),
+                  side: const BorderSide(color: Color(0xFFCBD5E1)),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  visualDensity: VisualDensity.compact,
+                ),
+                icon: Icon(_allAgendasExpanded ? Icons.unfold_less_rounded : Icons.unfold_more_rounded, size: 16),
+                label: Text(
+                  _allAgendasExpanded ? 'ย่อทั้งหมด' : 'ขยายทั้งหมด',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                ),
+                onPressed: () {
+                  setState(() {
+                    _allAgendasExpanded = !_allAgendasExpanded;
+                    for (final ag in meeting.agendas) {
+                      if (ag.id != null) {
+                        _agendaExpandState[ag.id!] = _allAgendasExpanded;
+                      }
+                    }
+                  });
+                },
+              ),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF0D9488),
@@ -676,8 +702,18 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: CpoAgendaEditorCard(
+                key: ValueKey(agenda.id),
                 agenda: agenda,
                 meetingId: meeting.id!,
+                isExpanded: _agendaExpandState[agenda.id] ?? _allAgendasExpanded,
+                onToggleExpand: () {
+                  if (agenda.id != null) {
+                    final current = _agendaExpandState[agenda.id] ?? _allAgendasExpanded;
+                    setState(() {
+                      _agendaExpandState[agenda.id!] = !current;
+                    });
+                  }
+                },
                 onAgendaUpdated: () => ref.read(cpoMeetingsProvider.notifier).refresh(),
               ),
             ),

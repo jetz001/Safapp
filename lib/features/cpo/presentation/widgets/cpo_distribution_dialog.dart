@@ -6,11 +6,13 @@ import '../providers/cpo_providers.dart';
 class CpoDistributionDialog extends ConsumerStatefulWidget {
   final int meetingId;
   final String meetingCode;
+  final CpoDistributionModel? existingLog;
 
   const CpoDistributionDialog({
     super.key,
     required this.meetingId,
     required this.meetingCode,
+    this.existingLog,
   });
 
   @override
@@ -30,10 +32,14 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
   @override
   void initState() {
     super.initState();
-    _dateCtrl = TextEditingController(text: DateTime.now().toIso8601String().substring(0, 10));
-    _groupCtrl = TextEditingController(text: 'พนักงานทุกแผนก และคณะกรรมการ คปอ.');
-    _senderCtrl = TextEditingController(text: 'เลขานุการ คปอ.');
-    _notesCtrl = TextEditingController();
+    final log = widget.existingLog;
+    _dateCtrl = TextEditingController(text: log?.distributionDate ?? DateTime.now().toIso8601String().substring(0, 10));
+    _groupCtrl = TextEditingController(text: log?.recipientGroup ?? 'พนักงานทุกแผนก และคณะกรรมการ คปอ.');
+    _senderCtrl = TextEditingController(text: log?.senderName ?? 'เลขานุการ คปอ.');
+    _notesCtrl = TextEditingController(text: log?.notes ?? '');
+    if (log != null) {
+      _method = log.distributionMethod;
+    }
   }
 
   @override
@@ -45,27 +51,49 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
     super.dispose();
   }
 
+  Future<void> _selectDate() async {
+    final cur = DateTime.tryParse(_dateCtrl.text) ?? DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: cur,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035),
+    );
+    if (picked != null) {
+      setState(() => _dateCtrl.text = picked.toIso8601String().substring(0, 10));
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
 
     try {
+      final isEdit = widget.existingLog != null;
       final log = CpoDistributionModel(
+        id: widget.existingLog?.id,
         meetingId: widget.meetingId,
         distributionDate: _dateCtrl.text.trim(),
         distributionMethod: _method,
         recipientGroup: _groupCtrl.text.trim(),
         senderName: _senderCtrl.text.trim(),
         notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        createdAt: widget.existingLog?.createdAt,
       );
 
-      final repo = ref.read(cpoRepositoryProvider);
-      await repo.addDistributionLog(log);
+      if (isEdit) {
+        await ref.read(cpoDistributionLogsProvider.notifier).updateLog(log);
+      } else {
+        await ref.read(cpoDistributionLogsProvider.notifier).addLog(log);
+      }
 
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('บันทึกการแจกจ่าย/แจ้งเวียนรายงานการประชุมเรียบร้อย'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(isEdit ? 'แก้ไขบันทึกการแจกจ่ายเรียบร้อยแล้ว' : 'บันทึกการแจกจ่าย/แจ้งเวียนรายงานการประชุมเรียบร้อย'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
@@ -79,8 +107,48 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
     }
   }
 
+  Future<void> _confirmDelete() async {
+    final log = widget.existingLog;
+    if (log == null || log.id == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text('ยืนยันลบบันทึกการแจกจ่าย'),
+          ],
+        ),
+        content: Text('คุณต้องการลบบันทึกการแจกจ่าย (${log.methodLabel}) ออกจากระบบหรือไม่?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('ยืนยันลบ'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      await ref.read(cpoDistributionLogsProvider.notifier).deleteLog(log.id!);
+      if (mounted) {
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ลบบันทึกการแจกจ่ายเรียบร้อยแล้ว'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.existingLog != null;
+
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       title: Row(
@@ -88,10 +156,15 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(color: Colors.teal.shade100, borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.send_rounded, color: Colors.teal.shade800),
+            child: Icon(isEdit ? Icons.edit_note_rounded : Icons.send_rounded, color: Colors.teal.shade800),
           ),
           const SizedBox(width: 12),
-          Expanded(child: Text('บันทึกการแจกจ่าย/แจ้งเวียน ${widget.meetingCode}')),
+          Expanded(
+            child: Text(
+              isEdit ? 'แก้ไขบันทึกการแจกจ่าย ${widget.meetingCode}' : 'บันทึกการแจกจ่าย/แจ้งเวียน ${widget.meetingCode}',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ),
         ],
       ),
       content: SizedBox(
@@ -103,6 +176,8 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
             children: [
               TextFormField(
                 controller: _dateCtrl,
+                readOnly: true,
+                onTap: _selectDate,
                 decoration: const InputDecoration(
                   labelText: 'วันที่ดำเนินการแจกจ่าย/ปิดประกาศ *',
                   border: OutlineInputBorder(),
@@ -112,7 +187,7 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                value: _method,
+                initialValue: _method,
                 decoration: const InputDecoration(
                   labelText: 'ช่องทางการเผยแพร่/แจกจ่าย *',
                   border: OutlineInputBorder(),
@@ -161,14 +236,28 @@ class _CpoDistributionDialogState extends ConsumerState<CpoDistributionDialog> {
           ),
         ),
       ),
+      actionsAlignment: isEdit ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
-        ElevatedButton(
-          onPressed: _isSaving ? null : _save,
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade800),
-          child: _isSaving
-              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : const Text('บันทึกการแจกจ่าย', style: TextStyle(color: Colors.white)),
+        if (isEdit)
+          TextButton.icon(
+            style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
+            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+            label: const Text('ลบบันทึกนี้'),
+            onPressed: _confirmDelete,
+          ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
+            const SizedBox(width: 8),
+            ElevatedButton(
+              onPressed: _isSaving ? null : _save,
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.teal.shade800),
+              child: _isSaving
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text(isEdit ? 'บันทึกการแก้ไข' : 'บันทึกการแจกจ่าย', style: const TextStyle(color: Colors.white)),
+            ),
+          ],
         ),
       ],
     );

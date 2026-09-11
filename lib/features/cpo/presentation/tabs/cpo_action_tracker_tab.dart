@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/cpo_action_item_model.dart';
 import '../../data/models/cpo_distribution_model.dart';
-import '../../data/models/cpo_meeting_model.dart';
 import '../../domain/enums/cpo_action_status.dart';
-import '../../domain/enums/cpo_meeting_status.dart';
 import '../providers/cpo_providers.dart';
 import '../widgets/cpo_action_item_dialog.dart';
-import '../widgets/cpo_meeting_edit_dialog.dart';
+import '../widgets/cpo_distribution_dialog.dart';
 
 class CpoActionTrackerTab extends ConsumerStatefulWidget {
   const CpoActionTrackerTab({super.key});
@@ -36,9 +34,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final actionsAsync = ref.watch(cpoActionItemsProvider);
-    final meetingsAsync = ref.watch(cpoMeetingsProvider);
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -102,7 +98,6 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
   }
 
   Widget _buildActionBar(BuildContext context, List<CpoActionItemModel> allActions) {
-    final pendingCount = allActions.where((a) => a.status == CpoActionStatus.pending || a.status == CpoActionStatus.inProgress).length;
     final overdueCount = allActions.where((a) => a.isOverdue).length;
 
     return Container(
@@ -169,20 +164,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
                 label: const Text('ดึงมติจากวาระ ๔-๕ อัตโนมัติ'),
                 onPressed: () => _handleAutoSync(context),
               ),
-              const SizedBox(width: 8),
-              // Button: Draft Next Meeting
-              OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.indigo.shade700,
-                  side: BorderSide(color: Colors.indigo.shade300),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                icon: const Icon(Icons.schedule_send_outlined, size: 18),
-                label: Text('เตรียมวาระครั้งถัดไป ($pendingCount)'),
-                onPressed: () => _draftNextMeeting(context, allActions),
-              ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E3A8A),
@@ -339,7 +321,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.1),
+                              color: statusColor.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -355,7 +337,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
                         children: [
                           _buildInfoRow(Icons.person_outline, 'ผู้รับผิดชอบ: ${item.assigneeName ?? "-"}'),
                           _buildInfoRow(Icons.business_outlined, 'แผนก: ${item.department ?? "-"}'),
-                          _buildInfoRow(Icons.event_outlined, 'กำหนดเสร็จ: ${item.dueDate ?? "-"}'),
+                          _buildInfoRow(Icons.event_outlined, 'กำหนดเสร็จ: ${item.dueDate}'),
                           if (item.completedDate != null)
                             _buildInfoRow(Icons.check_circle_outline, 'แล้วเสร็จ: ${item.completedDate}'),
                         ],
@@ -371,7 +353,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
                   tooltip: 'ลบรายการ',
-                  onPressed: () => _deleteActionItem(context, item),
+                  onPressed: () => _deleteActionItem(item),
                 ),
               ],
             ),
@@ -434,15 +416,14 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
   }
 
   Widget _buildDistributionLogsView(BuildContext context) {
-    final repo = ref.watch(cpoRepositoryProvider);
+    final logsAsync = ref.watch(cpoDistributionLogsProvider);
+    final meetingsAsync = ref.watch(cpoMeetingsProvider);
+    final meetings = meetingsAsync.asData?.value ?? [];
 
-    return FutureBuilder<List<CpoDistributionModel>>(
-      future: repo.getDistributionLogs(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        final logs = snapshot.data ?? [];
+    return logsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, st) => Center(child: Text('เกิดข้อผิดพลาด: $e')),
+      data: (logs) {
         if (logs.isEmpty) {
           return Center(
             child: Column(
@@ -450,9 +431,11 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
               children: [
                 Icon(Icons.forward_to_inbox_outlined, size: 64, color: Colors.grey.shade400),
                 const SizedBox(height: 12),
-                Text('ยังไม่มีบันทึกการแจกจ่ายรายงานการประชุม', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+                Text('ยังไม่มีบันทึกการแจกจ่ายรายงานการประชุม',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
                 const SizedBox(height: 6),
-                Text('สามารถบันทึกการแจกจ่ายรายงานได้จากแท็บ "การประชุม คปอ."', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
+                Text('สามารถบันทึกการแจกจ่ายรายงานได้จากแท็บ "การประชุม คปอ."',
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
               ],
             ),
           );
@@ -464,6 +447,9 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
           separatorBuilder: (ctx, i) => const SizedBox(height: 10),
           itemBuilder: (context, index) {
             final log = logs[index];
+            final meeting = meetings.where((m) => m.id == log.meetingId).firstOrNull;
+            final meetingTitle = meeting != null ? meeting.meetingCode : 'การประชุมรหัส #${log.meetingId}';
+
             return Card(
               elevation: 0.5,
               shape: RoundedRectangleBorder(
@@ -472,24 +458,50 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: const Color(0xFF0D9488).withOpacity(0.1),
+                  backgroundColor: const Color(0xFF0D9488).withValues(alpha: 0.1),
                   foregroundColor: const Color(0xFF0D9488),
                   child: const Icon(Icons.send, size: 18),
                 ),
                 title: Row(
                   children: [
-                    Text('การประชุมรหัส #${log.meetingId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text(meetingTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    if (meeting != null && meeting.meetingTitle.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text('(${meeting.meetingTitle})',
+                          style: TextStyle(fontSize: 12.5, color: Colors.grey.shade600, fontWeight: FontWeight.normal)),
+                    ],
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(4)),
-                      child: Text(log.methodLabel, style: TextStyle(fontSize: 11, color: Colors.blue.shade800, fontWeight: FontWeight.w600)),
+                      child: Text(log.methodLabel,
+                          style: TextStyle(fontSize: 11, color: Colors.blue.shade800, fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
-                subtitle: Text(
-                  'แจกจ่ายเมื่อ: ${log.distributionDate} | ผู้รับ/กลุ่มเป้าหมาย: ${log.recipientGroup} | บันทึกโดย: ${log.senderName}\nหมายเหตุ: ${log.notes ?? "-"}',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                subtitle: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    'แจกจ่ายเมื่อ: ${log.distributionDate} | ผู้รับ/กลุ่มเป้าหมาย: ${log.recipientGroup} | บันทึกโดย: ${log.senderName}\nหมายเหตุ: ${log.notes ?? "-"}',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.edit_outlined, size: 19, color: Color(0xFF1E3A8A)),
+                      tooltip: 'แก้ไขบันทึก',
+                      splashRadius: 18,
+                      onPressed: () => _editDistributionLog(context, log, meetingTitle),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete_outline_rounded, size: 19, color: Colors.red.shade700),
+                      tooltip: 'ลบบันทึก',
+                      splashRadius: 18,
+                      onPressed: () => _deleteDistributionLog(log),
+                    ),
+                  ],
                 ),
               ),
             );
@@ -530,7 +542,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 DropdownButtonFormField<CpoActionStatus>(
-                  value: selectedStatus,
+                  initialValue: selectedStatus,
                   decoration: const InputDecoration(labelText: 'สถานะการดำเนินงาน', border: OutlineInputBorder()),
                   items: CpoActionStatus.values
                       .map((s) => DropdownMenuItem(value: s, child: Text(s.thaiLabel)))
@@ -598,7 +610,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
     );
   }
 
-  Future<void> _deleteActionItem(BuildContext context, CpoActionItemModel item) async {
+  Future<void> _deleteActionItem(CpoActionItemModel item) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -623,44 +635,48 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
     }
   }
 
-  Future<void> _draftNextMeeting(BuildContext context, List<CpoActionItemModel> allActions) async {
-    final pendingItems = allActions.where((a) => a.status == CpoActionStatus.pending || a.status == CpoActionStatus.inProgress).toList();
-    final meetings = await ref.read(cpoMeetingsProvider.future);
-    final activeTerm = await ref.read(cpoActiveTermProvider.future);
+  void _editDistributionLog(BuildContext context, CpoDistributionModel log, String meetingCode) {
+    showDialog(
+      context: context,
+      builder: (ctx) => CpoDistributionDialog(
+        meetingId: log.meetingId,
+        meetingCode: meetingCode,
+        existingLog: log,
+      ),
+    );
+  }
 
-    final now = DateTime.now();
-    final yearTh = (now.year + 543).toString();
-
-    int nextMeetingNum = 1;
-    if (meetings.isNotEmpty) {
-      final thisYearMeetings = meetings.where((m) => m.meetingYear == yearTh);
-      if (thisYearMeetings.isNotEmpty) {
-        final maxNum = thisYearMeetings.map((m) => m.meetingNumber).reduce((a, b) => a > b ? a : b);
-        nextMeetingNum = maxNum + 1;
-      }
-    }
-
-    final draftMeeting = CpoMeetingModel(
-      termId: activeTerm?.id ?? 1,
-      meetingNo: nextMeetingNum,
-      meetingYear: yearTh,
-      meetingTitle: 'การประชุม คปอ. ประจำเดือน ครั้งที่ $nextMeetingNum/$yearTh',
-      meetingDate: now.add(const Duration(days: 7)).toIso8601String().substring(0, 10),
-      startTime: '09:30',
-      endTime: '12:00',
-      location: 'ห้องประชุมความปลอดภัย ชั้น ๒',
-      status: CpoMeetingStatus.scheduled,
-      chairName: activeTerm?.members.where((m) => m.cpoRole.name == 'chair').firstOrNull?.fullName ?? 'ประธาน คปอ.',
-      secretaryName: activeTerm?.members.where((m) => m.cpoRole.name == 'secretary').firstOrNull?.fullName ?? 'เลขานุการ คปอ.',
-      agendas: const [],
-      attendees: const [],
+  Future<void> _deleteDistributionLog(CpoDistributionModel log) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text('ยืนยันลบบันทึกการแจกจ่าย'),
+          ],
+        ),
+        content: Text('คุณต้องการลบบันทึกการแจกจ่าย (${log.methodLabel}) ออกจากระบบหรือไม่?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('ยืนยันลบ'),
+          ),
+        ],
+      ),
     );
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (ctx) => CpoMeetingEditDialog(existingMeeting: draftMeeting),
-      );
+    if (confirm == true && log.id != null) {
+      await ref.read(cpoDistributionLogsProvider.notifier).deleteLog(log.id!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ลบบันทึกการแจกจ่ายเรียบร้อยแล้ว'), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 }

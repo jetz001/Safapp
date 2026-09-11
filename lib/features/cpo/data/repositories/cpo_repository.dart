@@ -581,6 +581,16 @@ class CpoRepository {
     return await db.insert('cpo_distribution_logs', log.toMap());
   }
 
+  Future<void> updateDistributionLog(CpoDistributionModel log) async {
+    final db = await _dbHelper.database;
+    await db.update('cpo_distribution_logs', log.toMap(), where: 'id = ?', whereArgs: [log.id]);
+  }
+
+  Future<void> deleteDistributionLog(int id) async {
+    final db = await _dbHelper.database;
+    await db.delete('cpo_distribution_logs', where: 'id = ?', whereArgs: [id]);
+  }
+
   // ══════════════════════════════════════════════════════════════════════════
   // 6. Cross-Module Data Pull & Next Meeting Agenda Roll-Forward
   // ══════════════════════════════════════════════════════════════════════════

@@ -4,6 +4,7 @@ import '../../data/models/cpo_committee_model.dart';
 import '../../data/models/cpo_election_model.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../../data/models/cpo_action_item_model.dart';
+import '../../data/models/cpo_distribution_model.dart';
 import '../../domain/services/cpo_statutory_evaluator.dart';
 import '../../data/datasources/cpo_statutory_standards.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
@@ -429,3 +430,39 @@ final cpoDashboardSummaryProvider = FutureProvider<Map<String, dynamic>>((ref) a
     'monthly_safety_stats': monthlySafetyStats,
   };
 });
+
+/// Provider บันทึกการแจกจ่ายรายงานการประชุม คปอ.
+final cpoDistributionLogsProvider = AsyncNotifierProvider<CpoDistributionLogsNotifier, List<CpoDistributionModel>>(
+  CpoDistributionLogsNotifier.new,
+);
+
+class CpoDistributionLogsNotifier extends AsyncNotifier<List<CpoDistributionModel>> {
+  @override
+  Future<List<CpoDistributionModel>> build() async {
+    final repo = ref.watch(cpoRepositoryProvider);
+    return await repo.getDistributionLogs();
+  }
+
+  Future<void> refresh() async {
+    state = await AsyncValue.guard(() => ref.read(cpoRepositoryProvider).getDistributionLogs());
+  }
+
+  Future<void> addLog(CpoDistributionModel log) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.addDistributionLog(log);
+    await refresh();
+  }
+
+  Future<void> updateLog(CpoDistributionModel log) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.updateDistributionLog(log);
+    await refresh();
+  }
+
+  Future<void> deleteLog(int id) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    await repo.deleteDistributionLog(id);
+    await refresh();
+  }
+}
+

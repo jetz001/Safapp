@@ -50,6 +50,8 @@ class CpoAgendaEditorCard extends ConsumerStatefulWidget {
   final int meetingId;
   final int? previousMeetingId;
   final VoidCallback? onAgendaUpdated;
+  final bool? isExpanded;
+  final VoidCallback? onToggleExpand;
 
   const CpoAgendaEditorCard({
     super.key,
@@ -57,6 +59,8 @@ class CpoAgendaEditorCard extends ConsumerStatefulWidget {
     required this.meetingId,
     this.previousMeetingId,
     this.onAgendaUpdated,
+    this.isExpanded,
+    this.onToggleExpand,
   });
 
   @override
@@ -67,20 +71,48 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
   final List<_SubTopicItem> _subItems = [];
   bool _isSaving = false;
   bool _isPulling = false;
+  late bool _isExpanded;
 
   @override
   void initState() {
     super.initState();
+    _isExpanded = widget.isExpanded ?? true;
     _initSubItems();
   }
 
   @override
   void didUpdateWidget(covariant CpoAgendaEditorCard oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != null && widget.isExpanded != oldWidget.isExpanded) {
+      _isExpanded = widget.isExpanded!;
+    }
     if (oldWidget.agenda != widget.agenda) {
       _disposeSubItems();
       _initSubItems();
     }
+  }
+
+  void _toggleExpand() {
+    setState(() {
+      _isExpanded = !_isExpanded;
+    });
+    widget.onToggleExpand?.call();
+  }
+
+  String _buildCollapsedSummary() {
+    if (_subItems.isEmpty) return 'ยังไม่มีรายละเอียดเรื่องย่อย';
+    final titles = _subItems
+        .map((s) => s.titleCtrl.text.trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    if (titles.isNotEmpty) {
+      return titles.join('  •  ');
+    }
+    final firstDisc = _subItems.first.discussionCtrl.text.trim();
+    if (firstDisc.isNotEmpty) {
+      return firstDisc.replaceAll('\n', ' ');
+    }
+    return '${_subItems.length} เรื่องย่อย (ยังไม่ได้ระบุหัวข้อ)';
   }
 
   void _disposeSubItems() {
@@ -758,9 +790,63 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                   visualDensity: VisualDensity.compact,
                   onPressed: _confirmDeleteAgenda,
                 ),
+                IconButton(
+                  icon: Icon(
+                    _isExpanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                    size: 22,
+                    color: const Color(0xFF475569),
+                  ),
+                  tooltip: _isExpanded ? 'ย่อวาระ' : 'ขยายวาระ',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: _toggleExpand,
+                ),
               ],
             ),
-            const SizedBox(height: 14),
+
+            if (!_isExpanded) ...[
+              InkWell(
+                onTap: _toggleExpand,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  margin: const EdgeInsets.only(top: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.notes_rounded, size: 16, color: headerColor),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _buildCollapsedSummary(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 13, color: Color(0xFF334155)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: headerColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          '${_subItems.length} เรื่องย่อย',
+                          style: TextStyle(fontSize: 11, color: headerColor, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Icon(Icons.unfold_more_rounded, size: 18, color: headerColor),
+                    ],
+                  ),
+                ),
+              ),
+            ] else ...[
+              const SizedBox(height: 14),
 
             // Sub-topics List
             for (int i = 0; i < _subItems.length; i++) ...[
@@ -1097,7 +1183,8 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
               ],
             ),
           ],
-        ),
+        ],
+      ),
       ),
     );
   }
