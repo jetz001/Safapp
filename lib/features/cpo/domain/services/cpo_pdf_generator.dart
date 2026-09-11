@@ -366,30 +366,25 @@ class CpoPdfGenerator {
             pw.Table(
               border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
               columnWidths: {
-                0: const pw.FixedColumnWidth(28),
-                1: const pw.FlexColumnWidth(3),
-                2: const pw.FlexColumnWidth(3),
-                3: const pw.FlexColumnWidth(2),
+                0: const pw.FixedColumnWidth(32),
+                1: const pw.FlexColumnWidth(5),
+                2: const pw.FlexColumnWidth(5),
               },
               children: [
                 pw.TableRow(
                   decoration: const pw.BoxDecoration(color: PdfColors.grey200),
                   children: [
                     pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                       child: pw.Text('ลำดับ', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: pw.Text('ชื่อ - นามสกุล', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
                     ),
                     pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: pw.Text('ตำแหน่งใน คปอ.', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                      child: pw.Text('แผนก/ฝ่าย', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
                     ),
                   ],
                 ),
@@ -398,20 +393,16 @@ class CpoPdfGenerator {
                     decoration: pw.BoxDecoration(color: i.isEven ? PdfColors.white : PdfColors.grey50),
                     children: [
                       pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                         child: pw.Text('${i + 1}', style: const pw.TextStyle(fontSize: 8.5), textAlign: pw.TextAlign.center),
                       ),
                       pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: pw.Text(sortedMembers[i].attendeeName, style: const pw.TextStyle(fontSize: 8.5)),
                       ),
                       pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         child: pw.Text(sortedMembers[i].roleLabel, style: const pw.TextStyle(fontSize: 8.5)),
-                      ),
-                      pw.Padding(
-                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        child: pw.Text(sortedMembers[i].department ?? '-', style: const pw.TextStyle(fontSize: 8.5)),
                       ),
                     ],
                   ),
