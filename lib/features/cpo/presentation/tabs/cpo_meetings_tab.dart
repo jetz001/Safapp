@@ -614,7 +614,7 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
             child: Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
-                key: PageStorageKey('cpo_attendees_${meeting.id}'),
+                key: ValueKey('cpo_attendees_${meeting.id}'),
                 initiallyExpanded: true,
                 leading: const Icon(Icons.people_outline, color: Color(0xFF0D9488)),
                 title: Text(
@@ -928,11 +928,23 @@ class _AttendeeItemRow extends StatefulWidget {
 
 class _AttendeeItemRowState extends State<_AttendeeItemRow> {
   late TextEditingController _reasonCtrl;
+  late FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _reasonCtrl = TextEditingController(text: widget.attendee.absenceReason ?? '');
+    _focusNode = FocusNode();
+    _focusNode.addListener(_onFocusChange);
+  }
+
+  void _onFocusChange() {
+    if (!_focusNode.hasFocus) {
+      final val = _reasonCtrl.text.trim();
+      if (val != (widget.attendee.absenceReason ?? '')) {
+        widget.onSaveReason(val);
+      }
+    }
   }
 
   @override
@@ -946,6 +958,8 @@ class _AttendeeItemRowState extends State<_AttendeeItemRow> {
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChange);
+    _focusNode.dispose();
     _reasonCtrl.dispose();
     super.dispose();
   }
@@ -1016,7 +1030,9 @@ class _AttendeeItemRowState extends State<_AttendeeItemRow> {
             SizedBox(
               width: 220,
               child: TextField(
+                key: ValueKey('attendee_reason_${a.id ?? a.attendeeName}'),
                 controller: _reasonCtrl,
+                focusNode: _focusNode,
                 style: const TextStyle(fontSize: 11.5),
                 decoration: InputDecoration(
                   hintText: 'ระบุเหตุผลที่ลาประชุม...',
