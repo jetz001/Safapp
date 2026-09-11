@@ -32,38 +32,44 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
     const primaryColor = Color(0xFF0D9488); // Teal 600
 
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 1,
+        titleSpacing: 16,
+        toolbarHeight: 64,
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: primaryColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: primaryColor.withValues(alpha: 0.25)),
               ),
-              child: const Icon(Icons.shield_outlined, color: primaryColor, size: 24),
+              child: const Icon(Icons.shield_outlined, color: primaryColor, size: 26),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
                   'ระบบบริหารจัดการคณะกรรมการความปลอดภัยฯ (โมดูล คปอ.)',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, color: Color(0xFF0F172A), letterSpacing: -0.2),
                 ),
+                const SizedBox(height: 2),
                 Text(
-                  'ตามกฎกระทรวง จป./คปอ. พ.ศ. ๒๕๖๕ และคู่มือแบบฟอร์ม กสร. ๑/๒๕๖๑',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  'ตามกฎกระทรวงการจัดให้มีเจ้าหน้าที่ความปลอดภัยในการทำงานฯ พ.ศ. ๒๕๖๕',
+                  style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
                 ),
               ],
             ),
           ],
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(50),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white,
@@ -77,24 +83,49 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
               unselectedLabelColor: Colors.grey.shade600,
               indicatorColor: primaryColor,
               indicatorWeight: 3,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13.5),
               tabs: const [
                 Tab(
-                  icon: Icon(Icons.dashboard_outlined, size: 18),
-                  text: 'ภาพรวม',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.dashboard_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('ภาพรวม (Dashboard)'),
+                    ],
+                  ),
                 ),
                 Tab(
-                  icon: Icon(Icons.how_to_vote_outlined, size: 18),
-                  text: 'การเลือกตั้ง & คณะกรรมการ คปอ.',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.how_to_vote_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('โครงสร้าง & เลือกตั้ง คปอ.'),
+                    ],
+                  ),
                 ),
                 Tab(
-                  icon: Icon(Icons.event_note_outlined, size: 18),
-                  text: 'การประชุม คปอ. (๖ วาระ)',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.event_note_outlined, size: 18),
+                      SizedBox(width: 8),
+                      Text('การประชุม คปอ. (๖ วาระ)'),
+                    ],
+                  ),
                 ),
                 Tab(
-                  icon: Icon(Icons.checklist_rounded, size: 18),
-                  text: 'มติที่ประชุม & ติดตามงาน',
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.checklist_rounded, size: 18),
+                      SizedBox(width: 8),
+                      Text('มติที่ประชุม & ติดตามงาน'),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -103,11 +134,13 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          CpoDashboardTab(),
-          CpoElectionTab(),
-          CpoMeetingsTab(),
-          CpoActionTrackerTab(),
+        children: [
+          CpoDashboardTab(
+            onNavigateToTab: (index) => _tabController.animateTo(index),
+          ),
+          const CpoElectionTab(),
+          const CpoMeetingsTab(),
+          const CpoActionTrackerTab(),
         ],
       ),
     );

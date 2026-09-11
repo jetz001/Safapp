@@ -1111,7 +1111,7 @@ class CpoPdfGenerator {
               ),
               child: pw.Center(
                 child: pw.Text(
-                  '✅ ยอดเยี่ยม! ไม่มีงานคั่งค้างในรอบนี้ (ดำเนินการแล้วเสร็จครบถ้วน ๑๐๐%)',
+                  '[ผ่านเกณฑ์] ยอดเยี่ยม! ไม่มีงานคั่งค้างในรอบนี้ (ดำเนินการแล้วเสร็จครบถ้วน ๑๐๐%)',
                   style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.green900),
                 ),
               ),
@@ -1270,9 +1270,31 @@ class CpoPdfGenerator {
     );
   }
 
+  static String _cleanEmoji(String text) {
+    return text
+        .replaceAll('✅', '[ผ่าน]')
+        .replaceAll('⚠️', '[เตือน]')
+        .replaceAll('⚡', '')
+        .replaceAll('🖨️', '')
+        .replaceAll('📅', '')
+        .replaceAll('📋', '')
+        .replaceAll('⏳', '')
+        .replaceAll('📌', '')
+        .replaceAll('🔴', '')
+        .replaceAll('🟠', '')
+        .replaceAll('🟡', '')
+        .replaceAll('🟢', '')
+        .replaceAll(RegExp(r'[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]', unicode: true), '')
+        .trim();
+  }
+
   static pw.TableRow _buildPendingTableRow(int index, CpoActionItemModel item) {
     final isOver = item.isOverdue;
     final rowBg = isOver ? PdfColors.red50 : (index % 2 == 0 ? PdfColors.grey50 : PdfColors.white);
+    final cleanTitle = _cleanEmoji(item.title);
+    final cleanDetail = _cleanEmoji(item.actionDetail);
+    final cleanPic = _cleanEmoji(item.responsiblePerson);
+    final cleanDept = item.department?.isNotEmpty == true ? ' (${_cleanEmoji(item.department!)})' : '';
 
     return pw.TableRow(
       decoration: pw.BoxDecoration(color: rowBg),
@@ -1285,16 +1307,16 @@ class CpoPdfGenerator {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(item.title, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
-              if (item.actionDetail.isNotEmpty && item.actionDetail != item.title)
-                pw.Text(item.actionDetail, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), maxLines: 2),
+              pw.Text(cleanTitle, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              if (cleanDetail.isNotEmpty && cleanDetail != cleanTitle)
+                pw.Text(cleanDetail, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), maxLines: 2),
             ],
           ),
         ),
         pw.Padding(
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
-            '${item.responsiblePerson}${item.department?.isNotEmpty == true ? ' (${item.department})' : ''}',
+            '$cleanPic$cleanDept',
             style: const pw.TextStyle(fontSize: 8),
           ),
         ),
@@ -1328,6 +1350,13 @@ class CpoPdfGenerator {
 
   static pw.TableRow _buildCompletedTableRow(int index, CpoActionItemModel item) {
     final rowBg = index % 2 == 0 ? PdfColors.grey50 : PdfColors.white;
+    final cleanTitle = _cleanEmoji(item.title);
+    final cleanDetail = _cleanEmoji(item.actionDetail);
+    final cleanPic = _cleanEmoji(item.responsiblePerson);
+    final cleanDept = item.department?.isNotEmpty == true ? ' (${_cleanEmoji(item.department!)})' : '';
+    final cleanNotes = item.resolutionNotes?.isNotEmpty == true
+        ? _cleanEmoji(item.resolutionNotes!)
+        : 'ดำเนินการแล้วเสร็จตามมติ คปอ.';
 
     return pw.TableRow(
       decoration: pw.BoxDecoration(color: rowBg),
@@ -1340,16 +1369,16 @@ class CpoPdfGenerator {
           child: pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Text(item.title, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
-              if (item.actionDetail.isNotEmpty && item.actionDetail != item.title)
-                pw.Text(item.actionDetail, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), maxLines: 2),
+              pw.Text(cleanTitle, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              if (cleanDetail.isNotEmpty && cleanDetail != cleanTitle)
+                pw.Text(cleanDetail, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), maxLines: 2),
             ],
           ),
         ),
         pw.Padding(
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
-            '${item.responsiblePerson}${item.department?.isNotEmpty == true ? ' (${item.department})' : ''}',
+            '$cleanPic$cleanDept',
             style: const pw.TextStyle(fontSize: 8),
           ),
         ),
@@ -1364,7 +1393,7 @@ class CpoPdfGenerator {
         pw.Padding(
           padding: const pw.EdgeInsets.all(4),
           child: pw.Text(
-            item.resolutionNotes?.isNotEmpty == true ? item.resolutionNotes! : 'ดำเนินการแล้วเสร็จตามมติ คปอ.',
+            cleanNotes,
             style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey800),
           ),
         ),

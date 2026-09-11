@@ -1436,9 +1436,17 @@ class _CpoDashboardTabState extends ConsumerState<CpoDashboardTab> {
             ),
           ),
           const SizedBox(width: 12),
-          TextButton(
+          ElevatedButton.icon(
             onPressed: () => widget.onNavigateToTab?.call(1),
-            child: const Text('ดูโครงสร้าง คปอ. →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            icon: const Icon(Icons.groups_outlined, size: 16),
+            label: const Text('ดูโครงสร้าง คปอ. →', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E3A8A),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              elevation: 0,
+            ),
           ),
         ],
       ),
