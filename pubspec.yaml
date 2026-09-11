@@ -71,6 +71,7 @@ flutter:
 
   assets:
     - google_fonts/
+    - assets/images/modules/
 
   fonts:
     - family: Prompt
