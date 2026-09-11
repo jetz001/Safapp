@@ -42,6 +42,7 @@ class CpoPdfGenerator {
   static Future<Uint8List> generateMeetingMinutesPdf(
     CpoMeetingModel meeting, {
     String companyName = 'สถานประกอบกิจการ',
+    String? logoPath,
   }) async {
     final theme = await _buildTheme();
     final doc = pw.Document(
@@ -49,6 +50,16 @@ class CpoPdfGenerator {
       title: 'รายงานการประชุม คปอ. ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear}',
       author: meeting.secretaryName,
     );
+
+    pw.MemoryImage? logoImage;
+    if (logoPath != null && logoPath.isNotEmpty) {
+      try {
+        final file = File(logoPath);
+        if (file.existsSync()) {
+          logoImage = pw.MemoryImage(file.readAsBytesSync());
+        }
+      } catch (_) {}
+    }
 
     final presentAttendees = meeting.attendees.where((a) => a.isPresent).toList();
     final absentAttendees = meeting.attendees.where((a) => !a.isPresent).toList();
@@ -60,6 +71,12 @@ class CpoPdfGenerator {
         header: (context) => pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.center,
           children: [
+            if (logoImage != null && context.pageNumber == 1)
+              pw.Container(
+                height: 40,
+                margin: const pw.EdgeInsets.only(bottom: 6),
+                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+              ),
             pw.Text(
               companyName,
               style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
@@ -91,12 +108,12 @@ class CpoPdfGenerator {
           ],
         ),
         build: (context) => [
-          // Meeting metadata
+          // ๑. รายละเอียดการประชุม
           pw.Container(
-            padding: const pw.EdgeInsets.all(10),
+            padding: const pw.EdgeInsets.all(8),
             decoration: pw.BoxDecoration(
-              border: pw.Border.all(color: PdfColors.grey400),
-              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+              color: PdfColors.grey100,
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
             ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -118,16 +135,15 @@ class CpoPdfGenerator {
               ],
             ),
           ),
-          pw.SizedBox(height: 12),
+          pw.SizedBox(height: 10),
 
-          // Attendees
-          pw.Text('รายชื่อผู้เข้าร่วมประชุม (${presentAttendees.length} คน)',
-              style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold)),
+          // ๒. ผู้เข้าร่วมประชุม (ตามแบบ กสร.)
+          pw.Text('ผู้มาประชุม (${presentAttendees.length} คน):', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
           pw.SizedBox(height: 4),
           pw.Table(
-            border: pw.TableBorder.all(color: PdfColors.grey300),
+            border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
             columnWidths: {
-              0: const pw.FlexColumnWidth(1),
+              0: const pw.FixedColumnWidth(28),
               1: const pw.FlexColumnWidth(3),
               2: const pw.FlexColumnWidth(3),
               3: const pw.FlexColumnWidth(2),
@@ -136,43 +152,61 @@ class CpoPdfGenerator {
               pw.TableRow(
                 decoration: const pw.BoxDecoration(color: PdfColors.grey200),
                 children: [
-                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ลำดับ', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ชื่อ - นามสกุล', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ตำแหน่งใน คปอ.', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('แผนก/หน่วยงาน', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ลำดับ', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center)),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ชื่อ - นามสกุล', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ตำแหน่งใน คปอ.', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('แผนก/สังกัด', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
                 ],
               ),
               for (int i = 0; i < presentAttendees.length; i++)
                 pw.TableRow(
                   children: [
-                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('${i + 1}', style: const pw.TextStyle(fontSize: 9))),
-                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(presentAttendees[i].attendeeName, style: const pw.TextStyle(fontSize: 9))),
-                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(presentAttendees[i].roleLabel, style: const pw.TextStyle(fontSize: 9))),
-                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(presentAttendees[i].department ?? '-', style: const pw.TextStyle(fontSize: 9))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('${i + 1}', style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(presentAttendees[i].attendeeName, style: const pw.TextStyle(fontSize: 8))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(presentAttendees[i].roleLabel, style: const pw.TextStyle(fontSize: 8))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(presentAttendees[i].department ?? "-", style: const pw.TextStyle(fontSize: 8))),
                   ],
                 ),
             ],
           ),
-          pw.SizedBox(height: 8),
 
           if (absentAttendees.isNotEmpty) ...[
-            pw.Text('ผู้ไม่มาประชุม (${absentAttendees.length} คน):',
-                style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.red800)),
-            for (final a in absentAttendees)
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 12, top: 2),
-                child: pw.Text('• ${a.attendeeName} (${a.roleLabel}) เหตุผล: ${a.absenceReason ?? "ติดภารกิจ"}',
-                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-              ),
             pw.SizedBox(height: 8),
+            pw.Text('ผู้ไม่มาประชุม (${absentAttendees.length} คน):', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold, color: PdfColors.red900)),
+            pw.SizedBox(height: 4),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: {
+                0: const pw.FixedColumnWidth(28),
+                1: const pw.FlexColumnWidth(3),
+                2: const pw.FlexColumnWidth(3),
+                3: const pw.FlexColumnWidth(3),
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ลำดับ', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center)),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ชื่อ - นามสกุล', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('ตำแหน่งใน คปอ.', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('เหตุผลการไม่มาประชุม', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold))),
+                  ],
+                ),
+                for (int i = 0; i < absentAttendees.length; i++)
+                  pw.TableRow(
+                    children: [
+                      pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('${i + 1}', style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.center)),
+                      pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(absentAttendees[i].attendeeName, style: const pw.TextStyle(fontSize: 8))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(absentAttendees[i].roleLabel, style: const pw.TextStyle(fontSize: 8))),
+                      pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(absentAttendees[i].absenceReason ?? "ติดภารกิจงานประจำ", style: const pw.TextStyle(fontSize: 8))),
+                    ],
+                  ),
+              ],
+            ),
           ],
 
-          pw.Divider(thickness: 0.5, color: PdfColors.grey400),
-          pw.SizedBox(height: 8),
-
-          // 6 Agendas
-          pw.Text('ระเบียบวาระการประชุม และมติที่ประชุม',
-              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 14),
+          pw.Text('เริ่มประชุมเวลา ${meeting.startTime} น.', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 8),
 
           for (final ag in meeting.agendas) ...[
@@ -253,6 +287,8 @@ class CpoPdfGenerator {
   static Future<Uint8List> generateMeetingNoticePdf(
     CpoMeetingModel meeting, {
     String companyName = 'สถานประกอบกิจการ',
+    String? logoPath,
+    List<CpoAttendeeModel>? committeeMembers,
   }) async {
     final theme = await _buildTheme();
     final doc = pw.Document(
@@ -260,59 +296,156 @@ class CpoPdfGenerator {
       title: 'หนังสือเชิญประชุม คปอ. ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear}',
     );
 
+    pw.MemoryImage? logoImage;
+    if (logoPath != null && logoPath.isNotEmpty) {
+      try {
+        final file = File(logoPath);
+        if (file.existsSync()) {
+          logoImage = pw.MemoryImage(file.readAsBytesSync());
+        }
+      } catch (_) {}
+    }
+
+    final rawMembers = (committeeMembers != null && committeeMembers.isNotEmpty)
+        ? committeeMembers
+        : meeting.attendees;
+
+    final sortedMembers = List<CpoAttendeeModel>.from(rawMembers);
+    int roleRank(String role) {
+      if (role.contains('ประธาน')) return 1;
+      if (role.contains('นายจ้าง')) return 2;
+      if (role.contains('ลูกจ้าง')) return 3;
+      if (role.contains('เลขา')) return 4;
+      return 5;
+    }
+    sortedMembers.sort((a, b) => roleRank(a.roleLabel).compareTo(roleRank(b.roleLabel)));
+
     doc.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(36),
-        build: (context) => pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
+        margin: const pw.EdgeInsets.symmetric(horizontal: 40, vertical: 36),
+        build: (context) => [
+          if (logoImage != null)
             pw.Center(
-              child: pw.Text(companyName, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+              child: pw.Container(
+                height: 50,
+                margin: const pw.EdgeInsets.only(bottom: 8),
+                child: pw.Image(logoImage, fit: pw.BoxFit.contain),
+              ),
             ),
-            pw.SizedBox(height: 6),
-            pw.Center(
-              child: pw.Text('หนังสือเชิญประชุมคณะกรรมการความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (คปอ.)',
-                  style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-            ),
-            pw.Center(
-              child: pw.Text('ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear}', style: const pw.TextStyle(fontSize: 11)),
-            ),
-            pw.Divider(thickness: 1),
-            pw.SizedBox(height: 12),
-            pw.Text('เรียน  กรรมการ คปอ. ทุกท่าน', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 8),
+          pw.Center(
+            child: pw.Text(companyName, style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
+          ),
+          pw.SizedBox(height: 6),
+          pw.Center(
+            child: pw.Text('หนังสือเชิญประชุมคณะกรรมการความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (คปอ.)',
+                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+          ),
+          pw.Center(
+            child: pw.Text('ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear}', style: const pw.TextStyle(fontSize: 11)),
+          ),
+          pw.Divider(thickness: 1),
+          pw.SizedBox(height: 10),
+          pw.Text('เรียน  คณะกรรมการความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (คปอ.) ทุกท่าน',
+              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 8),
+          pw.Text(
+            '  ด้วยคณะกรรมการความปลอดภัยฯ จะจัดให้มีการประชุมประจำเดือน ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear} '
+            'ในวัน ${meeting.meetingDate} เวลา ${meeting.startTime} - ${meeting.endTime} น. '
+            'ณ ${meeting.location} เพื่อติดตามผลการดำเนินงานและพิจารณาข้อเสนอแนะด้านความปลอดภัยในการทำงาน โดยมีรายนามกรรมการที่เชิญเข้าร่วมประชุมและระเบียบวาระดังต่อไปนี้',
+            style: const pw.TextStyle(fontSize: 10, lineSpacing: 2),
+          ),
+          pw.SizedBox(height: 12),
+
+          if (sortedMembers.isNotEmpty) ...[
             pw.Text(
-              '  ด้วยคณะกรรมการความปลอดภัยฯ จะจัดให้มีการประชุมประจำเดือน ครั้งที่ ${meeting.meetingNumber}/${meeting.meetingYear} '
-              'ในวัน ${meeting.meetingDate} เวลา ${meeting.startTime} - ${meeting.endTime} น. '
-              'ณ ${meeting.location} เพื่อติดตามผลการดำเนินงานและพิจารณาข้อเสนอแนะด้านความปลอดภัยในการทำงาน',
-              style: const pw.TextStyle(fontSize: 10, lineSpacing: 2),
+              'รายนามคณะกรรมการ คปอ. ที่เชิญเข้าร่วมประชุม:',
+              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: {
+                0: const pw.FixedColumnWidth(28),
+                1: const pw.FlexColumnWidth(3),
+                2: const pw.FlexColumnWidth(3),
+                3: const pw.FlexColumnWidth(2),
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                      child: pw.Text('ลำดับ', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold), textAlign: pw.TextAlign.center),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      child: pw.Text('ชื่อ - นามสกุล', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      child: pw.Text('ตำแหน่งใน คปอ.', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      child: pw.Text('แผนก/ฝ่าย', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    ),
+                  ],
+                ),
+                for (int i = 0; i < sortedMembers.length; i++)
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(color: i.isEven ? PdfColors.white : PdfColors.grey50),
+                    children: [
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 3),
+                        child: pw.Text('${i + 1}', style: const pw.TextStyle(fontSize: 8.5), textAlign: pw.TextAlign.center),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        child: pw.Text(sortedMembers[i].attendeeName, style: const pw.TextStyle(fontSize: 8.5)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        child: pw.Text(sortedMembers[i].roleLabel, style: const pw.TextStyle(fontSize: 8.5)),
+                      ),
+                      pw.Padding(
+                        padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        child: pw.Text(sortedMembers[i].department ?? '-', style: const pw.TextStyle(fontSize: 8.5)),
+                      ),
+                    ],
+                  ),
+              ],
             ),
             pw.SizedBox(height: 12),
-            pw.Text('ระเบียบวาระการประชุมมีดังนี้:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-            pw.SizedBox(height: 6),
-            for (final ag in meeting.agendas)
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(left: 16, bottom: 4),
-                child: pw.Text('ระเบียบวาระที่ ${ag.agendaOrder}: ${ag.title}', style: const pw.TextStyle(fontSize: 9)),
-              ),
-            pw.SizedBox(height: 16),
-            pw.Text('จึงเรียนมาเพื่อโปรดเข้าร่วมการประชุมตามวัน เวลา และสถานที่ดังกล่าวข้างต้นโดยพร้อมเพรียงกัน',
-                style: const pw.TextStyle(fontSize: 10)),
-            pw.SizedBox(height: 36),
-            pw.Align(
-              alignment: pw.Alignment.centerRight,
-              child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.center,
-                children: [
-                  pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )', style: const pw.TextStyle(fontSize: 9)),
-                  pw.Text('ประธานคณะกรรมการ คปอ.', style: const pw.TextStyle(fontSize: 9)),
-                ],
-              ),
-            ),
           ],
-        ),
+
+          pw.Text('ระเบียบวาระการประชุมมีดังนี้:', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
+          for (final ag in meeting.agendas)
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(left: 16, bottom: 4),
+              child: pw.Text('ระเบียบวาระที่ ${ag.agendaOrder}: ${ag.title}', style: const pw.TextStyle(fontSize: 9)),
+            ),
+          pw.SizedBox(height: 14),
+          pw.Text('จึงเรียนมาเพื่อโปรดเข้าร่วมการประชุมตามวัน เวลา และสถานที่ดังกล่าวข้างต้นโดยพร้อมเพรียงกัน',
+              style: const pw.TextStyle(fontSize: 10)),
+          pw.SizedBox(height: 28),
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.center,
+              children: [
+                pw.Text('ลงชื่อ .....................................................', style: const pw.TextStyle(fontSize: 9)),
+                pw.Text(
+                  '( ${meeting.chairmanName.isNotEmpty ? meeting.chairmanName : "....................................................."} )',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+                pw.Text('ประธานคณะกรรมการ คปอ.', style: const pw.TextStyle(fontSize: 9)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
 

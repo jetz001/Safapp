@@ -755,16 +755,43 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
   }
 
   Future<void> _printMeetingNotice(BuildContext context, CpoMeetingModel meeting) async {
-    final companyName = ref.read(companyProfileNotifierProvider).asData?.value?.companyName ?? 'สถานประกอบกิจการ';
+    final companyProfile = ref.read(companyProfileNotifierProvider).asData?.value;
+    final companyName = companyProfile?.companyName ?? 'สถานประกอบกิจการ';
+    final logoPath = companyProfile?.logoPath;
+
+    List<CpoAttendeeModel> committee = meeting.attendees;
+    if (committee.isEmpty) {
+      final activeTerm = ref.read(cpoActiveTermProvider).asData?.value;
+      if (activeTerm != null && activeTerm.members.isNotEmpty) {
+        committee = activeTerm.members.map((m) => CpoAttendeeModel(
+          meetingId: meeting.id ?? 0,
+          attendeeName: m.fullName,
+          roleLabel: m.cpoRole.labelTh,
+          department: m.department,
+        )).toList();
+      }
+    }
+
     await Printing.layoutPdf(
-      onLayout: (format) => CpoPdfGenerator.generateMeetingNoticePdf(meeting, companyName: companyName),
+      onLayout: (format) => CpoPdfGenerator.generateMeetingNoticePdf(
+        meeting,
+        companyName: companyName,
+        logoPath: logoPath,
+        committeeMembers: committee,
+      ),
     );
   }
 
   Future<void> _printMeetingMinutes(BuildContext context, CpoMeetingModel meeting) async {
-    final companyName = ref.read(companyProfileNotifierProvider).asData?.value?.companyName ?? 'สถานประกอบกิจการ';
+    final companyProfile = ref.read(companyProfileNotifierProvider).asData?.value;
+    final companyName = companyProfile?.companyName ?? 'สถานประกอบกิจการ';
+    final logoPath = companyProfile?.logoPath;
     await Printing.layoutPdf(
-      onLayout: (format) => CpoPdfGenerator.generateMeetingMinutesPdf(meeting, companyName: companyName),
+      onLayout: (format) => CpoPdfGenerator.generateMeetingMinutesPdf(
+        meeting,
+        companyName: companyName,
+        logoPath: logoPath,
+      ),
     );
   }
 
