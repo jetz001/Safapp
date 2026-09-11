@@ -261,8 +261,10 @@ class CpoMeetingsNotifier extends AsyncNotifier<List<CpoMeetingModel>> {
     return await repo.getAllMeetings();
   }
 
-  Future<void> refresh() async {
-    state = const AsyncLoading();
+  Future<void> refresh({bool showLoading = false}) async {
+    if (showLoading) {
+      state = const AsyncLoading();
+    }
     state = await AsyncValue.guard(() => ref.read(cpoRepositoryProvider).getAllMeetings());
   }
 
@@ -288,7 +290,22 @@ class CpoMeetingsNotifier extends AsyncNotifier<List<CpoMeetingModel>> {
   Future<void> updateAgenda(CpoAgendaModel agenda) async {
     final repo = ref.read(cpoRepositoryProvider);
     await repo.updateAgenda(agenda);
-    await refresh();
+    
+    final current = state.value;
+    if (current != null) {
+      final updatedList = current.map((m) {
+        if (m.id == agenda.meetingId) {
+          final updatedAgendas = m.agendas.map((ag) {
+            return ag.id == agenda.id ? agenda : ag;
+          }).toList();
+          return m.copyWith(agendas: updatedAgendas);
+        }
+        return m;
+      }).toList();
+      state = AsyncData(updatedList);
+    } else {
+      await refresh();
+    }
   }
 
   Future<void> addAgenda(CpoAgendaModel agenda) async {
@@ -306,7 +323,22 @@ class CpoMeetingsNotifier extends AsyncNotifier<List<CpoMeetingModel>> {
   Future<void> saveAttendee(CpoAttendeeModel attendee) async {
     final repo = ref.read(cpoRepositoryProvider);
     await repo.saveAttendee(attendee);
-    await refresh();
+    
+    final current = state.value;
+    if (current != null) {
+      final updatedList = current.map((m) {
+        if (m.id == attendee.meetingId) {
+          final updatedAttendees = m.attendees.map((a) {
+            return a.id == attendee.id ? attendee : a;
+          }).toList();
+          return m.copyWith(attendees: updatedAttendees);
+        }
+        return m;
+      }).toList();
+      state = AsyncData(updatedList);
+    } else {
+      await refresh();
+    }
   }
 }
 

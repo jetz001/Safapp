@@ -32,6 +32,8 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       body: meetingsAsync.when(
+        skipLoadingOnRefresh: true,
+        skipLoadingOnReload: true,
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('เกิดข้อผิดพลาด: $err')),
         data: (meetings) {
@@ -612,7 +614,8 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
             child: Theme(
               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
-                initiallyExpanded: false,
+                key: PageStorageKey('cpo_attendees_${meeting.id}'),
+                initiallyExpanded: true,
                 leading: const Icon(Icons.people_outline, color: Color(0xFF0D9488)),
                 title: Text(
                   'รายชื่อกรรมการผู้เข้าร่วมประชุม ($presentCount/${meeting.attendees.length} คน)',
@@ -623,37 +626,17 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     child: Column(
                       children: meeting.attendees.map((a) {
-                        return ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: Checkbox(
-                            value: a.isPresent,
-                            activeColor: const Color(0xFF0D9488),
-                            onChanged: (val) async {
-                              final updated = a.copyWith(isPresent: val ?? true);
-                              await ref.read(cpoMeetingsProvider.notifier).saveAttendee(updated);
-                            },
-                          ),
-                          title: Text(a.attendeeName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                          subtitle: Text('${a.roleLabel} | แผนก: ${a.department ?? "-"}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
-                          trailing: !a.isPresent
-                              ? SizedBox(
-                                  width: 200,
-                                  child: TextField(
-                                    decoration: const InputDecoration(
-                                      hintText: 'ระบุเหตุผลที่ลาประชุม...',
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                      border: OutlineInputBorder(),
-                                    ),
-                                    controller: TextEditingController(text: a.absenceReason),
-                                    style: const TextStyle(fontSize: 11),
-                                    onSubmitted: (val) async {
-                                      final updated = a.copyWith(absenceReason: val);
-                                      await ref.read(cpoMeetingsProvider.notifier).saveAttendee(updated);
-                                    },
-                                  ),
-                                )
-                              : const Text('มาประชุม', style: TextStyle(fontSize: 12, color: Colors.green, fontWeight: FontWeight.bold)),
+                        return _AttendeeItemRow(
+                          key: ValueKey(a.id ?? a.attendeeName),
+                          attendee: a,
+                          onTogglePresent: (val) async {
+                            final updated = a.copyWith(isPresent: val);
+                            await ref.read(cpoMeetingsProvider.notifier).saveAttendee(updated);
+                          },
+                          onSaveReason: (val) async {
+                            final updated = a.copyWith(absenceReason: val);
+                            await ref.read(cpoMeetingsProvider.notifier).saveAttendee(updated);
+                          },
                         );
                       }).toList(),
                     ),
@@ -924,5 +907,133 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
         SnackBar(content: Text('เพิ่มวาระที่ ${newAgenda.agendaNo} เรียบร้อยแล้ว'), backgroundColor: Colors.green),
       );
     }
+  }
+}
+
+class _AttendeeItemRow extends StatefulWidget {
+  final CpoAttendeeModel attendee;
+  final Function(bool isPresent) onTogglePresent;
+  final Function(String reason) onSaveReason;
+
+  const _AttendeeItemRow({
+    super.key,
+    required this.attendee,
+    required this.onTogglePresent,
+    required this.onSaveReason,
+  });
+
+  @override
+  State<_AttendeeItemRow> createState() => _AttendeeItemRowState();
+}
+
+class _AttendeeItemRowState extends State<_AttendeeItemRow> {
+  late TextEditingController _reasonCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _reasonCtrl = TextEditingController(text: widget.attendee.absenceReason ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant _AttendeeItemRow oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.attendee.absenceReason != widget.attendee.absenceReason &&
+        _reasonCtrl.text != (widget.attendee.absenceReason ?? '')) {
+      _reasonCtrl.text = widget.attendee.absenceReason ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _reasonCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final a = widget.attendee;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: a.isPresent ? Colors.transparent : Colors.amber.shade50.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: a.isPresent ? Colors.grey.shade100 : Colors.amber.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Checkbox(
+            value: a.isPresent,
+            activeColor: const Color(0xFF0D9488),
+            onChanged: (val) => widget.onTogglePresent(val ?? true),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  a.attendeeName,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: a.isPresent ? const Color(0xFF1E293B) : Colors.grey.shade700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${a.roleLabel} | แผนก: ${a.department ?? "-"}',
+                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          if (a.isPresent)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.check_circle_rounded, size: 14, color: Colors.green.shade700),
+                  const SizedBox(width: 4),
+                  Text(
+                    'มาประชุม',
+                    style: TextStyle(fontSize: 12, color: Colors.green.shade800, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: 220,
+              child: TextField(
+                controller: _reasonCtrl,
+                style: const TextStyle(fontSize: 11.5),
+                decoration: InputDecoration(
+                  hintText: 'ระบุเหตุผลที่ลาประชุม...',
+                  hintStyle: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.white,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(6), borderSide: const BorderSide(color: Color(0xFF0D9488), width: 1.5)),
+                ),
+                onSubmitted: widget.onSaveReason,
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
