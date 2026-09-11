@@ -8,6 +8,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:printing/printing.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../../data/models/cpo_election_model.dart';
+import '../../data/models/cpo_action_item_model.dart';
+import '../../data/models/cpo_committee_model.dart';
+import '../../domain/enums/cpo_action_status.dart';
 
 class _PdfSubTopic {
   final String subNo;
@@ -922,5 +925,450 @@ class CpoPdfGenerator {
     final file = File(filePath);
     await file.writeAsBytes(bytes);
     return filePath;
+  }
+
+  /// สร้างรายงานสรุปผลการติดตามงานและมติที่ประชุม คปอ. (CPO Action Tracking & Execution Report)
+  static Future<Uint8List> generateActionTrackingReportPdf({
+    required List<CpoActionItemModel> allActions,
+    required String periodLabel,
+    String companyName = 'สถานประกอบกิจการ',
+    String? logoPath,
+    CpoTermModel? term,
+    String? secretaryName,
+    String? chairmanName,
+  }) async {
+    final theme = await _buildTheme();
+    final doc = pw.Document(
+      theme: theme,
+      title: 'รายงานสรุปผลการติดตามงาน คปอ. ($periodLabel)',
+      author: secretaryName ?? 'เลขานุการ คปอ.',
+    );
+
+    pw.MemoryImage? logoImage;
+    if (logoPath != null && logoPath.isNotEmpty) {
+      try {
+        final file = File(logoPath);
+        if (file.existsSync()) {
+          logoImage = pw.MemoryImage(file.readAsBytesSync());
+        }
+      } catch (_) {}
+    }
+
+    final total = allActions.length;
+    final completed = allActions.where((a) => a.status == CpoActionStatus.completed).toList();
+    final inProgress = allActions.where((a) => a.status == CpoActionStatus.inProgress).toList();
+    final pendingOnly = allActions.where((a) => a.status == CpoActionStatus.pending).toList();
+    final overdue = allActions.where((a) => a.isOverdue).toList();
+    final pendingOrOverdue = allActions.where((a) => a.status != CpoActionStatus.completed && a.status != CpoActionStatus.cancelled).toList();
+
+    // เรียงงานค้าง: เกินกำหนดขึ้นก่อน แล้วตามด้วยวันกำหนดส่ง
+    pendingOrOverdue.sort((a, b) {
+      if (a.isOverdue && !b.isOverdue) return -1;
+      if (!a.isOverdue && b.isOverdue) return 1;
+      return a.dueDate.compareTo(b.dueDate);
+    });
+
+    final completionRate = total > 0 ? (completed.length / total) * 100.0 : 0.0;
+    final now = DateTime.now();
+    final printDateThai = '${now.day} / ${now.month} / ${now.year + 543} เวลา ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')} น.';
+
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        header: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Row(
+                  children: [
+                    if (logoImage != null) ...[
+                      pw.Image(logoImage, width: 32, height: 32),
+                      pw.SizedBox(width: 8),
+                    ],
+                    pw.Text(
+                      companyName,
+                      style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900),
+                    ),
+                  ],
+                ),
+                pw.Text(
+                  'เอกสาร คปอ. ประจำสถานประกอบการ',
+                  style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 4),
+            pw.Divider(thickness: 0.8, color: PdfColors.blue900),
+            pw.SizedBox(height: 6),
+          ],
+        ),
+        footer: (context) => pw.Column(
+          children: [
+            pw.Divider(thickness: 0.5, color: PdfColors.grey400),
+            pw.SizedBox(height: 4),
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Text(
+                  'รายงานโดยระบบบริหารงานความปลอดภัย Safapp (โมดูล คปอ.) • พิมพ์เมื่อ $printDateThai',
+                  style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+                ),
+                pw.Text(
+                  'หน้า ${context.pageNumber} จาก ${context.pagesCount}',
+                  style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey600),
+                ),
+              ],
+            ),
+          ],
+        ),
+        build: (context) => [
+          // ๑. หัวเรื่องรายงาน
+          pw.Container(
+            width: double.infinity,
+            padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+            decoration: pw.BoxDecoration(
+              color: PdfColors.blue50,
+              borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
+              border: pw.Border.all(color: PdfColors.blue300, width: 0.8),
+            ),
+            child: pw.Column(
+              children: [
+                pw.Text(
+                  'รายงานสรุปผลการติดตามงานและมติที่ประชุม คปอ.',
+                  style: pw.TextStyle(fontSize: 15, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900),
+                  textAlign: pw.TextAlign.center,
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  'CPO Action Items & Safety Resolution Tracking Report',
+                  style: const pw.TextStyle(fontSize: 9, color: PdfColors.blue800),
+                ),
+                pw.SizedBox(height: 6),
+                pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.center,
+                  children: [
+                    pw.Text('รอบการประเมิน: ', style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold)),
+                    pw.Text(periodLabel, style: pw.TextStyle(fontSize: 9.5, color: PdfColors.blue900, fontWeight: pw.FontWeight.bold)),
+                    if (term != null) ...[
+                      pw.SizedBox(width: 16),
+                      pw.Text('วาระ คปอ.: ', style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold)),
+                      pw.Text(term.termTitle, style: const pw.TextStyle(fontSize: 9.5)),
+                    ],
+                  ],
+                ),
+              ],
+            ),
+          ),
+          pw.SizedBox(height: 12),
+
+          // ๒. กล่องสรุปผลงาน Executive Summary
+          pw.Text('สรุปสถิติผลการดำเนินงาน (Executive Summary)', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+          pw.SizedBox(height: 6),
+          pw.Row(
+            children: [
+              _buildMetricPdfCard('งานทั้งหมดในงวด', '$total รายการ', PdfColors.grey100, PdfColors.grey800),
+              pw.SizedBox(width: 6),
+              _buildMetricPdfCard('ดำเนินการแล้วเสร็จ', '${completed.length} รายการ (${completionRate.toStringAsFixed(1)}%)', PdfColors.green50, PdfColors.green800),
+              pw.SizedBox(width: 6),
+              _buildMetricPdfCard('กำลังดำเนินการ', '${inProgress.length} รายการ', PdfColors.blue50, PdfColors.blue800),
+              pw.SizedBox(width: 6),
+              _buildMetricPdfCard('รอดำเนินการ', '${pendingOnly.length} รายการ', PdfColors.amber50, PdfColors.orange900),
+              pw.SizedBox(width: 6),
+              _buildMetricPdfCard('เกินกำหนด / ล่าช้า', '${overdue.length} รายการ', overdue.isNotEmpty ? PdfColors.red50 : PdfColors.green50, overdue.isNotEmpty ? PdfColors.red800 : PdfColors.green800),
+            ],
+          ),
+          pw.SizedBox(height: 16),
+
+          // ๓. ตารางที่ ๑: รายการงานที่ยังไม่แล้วเสร็จ / คั่งค้าง / ล่าช้า
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Text(
+                '๑. รายการงานที่ยังไม่แล้วเสร็จ / ค้างดำเนินการ / ล่าช้า (${pendingOrOverdue.length} รายการ)',
+                style: pw.TextStyle(fontSize: 10.5, fontWeight: pw.FontWeight.bold, color: PdfColors.red900),
+              ),
+              if (overdue.isNotEmpty)
+                pw.Container(
+                  padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: const pw.BoxDecoration(color: PdfColors.red100, borderRadius: pw.BorderRadius.all(pw.Radius.circular(3))),
+                  child: pw.Text('พบงานเกินกำหนด ${overdue.length} รายการ', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold, color: PdfColors.red800)),
+                ),
+            ],
+          ),
+          pw.SizedBox(height: 6),
+
+          if (pendingOrOverdue.isEmpty)
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.green50,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                border: pw.Border.all(color: PdfColors.green300, width: 0.6),
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  '✅ ยอดเยี่ยม! ไม่มีงานคั่งค้างในรอบนี้ (ดำเนินการแล้วเสร็จครบถ้วน ๑๐๐%)',
+                  style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: PdfColors.green900),
+                ),
+              ),
+            )
+          else
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(24),  // ลำดับ
+                1: pw.FixedColumnWidth(65),  // รหัสงาน
+                2: pw.FixedColumnWidth(35),  // วาระ
+                3: pw.FlexColumnWidth(3.5),  // หัวข้องาน / มติ คปอ.
+                4: pw.FlexColumnWidth(2.0),  // ผู้รับผิดชอบ/ฝ่าย
+                5: pw.FixedColumnWidth(55),  // กำหนดส่ง
+                6: pw.FixedColumnWidth(40),  // ความคืบหน้า
+                7: pw.FixedColumnWidth(55),  // สถานะ
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    _tableHeaderCell('ที่'),
+                    _tableHeaderCell('รหัสงาน'),
+                    _tableHeaderCell('วาระ'),
+                    _tableHeaderCell('หัวข้องานและมติที่ประชุม คปอ.'),
+                    _tableHeaderCell('ผู้รับผิดชอบ / ฝ่าย'),
+                    _tableHeaderCell('กำหนดเสร็จ'),
+                    _tableHeaderCell('คืบหน้า'),
+                    _tableHeaderCell('สถานะ'),
+                  ],
+                ),
+                for (int i = 0; i < pendingOrOverdue.length; i++)
+                  _buildPendingTableRow(i + 1, pendingOrOverdue[i]),
+              ],
+            ),
+          pw.SizedBox(height: 18),
+
+          // ๔. ตารางที่ ๒: รายการงานที่ดำเนินการแล้วเสร็จในงวด
+          pw.Text(
+            '๒. รายการงานที่ดำเนินการแล้วเสร็จ (${completed.length} รายการ)',
+            style: pw.TextStyle(fontSize: 10.5, fontWeight: pw.FontWeight.bold, color: PdfColors.green900),
+          ),
+          pw.SizedBox(height: 6),
+
+          if (completed.isEmpty)
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.all(10),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey50,
+                borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+                border: pw.Border.all(color: PdfColors.grey300, width: 0.6),
+              ),
+              child: pw.Center(
+                child: pw.Text(
+                  'ยังไม่มีงานที่บันทึกว่าแล้วเสร็จในรอบการประเมินนี้',
+                  style: const pw.TextStyle(fontSize: 9.5, color: PdfColors.grey700),
+                ),
+              ),
+            )
+          else
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+              columnWidths: const {
+                0: pw.FixedColumnWidth(24),  // ลำดับ
+                1: pw.FixedColumnWidth(65),  // รหัสงาน
+                2: pw.FixedColumnWidth(35),  // วาระ
+                3: pw.FlexColumnWidth(3.5),  // หัวข้องาน / มติ คปอ.
+                4: pw.FlexColumnWidth(2.0),  // ผู้รับผิดชอบ
+                5: pw.FixedColumnWidth(55),  // วันที่ปิดงาน
+                6: pw.FlexColumnWidth(2.5),  // ผลการดำเนินการ
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.green100),
+                  children: [
+                    _tableHeaderCell('ที่'),
+                    _tableHeaderCell('รหัสงาน'),
+                    _tableHeaderCell('วาระ'),
+                    _tableHeaderCell('หัวข้องานและมติที่ประชุม คปอ.'),
+                    _tableHeaderCell('ผู้รับผิดชอบ'),
+                    _tableHeaderCell('วันที่ปิดงาน'),
+                    _tableHeaderCell('ผลการดำเนินการ / บันทึกแก้ไข'),
+                  ],
+                ),
+                for (int i = 0; i < completed.length; i++)
+                  _buildCompletedTableRow(i + 1, completed[i]),
+              ],
+            ),
+          pw.SizedBox(height: 24),
+
+          // ๕. ส่วนลงนามรับรองรายงาน
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Column(
+                children: [
+                  pw.Text('ลงชื่อ ................................................................ ผู้รายงาน', style: const pw.TextStyle(fontSize: 9.5)),
+                  pw.SizedBox(height: 3),
+                  pw.Text('(${secretaryName?.isNotEmpty == true ? secretaryName! : '................................................................'})', style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(height: 2),
+                  pw.Text('กรรมการและเลขานุการ คปอ. (จป.วิชาชีพ)', style: const pw.TextStyle(fontSize: 9)),
+                  pw.SizedBox(height: 2),
+                  pw.Text('วันที่ ........ / ........ / ................', style: const pw.TextStyle(fontSize: 9)),
+                ],
+              ),
+              pw.Column(
+                children: [
+                  pw.Text('ลงชื่อ ................................................................ ผู้รับรอง', style: const pw.TextStyle(fontSize: 9.5)),
+                  pw.SizedBox(height: 3),
+                  pw.Text('(${chairmanName?.isNotEmpty == true ? chairmanName! : '................................................................'})', style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold)),
+                  pw.SizedBox(height: 2),
+                  pw.Text('ประธานคณะกรรมการ คปอ.', style: const pw.TextStyle(fontSize: 9)),
+                  pw.SizedBox(height: 2),
+                  pw.Text('วันที่ ........ / ........ / ................', style: const pw.TextStyle(fontSize: 9)),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return doc.save();
+  }
+
+  static pw.Widget _buildMetricPdfCard(String label, String value, PdfColor bg, PdfColor textColor) {
+    return pw.Expanded(
+      child: pw.Container(
+        padding: const pw.EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        decoration: pw.BoxDecoration(
+          color: bg,
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(4)),
+          border: pw.Border.all(color: textColor, width: 0.5),
+        ),
+        child: pw.Column(
+          children: [
+            pw.Text(value, style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold, color: textColor)),
+            pw.SizedBox(height: 2),
+            pw.Text(label, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), textAlign: pw.TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static pw.Widget _tableHeaderCell(String text) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 5, horizontal: 4),
+      child: pw.Text(
+        text,
+        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
+        textAlign: pw.TextAlign.center,
+      ),
+    );
+  }
+
+  static pw.TableRow _buildPendingTableRow(int index, CpoActionItemModel item) {
+    final isOver = item.isOverdue;
+    final rowBg = isOver ? PdfColors.red50 : (index % 2 == 0 ? PdfColors.grey50 : PdfColors.white);
+
+    return pw.TableRow(
+      decoration: pw.BoxDecoration(color: rowBg),
+      children: [
+        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('$index', style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.center)),
+        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(item.itemCode, style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('วาระ ${item.agendaNo}', style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.center)),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(item.title, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              if (item.actionDetail.isNotEmpty && item.actionDetail != item.title)
+                pw.Text(item.actionDetail, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), maxLines: 2),
+            ],
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            '${item.responsiblePerson}${item.department?.isNotEmpty == true ? ' (${item.department})' : ''}',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            item.dueDate,
+            style: pw.TextStyle(fontSize: 8, color: isOver ? PdfColors.red800 : PdfColors.black, fontWeight: isOver ? pw.FontWeight.bold : pw.FontWeight.normal),
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            '${item.progressPercent}%',
+            style: const pw.TextStyle(fontSize: 8),
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            isOver ? 'เกินกำหนด!' : (item.status == CpoActionStatus.inProgress ? 'กำลังทำ' : 'รอดำเนินการ'),
+            style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: isOver ? PdfColors.red800 : (item.status == CpoActionStatus.inProgress ? PdfColors.blue800 : PdfColors.orange900)),
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+      ],
+    );
+  }
+
+  static pw.TableRow _buildCompletedTableRow(int index, CpoActionItemModel item) {
+    final rowBg = index % 2 == 0 ? PdfColors.grey50 : PdfColors.white;
+
+    return pw.TableRow(
+      decoration: pw.BoxDecoration(color: rowBg),
+      children: [
+        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('$index', style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.center)),
+        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text(item.itemCode, style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+        pw.Padding(padding: const pw.EdgeInsets.all(4), child: pw.Text('วาระ ${item.agendaNo}', style: const pw.TextStyle(fontSize: 8), textAlign: pw.TextAlign.center)),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Text(item.title, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+              if (item.actionDetail.isNotEmpty && item.actionDetail != item.title)
+                pw.Text(item.actionDetail, style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700), maxLines: 2),
+            ],
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            '${item.responsiblePerson}${item.department?.isNotEmpty == true ? ' (${item.department})' : ''}',
+            style: const pw.TextStyle(fontSize: 8),
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            item.completedDate ?? item.updatedAt?.substring(0, 10) ?? '-',
+            style: pw.TextStyle(fontSize: 8, color: PdfColors.green900, fontWeight: pw.FontWeight.bold),
+            textAlign: pw.TextAlign.center,
+          ),
+        ),
+        pw.Padding(
+          padding: const pw.EdgeInsets.all(4),
+          child: pw.Text(
+            item.resolutionNotes?.isNotEmpty == true ? item.resolutionNotes! : 'ดำเนินการแล้วเสร็จตามมติ คปอ.',
+            style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey800),
+          ),
+        ),
+      ],
+    );
   }
 }
