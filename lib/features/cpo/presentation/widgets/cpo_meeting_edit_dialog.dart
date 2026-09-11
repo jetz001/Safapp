@@ -25,7 +25,6 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
   late TextEditingController _chairCtrl;
   late TextEditingController _secCtrl;
 
-  CpoMeetingStatus _status = CpoMeetingStatus.draft;
   bool _seedAgendas = true;
   bool _populateMembers = true;
   bool _isSaving = false;
@@ -48,7 +47,6 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
     _secCtrl = TextEditingController(text: m?.secretaryName ?? '');
 
     if (m != null) {
-      _status = m.status;
       _seedAgendas = false;
       _populateMembers = false;
     }
@@ -81,6 +79,22 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
     }
   }
 
+  Future<void> _selectTime(TextEditingController ctrl) async {
+    final parts = ctrl.text.split(':');
+    final initialTime = parts.length == 2
+        ? TimeOfDay(hour: int.tryParse(parts[0]) ?? 9, minute: int.tryParse(parts[1]) ?? 0)
+        : const TimeOfDay(hour: 9, minute: 0);
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+    if (picked != null) {
+      final h = picked.hour.toString().padLeft(2, '0');
+      final m = picked.minute.toString().padLeft(2, '0');
+      setState(() => ctrl.text = '$h:$m');
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSaving = true);
@@ -101,7 +115,7 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
         termId: activeTerm?.id,
         chairName: _chairCtrl.text.trim(),
         secretaryName: _secCtrl.text.trim(),
-        status: _status,
+        status: widget.existingMeeting?.status ?? CpoMeetingStatus.draft,
         agendas: widget.existingMeeting?.agendas ?? const [],
         attendees: widget.existingMeeting?.attendees ?? const [],
       );
@@ -112,6 +126,7 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
         await ref.read(cpoMeetingsProvider.notifier).createMeetingWithStandardAgendas(
               model,
               termMembers: _populateMembers ? activeTerm?.members : null,
+              seedAgendas: _seedAgendas,
             );
       }
 
@@ -135,6 +150,53 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
     }
   }
 
+  Future<void> _confirmDelete() async {
+    final m = widget.existingMeeting;
+    if (m == null || m.id == null) return;
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.delete_forever_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text('ยืนยันลบการประชุม'),
+          ],
+        ),
+        content: Text(
+          'คุณต้องการลบการประชุมครั้งที่ ${m.meetingNo}/${m.meetingYear} ("${m.meetingTitle}") ออกจากระบบหรือไม่?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('ยกเลิก'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('ยืนยันลบ'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true && mounted) {
+      await ref.read(cpoMeetingsProvider.notifier).deleteMeeting(m.id!);
+      if (mounted) {
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('ลบการประชุมเรียบร้อยแล้ว'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final activeTermAsync = ref.watch(cpoActiveTermProvider);
@@ -150,246 +212,426 @@ class _CpoMeetingEditDialogState extends ConsumerState<CpoMeetingEditDialog> {
       if (sec != null) _secCtrl.text = sec.fullName;
     }
 
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: Colors.indigo.shade100, borderRadius: BorderRadius.circular(8)),
-            child: Icon(Icons.calendar_month, color: Colors.indigo.shade800),
-          ),
-          const SizedBox(width: 12),
-          Text(widget.existingMeeting != null ? 'แก้ไขการประชุม คปอ.' : 'จัดนัดหมายการประชุม คปอ. ใหม่'),
-        ],
-      ),
-      content: SizedBox(
-        width: 600,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 1,
-                      child: TextFormField(
-                        controller: _noCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          labelText: 'ครั้งที่ *',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'ระบุครั้งที่' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: TextFormField(
-                        controller: _yearCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'ปี พ.ศ. *',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'ระบุปี' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 3,
-                      child: TextFormField(
-                        controller: _titleCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'ชื่อหัวข้อการประชุม *',
-                          border: OutlineInputBorder(),
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'ระบุชื่อการประชุม' : null,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: _dateCtrl,
-                        readOnly: true,
-                        onTap: _selectDate,
-                        decoration: const InputDecoration(
-                          labelText: 'วันที่ประชุม *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.event),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: TextFormField(
-                        controller: _startCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'เริ่มเวลา',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: TextFormField(
-                        controller: _endCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'สิ้นสุด',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _locationCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'สถานที่จัดการประชุม *',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.place),
-                  ),
-                  validator: (v) => v == null || v.trim().isEmpty ? 'ระบุสถานที่' : null,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: _chairCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'ประธานในที่ประชุม *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.gavel),
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'ระบุประธาน' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _secCtrl,
-                        decoration: const InputDecoration(
-                          labelText: 'เลขานุการ คปอ. (ผู้จดรายงาน) *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.assignment_ind),
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'ระบุเลขานุการ' : null,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<CpoMeetingStatus>(
-                  initialValue: _status,
-                  decoration: const InputDecoration(
-                    labelText: 'สถานะการประชุม',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: CpoMeetingStatus.values.map((s) {
-                    return DropdownMenuItem(
-                      value: s,
-                      child: Row(
-                        children: [
-                          Container(width: 10, height: 10, decoration: BoxDecoration(color: s.color, shape: BoxShape.circle)),
-                          const SizedBox(width: 8),
-                          Text(s.labelTh),
-                        ],
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _status = v);
-                  },
-                ),
-                if (widget.existingMeeting == null) ...[
-                  const SizedBox(height: 12),
-                  CheckboxListTile(
-                    value: _populateMembers,
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('เติมรายชื่อผู้เข้าร่วมประชุมอัตโนมัติจากกรรมการ คปอ. ชุดปัจจุบัน', style: TextStyle(fontSize: 13)),
-                    onChanged: (v) => setState(() => _populateMembers = v ?? true),
-                  ),
-                  CheckboxListTile(
-                    value: _seedAgendas,
-                    dense: true,
-                    contentPadding: EdgeInsets.zero,
-                    title: const Text('สร้าง ๖ ระเบียบวาระมาตรฐานตามคู่มือ กสร. ๑/๒๕๖๑ อัตโนมัติ', style: TextStyle(fontSize: 13)),
-                    onChanged: (v) => setState(() => _seedAgendas = v ?? true),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-      actionsAlignment: widget.existingMeeting != null ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
-      actions: [
-        if (widget.existingMeeting != null)
-          TextButton.icon(
-            style: TextButton.styleFrom(foregroundColor: Colors.red.shade700),
-            icon: const Icon(Icons.delete_outline, size: 18),
-            label: const Text('ลบการประชุมนี้'),
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Row(
-                    children: [
-                      Icon(Icons.delete_forever, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('ยืนยันลบการประชุม'),
-                    ],
-                  ),
-                  content: Text('คุณต้องการลบการประชุมครั้งที่ ${widget.existingMeeting!.meetingNumber}/${widget.existingMeeting!.meetingYear} ("${widget.existingMeeting!.meetingTitle}") ออกจากระบบหรือไม่?'),
-                  actions: [
-                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
-                      onPressed: () => Navigator.pop(ctx, true),
-                      child: const Text('ยืนยันลบ'),
-                    ),
-                  ],
-                ),
-              );
-              if (confirm == true && widget.existingMeeting!.id != null) {
-                await ref.read(cpoMeetingsProvider.notifier).deleteMeeting(widget.existingMeeting!.id!);
-                if (context.mounted) {
-                  Navigator.pop(context, true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('ลบการประชุมเรียบร้อยแล้ว'), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-          ),
-        Row(
+    final isEdit = widget.existingMeeting != null;
+
+    return Dialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      clipBehavior: Clip.antiAlias,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('ยกเลิก')),
-            const SizedBox(width: 8),
-            ElevatedButton(
-              onPressed: _isSaving ? null : _save,
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1E3A8A)),
-              child: _isSaving
-                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('บันทึกการประชุม', style: TextStyle(color: Colors.white)),
+            // 1. Header Banner with Navy Gradient
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [Color(0xFF0F172A), Color(0xFF1E3A8A)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    ),
+                    child: Icon(
+                      isEdit ? Icons.edit_calendar_rounded : Icons.calendar_month_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isEdit ? 'แก้ไขข้อมูลการประชุม คปอ.' : 'จัดนัดหมายการประชุม คปอ. ใหม่',
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          isEdit
+                              ? 'ปรับปรุงข้อมูลกำหนดการ สถานที่ และรายชื่อผู้รับผิดชอบ'
+                              : 'กำหนดวัน เวลา สถานที่ และเตรียมความพร้อมการประชุม',
+                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.8)),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded, color: Colors.white70, size: 20),
+                    tooltip: 'ปิด',
+                    splashRadius: 18,
+                  ),
+                ],
+              ),
+            ),
+
+            // 2. Scrollable Body with Clean Grouped Cards
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Card 1: กำหนดการและวาระการประชุม
+                      _buildSectionCard(
+                        title: 'กำหนดการและหัวข้อการประชุม',
+                        icon: Icons.calendar_today_rounded,
+                        iconColor: const Color(0xFF1E3A8A),
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(
+                                width: 110,
+                                child: _buildTextField(
+                                  controller: _noCtrl,
+                                  label: 'ครั้งที่ *',
+                                  hint: 'เช่น 1',
+                                  keyboardType: TextInputType.number,
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'ระบุครั้งที่' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              SizedBox(
+                                width: 110,
+                                child: _buildTextField(
+                                  controller: _yearCtrl,
+                                  label: 'ปี พ.ศ. *',
+                                  hint: 'เช่น 2569',
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'ระบุปี' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildTextField(
+                                  controller: _titleCtrl,
+                                  label: 'ชื่อหัวข้อการประชุม *',
+                                  hint: 'เช่น การประชุม คปอ. ประจำเดือน',
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'ระบุชื่อการประชุม' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 2,
+                                child: _buildTextField(
+                                  controller: _dateCtrl,
+                                  label: 'วันที่จัดการประชุม *',
+                                  readOnly: true,
+                                  onTap: _selectDate,
+                                  prefixIcon: Icons.event_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 1,
+                                child: _buildTextField(
+                                  controller: _startCtrl,
+                                  label: 'เวลาเริ่ม',
+                                  readOnly: true,
+                                  onTap: () => _selectTime(_startCtrl),
+                                  prefixIcon: Icons.schedule_rounded,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                flex: 1,
+                                child: _buildTextField(
+                                  controller: _endCtrl,
+                                  label: 'สิ้นสุด',
+                                  readOnly: true,
+                                  onTap: () => _selectTime(_endCtrl),
+                                  prefixIcon: Icons.schedule_rounded,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // Card 2: สถานที่และผู้รับผิดชอบ
+                      _buildSectionCard(
+                        title: 'สถานที่และผู้รับผิดชอบการประชุม',
+                        icon: Icons.location_on_outlined,
+                        iconColor: const Color(0xFF1E3A8A),
+                        children: [
+                          _buildTextField(
+                            controller: _locationCtrl,
+                            label: 'สถานที่จัดการประชุม *',
+                            hint: 'เช่น ห้องประชุมใหญ่ ชั้น ๒ อาคารสำนักงาน',
+                            prefixIcon: Icons.apartment_rounded,
+                            validator: (v) => v == null || v.trim().isEmpty ? 'ระบุสถานที่' : null,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildTextField(
+                                  controller: _chairCtrl,
+                                  label: 'ประธานในที่ประชุม *',
+                                  hint: 'ชื่อ-นามสกุล ประธาน คปอ.',
+                                  prefixIcon: Icons.gavel_rounded,
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'ระบุชื่อประธาน' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: _buildTextField(
+                                  controller: _secCtrl,
+                                  label: 'เลขานุการ คปอ. (ผู้จดรายงาน) *',
+                                  hint: 'ชื่อ-นามสกุล เลขานุการ',
+                                  prefixIcon: Icons.edit_note_rounded,
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'ระบุชื่อเลขานุการ' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // Card 3: การเตรียมข้อมูลอัตโนมัติ (เฉพาะกรณีสร้างใหม่)
+                      if (!isEdit)
+                        _buildSectionCard(
+                          title: 'การจัดเตรียมข้อมูลอัตโนมัติ',
+                          icon: Icons.auto_awesome_rounded,
+                          iconColor: const Color(0xFF059669),
+                          backgroundColor: const Color(0xFFF0FDF4),
+                          borderColor: const Color(0xFFBBF7D0),
+                          children: [
+                            _buildCheckboxTile(
+                              value: _seedAgendas,
+                              title: 'จัดเตรียม ๖ ระเบียบวาระมาตรฐาน คปอ. อัตโนมัติ',
+                              subtitle: 'สร้างวาระที่ ๑ ถึง ๖ พร้อมหัวข้อและเนื้อหาเริ่มต้นตามมาตรฐานสากล',
+                              onChanged: (v) => setState(() => _seedAgendas = v ?? true),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8),
+                              child: Divider(height: 1, color: Color(0xFFDCFCE7)),
+                            ),
+                            _buildCheckboxTile(
+                              value: _populateMembers,
+                              title: 'เติมรายชื่อผู้เข้าร่วมประชุมจากกรรมการ คปอ. ชุดปัจจุบัน',
+                              subtitle: 'ดึงรายชื่อคณะกรรมการทั้งหมดเข้าสู่ตารางเช็คชื่อผู้เข้าร่วมประชุมทันที',
+                              onChanged: (v) => setState(() => _populateMembers = v ?? true),
+                            ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            // 3. Footer Action Bar
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8FAFC),
+                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+              ),
+              child: Row(
+                mainAxisAlignment: isEdit ? MainAxisAlignment.spaceBetween : MainAxisAlignment.end,
+                children: [
+                  if (isEdit)
+                    TextButton.icon(
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red.shade700,
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      ),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                      label: const Text('ลบการประชุมนี้', style: TextStyle(fontWeight: FontWeight.w600)),
+                      onPressed: _confirmDelete,
+                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFCBD5E1)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+                        ),
+                        child: const Text('ยกเลิก', style: TextStyle(color: Color(0xFF475569), fontWeight: FontWeight.w600)),
+                      ),
+                      const SizedBox(width: 10),
+                      ElevatedButton.icon(
+                        onPressed: _isSaving ? null : _save,
+                        icon: _isSaving
+                            ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                            : const Icon(Icons.check_circle_outline_rounded, size: 18),
+                        label: Text(
+                          _isSaving ? 'กำลังบันทึก...' : (isEdit ? 'บันทึกการแก้ไข' : 'บันทึกนัดหมายการประชุม'),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E3A8A),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+                          elevation: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-      ],
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required List<Widget> children,
+    Color backgroundColor = const Color(0xFFF8FAFC),
+    Color borderColor = const Color(0xFFE2E8F0),
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: iconColor),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: iconColor == const Color(0xFF059669) ? const Color(0xFF065F46) : const Color(0xFF1E293B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    String? hint,
+    IconData? prefixIcon,
+    bool readOnly = false,
+    VoidCallback? onTap,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: readOnly,
+      onTap: onTap,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: const TextStyle(fontSize: 13.5, color: Color(0xFF0F172A)),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+        hintText: hint,
+        hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF94A3B8)),
+        floatingLabelBehavior: FloatingLabelBehavior.auto,
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 18, color: const Color(0xFF64748B)) : null,
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Color(0xFF1E3A8A), width: 1.6),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 1.6),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCheckboxTile({
+    required bool value,
+    required String title,
+    required String subtitle,
+    required ValueChanged<bool?> onChanged,
+  }) {
+    return InkWell(
+      onTap: () => onChanged(!value),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Checkbox(
+              value: value,
+              onChanged: onChanged,
+              activeColor: const Color(0xFF059669),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+            ),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
+
+

@@ -244,12 +244,13 @@ class CpoRepository {
     return res.map((m) => CpoAgendaModel.fromMap(m)).toList();
   }
 
-  Future<int> createMeetingWithStandardAgendas(CpoMeetingModel meeting, {List<CpoMemberModel>? termMembers}) async {
+  Future<int> createMeetingWithStandardAgendas(CpoMeetingModel meeting, {List<CpoMemberModel>? termMembers, bool seedAgendas = true}) async {
     final db = await _dbHelper.database;
     final meetingId = await db.insert('cpo_meetings', meeting.toMap());
 
     // 1. Seed 6 Standard Agendas
-    for (final std in CpoStatutoryStandards.standardAgendas) {
+    if (seedAgendas) {
+      for (final std in CpoStatutoryStandards.standardAgendas) {
       final agendaNo = std['agenda_no'] as int;
       final title = std['title'] as String;
       final defaultContent = std['default_content'] as String;
@@ -264,6 +265,7 @@ class CpoRepository {
         'sort_order': agendaNo,
       });
     }
+  }
 
     // 2. Populate attendees from term members if provided
     if (termMembers != null && termMembers.isNotEmpty) {

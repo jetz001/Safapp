@@ -268,9 +268,9 @@ class CpoMeetingsNotifier extends AsyncNotifier<List<CpoMeetingModel>> {
     state = await AsyncValue.guard(() => ref.read(cpoRepositoryProvider).getAllMeetings());
   }
 
-  Future<int> createMeetingWithStandardAgendas(CpoMeetingModel meeting, {List<CpoMemberModel>? termMembers}) async {
+  Future<int> createMeetingWithStandardAgendas(CpoMeetingModel meeting, {List<CpoMemberModel>? termMembers, bool seedAgendas = true}) async {
     final repo = ref.read(cpoRepositoryProvider);
-    final id = await repo.createMeetingWithStandardAgendas(meeting, termMembers: termMembers);
+    final id = await repo.createMeetingWithStandardAgendas(meeting, termMembers: termMembers, seedAgendas: seedAgendas);
     await refresh();
     return id;
   }
