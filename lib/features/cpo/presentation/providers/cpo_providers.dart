@@ -377,6 +377,14 @@ class CpoActionItemsNotifier extends AsyncNotifier<List<CpoActionItemModel>> {
     await repo.deleteActionItem(id);
     await refresh();
   }
+
+  /// ดึง/แปลงมติและเรื่องย่อยจากวาระที่ ๔ และ ๕ สร้างเป็น Action Item อัตโนมัติ
+  Future<int> autoSyncFromAgendas({int? meetingId}) async {
+    final repo = ref.read(cpoRepositoryProvider);
+    final count = await repo.syncActionItemsFromAllMeetings(specificMeetingId: meetingId);
+    await refresh();
+    return count;
+  }
 }
 
 /// Provider คำนวณสรุปสถิติแดชบอร์ด & การประเมินเกณฑ์กฎหมาย คปอ.

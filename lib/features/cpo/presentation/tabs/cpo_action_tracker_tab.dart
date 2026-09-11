@@ -157,22 +157,35 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
                 onSelected: (val) => setState(() => _showOverdueOnly = val),
               ),
               const SizedBox(width: 16),
-              // Button: Draft Next Meeting
+              // Button: Auto-Sync from Agendas 4-5
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.indigo.shade700,
+                  backgroundColor: const Color(0xFF0D9488),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
+                icon: const Icon(Icons.auto_awesome, size: 16),
+                label: const Text('ดึงมติจากวาระ ๔-๕ อัตโนมัติ'),
+                onPressed: () => _handleAutoSync(context),
+              ),
+              const SizedBox(width: 8),
+              // Button: Draft Next Meeting
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.indigo.shade700,
+                  side: BorderSide(color: Colors.indigo.shade300),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
                 icon: const Icon(Icons.schedule_send_outlined, size: 18),
-                label: Text('เตรียมวาระครั้งถัดไป ($pendingCount งานค้าง)'),
+                label: Text('เตรียมวาระครั้งถัดไป ($pendingCount)'),
                 onPressed: () => _draftNextMeeting(context, allActions),
               ),
               const SizedBox(width: 8),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0D9488),
+                  backgroundColor: const Color(0xFF1E3A8A),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -188,6 +201,37 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
     );
   }
 
+  Future<void> _handleAutoSync(BuildContext context) async {
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.showSnackBar(
+      const SnackBar(content: Text('กำลังดึงมติและงานจากวาระที่ ๔ และ ๕...'), duration: Duration(seconds: 1)),
+    );
+    try {
+      final count = await ref.read(cpoActionItemsProvider.notifier).autoSyncFromAgendas();
+      if (!mounted) return;
+      if (count > 0) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('⚡ ดึงงานและมติจากวาระที่ ๔-๕ สำเร็จ $count รายการ'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('ไม่พบงานหรือมติใหม่ในวาระที่ ๔-๕ (หรือมีอยู่ในระบบครบแล้ว)'),
+            backgroundColor: Colors.teal,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text('เกิดข้อผิดพลาด: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
@@ -197,16 +241,36 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
           const SizedBox(height: 12),
           Text('ไม่มีรายการติดตามมติที่ประชุม', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
           const SizedBox(height: 6),
-          Text('เมื่อมีการประชุม คปอ. มติในวาระที่ ๕ จะถูกนำมาสร้างเป็น Action Item ที่นี่', style: TextStyle(fontSize: 13, color: Colors.grey.shade500)),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF0D9488),
-              foregroundColor: Colors.white,
-            ),
-            icon: const Icon(Icons.add),
-            label: const Text('เพิ่ม Action Item ใหม่'),
-            onPressed: () => _openCreateActionDialog(context),
+          Text(
+            'สามารถกดดึงมติและงานจากวาระที่ ๔ และ ๕ มาสร้างเป็น Action Item ได้อัตโนมัติ',
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+          ),
+          const SizedBox(height: 18),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D9488),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.auto_awesome, size: 18),
+                label: const Text('⚡ ดึงมติจากวาระที่ ๔-๕ อัตโนมัติ', style: TextStyle(fontWeight: FontWeight.bold)),
+                onPressed: () => _handleAutoSync(context),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.add),
+                label: const Text('เพิ่ม Action Item ใหม่'),
+                onPressed: () => _openCreateActionDialog(context),
+              ),
+            ],
           ),
         ],
       ),

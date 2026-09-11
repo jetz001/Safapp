@@ -1,3 +1,4 @@
+import 'dart:convert';
 import '../../../../core/database/database_helper.dart';
 import '../models/cpo_committee_model.dart';
 import '../models/cpo_election_model.dart';
@@ -5,6 +6,7 @@ import '../models/cpo_meeting_model.dart';
 import '../models/cpo_action_item_model.dart';
 import '../models/cpo_distribution_model.dart';
 import '../datasources/cpo_statutory_standards.dart';
+import '../../domain/enums/cpo_action_status.dart';
 
 class CpoRepository {
   final DatabaseHelper _dbHelper;
@@ -376,6 +378,185 @@ class CpoRepository {
   Future<void> deleteActionItem(int id) async {
     final db = await _dbHelper.database;
     await db.delete('cpo_action_items', where: 'id = ?', whereArgs: [id]);
+  }
+
+  /// ดึง/แปลงมติและเรื่องย่อยจากวาระที่ ๔ และ ๕ สร้างเป็น Action Item อัตโนมัติ
+  Future<int> syncActionItemsFromAgendas(int meetingId) async {
+    final db = await _dbHelper.database;
+    // 1. Fetch meeting
+    final meetingMaps = await db.query('cpo_meetings', where: 'id = ?', whereArgs: [meetingId]);
+    if (meetingMaps.isEmpty) return 0;
+    final meetingMap = meetingMaps.first;
+    final meetingYear = meetingMap['meeting_year']?.toString() ?? '${DateTime.now().year + 543}';
+    final meetingNo = (meetingMap['meeting_no'] as num?)?.toInt() ?? 1;
+    final meetingDate = meetingMap['meeting_date']?.toString() ?? DateTime.now().toIso8601String().substring(0, 10);
+
+    // 2. Fetch agendas 4 and 5 for this meeting
+    final agendaMaps = await db.query(
+      'cpo_agendas',
+      where: 'meeting_id = ? AND agenda_no IN (4, 5)',
+      whereArgs: [meetingId],
+      orderBy: 'agenda_no ASC',
+    );
+
+    // 3. Fetch existing action items for this meeting to prevent duplicates
+    final existingActions = await getAllActionItems(meetingId: meetingId);
+    final existingTitles = existingActions.map((a) => a.title.trim().toLowerCase()).toSet();
+    final existingCodes = existingActions.map((a) => a.itemCode.trim().toLowerCase()).toSet();
+
+    int createdCount = 0;
+    final parsedMeetingDate = DateTime.tryParse(meetingDate) ?? DateTime.now();
+    final defaultDue = parsedMeetingDate.add(const Duration(days: 30)).toIso8601String().substring(0, 10);
+
+    for (final agMap in agendaMaps) {
+      final agendaId = agMap['id'] as int?;
+      final agendaNo = (agMap['agenda_no'] as num?)?.toInt() ?? 5;
+      final agendaTitle = agMap['agenda_title']?.toString() ?? '';
+      final disc = agMap['discussion_content']?.toString() ?? '';
+      final res = agMap['resolution_content']?.toString() ?? '';
+      final presenter = agMap['presenter_name']?.toString() ?? '';
+
+      final subTopics = _extractSubTopicsForSync(disc, res, presenter, agendaNo);
+
+      for (int i = 0; i < subTopics.length; i++) {
+        final st = subTopics[i];
+        final subNo = st['sub_no']?.isNotEmpty == true ? st['sub_no']! : '$agendaNo.${i + 1}';
+        final rawTitle = st['title']?.trim() ?? '';
+        final taskTitle = rawTitle.isNotEmpty
+            ? '$subNo $rawTitle'
+            : '$subNo $agendaTitle';
+
+        final itemCode = 'ACT-$meetingYear-$meetingNo-${agendaNo}_${i + 1}';
+
+        // Avoid duplication
+        if (existingCodes.contains(itemCode.toLowerCase()) ||
+            existingTitles.contains(taskTitle.toLowerCase()) ||
+            (rawTitle.isNotEmpty && existingTitles.contains(rawTitle.toLowerCase()))) {
+          continue;
+        }
+
+        final discussion = st['discussion']?.trim() ?? '';
+        final resolution = st['resolution']?.trim() ?? '';
+        final pic = (st['presenter']?.trim().isNotEmpty == true)
+            ? st['presenter']!.trim()
+            : 'คณะกรรมการ คปอ.';
+
+        if (discussion.isEmpty && resolution.isEmpty && rawTitle.isEmpty) {
+          continue;
+        }
+
+        final actionDetail = StringBuffer();
+        if (discussion.isNotEmpty) {
+          actionDetail.writeln(discussion);
+        }
+        if (resolution.isNotEmpty) {
+          if (actionDetail.isNotEmpty) actionDetail.writeln('\n');
+          actionDetail.write('มติที่ประชุม: $resolution');
+        } else {
+          if (actionDetail.isNotEmpty) actionDetail.writeln('\n');
+          actionDetail.write('มติที่ประชุม: รับทราบและติดตามผลการดำเนินงาน');
+        }
+
+        final priority = (discussion.contains('อันตราย') ||
+                discussion.contains('อุบัติเหตุ') ||
+                resolution.contains('เร่งด่วน') ||
+                resolution.contains('อนุมัติ'))
+            ? 'HIGH'
+            : 'MEDIUM';
+
+        final images = st['images'] as List<String>? ?? [];
+
+        final item = CpoActionItemModel(
+          itemCode: itemCode,
+          meetingId: meetingId,
+          agendaId: agendaId,
+          agendaNo: agendaNo,
+          title: taskTitle,
+          actionDetail: actionDetail.toString(),
+          responsiblePerson: pic,
+          dueDate: defaultDue,
+          priority: priority,
+          status: CpoActionStatus.pending,
+          evidencePhotoPath: images.isNotEmpty ? images.first : null,
+          createdAt: DateTime.now().toIso8601String(),
+          updatedAt: DateTime.now().toIso8601String(),
+        );
+
+        await saveActionItem(item);
+        existingTitles.add(taskTitle.toLowerCase());
+        existingCodes.add(itemCode.toLowerCase());
+        createdCount++;
+      }
+    }
+    return createdCount;
+  }
+
+  List<Map<String, dynamic>> _extractSubTopicsForSync(
+    String disc,
+    String res,
+    String defaultPresenter,
+    int agendaNo,
+  ) {
+    final match = RegExp(r'<!--SUB_ITEMS_JSON:(.*?)-->', dotAll: true).firstMatch(disc);
+    if (match != null) {
+      try {
+        final jsonString = match.group(1)!;
+        final List<dynamic> list = jsonDecode(jsonString);
+        if (list.isNotEmpty) {
+          return list.map((item) {
+            final m = item as Map<String, dynamic>;
+            final rawImages = m['images'];
+            final List<String> imgs = [];
+            if (rawImages is List) {
+              for (final img in rawImages) {
+                if (img != null && img.toString().isNotEmpty) {
+                  imgs.add(img.toString());
+                }
+              }
+            }
+            return {
+              'sub_no': m['sub_no']?.toString() ?? '',
+              'title': m['title']?.toString() ?? '',
+              'discussion': m['discussion']?.toString() ?? '',
+              'resolution': m['resolution']?.toString() ?? '',
+              'presenter': m['presenter']?.toString() ?? defaultPresenter,
+              'images': imgs,
+            };
+          }).toList();
+        }
+      } catch (_) {}
+    }
+
+    final cleanDisc = disc.replaceAll(RegExp(r'<!--SUB_ITEMS_JSON:[\s\S]*?-->'), '').trim();
+    if (cleanDisc.isEmpty && res.isEmpty) return [];
+
+    return [
+      {
+        'sub_no': '$agendaNo.1',
+        'title': '',
+        'discussion': cleanDisc,
+        'resolution': res,
+        'presenter': defaultPresenter,
+        'images': <String>[],
+      }
+    ];
+  }
+
+  Future<int> syncActionItemsFromAllMeetings({int? specificMeetingId}) async {
+    final db = await _dbHelper.database;
+    List<int> meetingIds = [];
+    if (specificMeetingId != null) {
+      meetingIds = [specificMeetingId];
+    } else {
+      final meetings = await db.query('cpo_meetings', orderBy: 'id DESC');
+      meetingIds = meetings.map((m) => (m['id'] as num).toInt()).toList();
+    }
+
+    int totalSynced = 0;
+    for (final mId in meetingIds) {
+      totalSynced += await syncActionItemsFromAgendas(mId);
+    }
+    return totalSynced;
   }
 
   // ══════════════════════════════════════════════════════════════════════════

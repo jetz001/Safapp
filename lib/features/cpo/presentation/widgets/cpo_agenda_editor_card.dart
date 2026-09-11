@@ -408,11 +408,18 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
       await ref.read(cpoMeetingsProvider.notifier).updateAgenda(updated);
       widget.onAgendaUpdated?.call();
 
+      // Auto-sync action items for Agenda 4 and 5
+      int autoActionCount = 0;
+      if (widget.agenda.agendaNo == 4 || widget.agenda.agendaNo == 5) {
+        autoActionCount = await ref.read(cpoActionItemsProvider.notifier).autoSyncFromAgendas(meetingId: widget.meetingId);
+      }
+
       if (mounted) {
         final countText = _subItems.length > 1 ? ' (${_subItems.length} เรื่องย่อย)' : '';
+        final actionText = autoActionCount > 0 ? ' (ซิงค์ Action Items อัตโนมัติ $autoActionCount รายการ)' : '';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('บันทึกระเบียบวาระที่ ${widget.agenda.agendaNo} เรียบร้อยแล้ว$countText'),
+            content: Text('บันทึกระเบียบวาระที่ ${widget.agenda.agendaNo} เรียบร้อยแล้ว$countText$actionText'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 2),
           ),
@@ -712,7 +719,7 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                       ),
                     ),
                   ),
-                if (ag.agendaNo == 4)
+                if (ag.agendaNo == 4) ...[
                   ElevatedButton.icon(
                     onPressed: _isPulling ? null : _pullMonthlySafetyStats,
                     icon: const Icon(Icons.query_stats, size: 15),
@@ -727,18 +734,20 @@ class _CpoAgendaEditorCardState extends ConsumerState<CpoAgendaEditorCard> {
                       ),
                     ),
                   ),
-                if (ag.agendaNo == 5)
+                  const SizedBox(width: 4),
+                ],
+                if (ag.agendaNo == 4 || ag.agendaNo == 5)
                   ElevatedButton.icon(
                     onPressed: _openAddActionItemDialog,
                     icon: const Icon(Icons.add_task, size: 15),
                     label: const Text('มอบหมาย Action Item', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green.shade50,
-                      foregroundColor: Colors.green.shade800,
+                      backgroundColor: ag.agendaNo == 4 ? Colors.amber.shade50 : Colors.green.shade50,
+                      foregroundColor: ag.agendaNo == 4 ? Colors.amber.shade900 : Colors.green.shade800,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(6),
-                        side: BorderSide(color: Colors.green.shade200),
+                        side: BorderSide(color: ag.agendaNo == 4 ? Colors.amber.shade200 : Colors.green.shade200),
                       ),
                     ),
                   ),

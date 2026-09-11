@@ -802,8 +802,14 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
     if (confirm == true) {
       final updated = meeting.copyWith(status: CpoMeetingStatus.completed);
       await ref.read(cpoMeetingsProvider.notifier).updateMeeting(updated);
+      final count = await ref.read(cpoActionItemsProvider.notifier).autoSyncFromAgendas(meetingId: meeting.id);
       messenger.showSnackBar(
-        const SnackBar(content: Text('เปลี่ยนสถานะการประชุมเป็นเสร็จสิ้นแล้ว')),
+        SnackBar(
+          content: Text(count > 0
+              ? 'ปิดการประชุมสำเร็จ พร้อมดึงมติวาระ ๔-๕ เป็น Action Items อัตโนมัติ ($count รายการ)'
+              : 'เปลี่ยนสถานะการประชุมเป็นเสร็จสิ้นแล้ว'),
+          backgroundColor: Colors.green,
+        ),
       );
     }
   }
