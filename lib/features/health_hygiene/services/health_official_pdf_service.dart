@@ -1005,19 +1005,19 @@ class HealthOfficialPdfService {
         resultColor = PdfColors.green900;
         resultBg = PdfColors.green50;
         resultBorder = PdfColors.green300;
-        resultText = '✓ ผลตรวจปกติ (Normal)';
+        resultText = 'ผลตรวจปกติ (Normal)';
         break;
       case 'WATCH':
         resultColor = PdfColors.amber900;
         resultBg = PdfColors.amber50;
         resultBorder = PdfColors.amber300;
-        resultText = '⚠ เฝ้าระวัง (Watch)';
+        resultText = 'เฝ้าระวัง (Watch)';
         break;
       case 'ABNORMAL':
         resultColor = PdfColors.red900;
         resultBg = PdfColors.red50;
         resultBorder = PdfColors.red300;
-        resultText = '✕ ผิดปกติ (Abnormal)';
+        resultText = 'ผิดปกติ (Abnormal)';
         break;
       default:
         resultColor = PdfColors.grey800;
@@ -1041,13 +1041,9 @@ class HealthOfficialPdfService {
           // 1. Header Bar
           pw.Container(
             padding: const pw.EdgeInsets.symmetric(horizontal: 7, vertical: 4),
-            decoration: pw.BoxDecoration(
+            decoration: const pw.BoxDecoration(
               color: PdfColors.grey100,
-              borderRadius: const pw.BorderRadius.only(
-                topLeft: pw.Radius.circular(5),
-                topRight: pw.Radius.circular(5),
-              ),
-              border: const pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
+              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5)),
             ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
