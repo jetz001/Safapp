@@ -9,10 +9,13 @@ import '../../employee/domain/models/employee_models.dart';
 
 class HealthOfficialPdfService {
   // ==========================================================================
-  // 1. แบบ จผส. ๑ (แบบแจ้งผลตรวจสุขภาพผิดปกติ ส่งพนักงานตรวจความปลอดภัย)
+  // 1. แบบ จผส. ๑ (แบบแจ้งผลการตรวจสุขภาพของลูกจ้างที่ผิดปกติหรือที่มีอาการหรือเจ็บป่วยเนื่องจากการทำงาน
+  //    การให้การรักษาพยาบาล และการป้องกันแก้ไข ตามกฎกระทรวงตรวจสุขภาพฯ พ.ศ. ๒๕๖๓)
+  //    ประกาศกรมสวัสดิการและคุ้มครองแรงงาน ราชกิจจานุเบกษา เล่ม ๑๓๘ ตอนพิเศษ ๒๓๑ ง วันที่ ๒๗ ก.ย. ๒๕๖๔
   // ==========================================================================
   static Future<void> printJorPhorSor1Report({
     required BuildContext context,
+    List<EmployeeHealthRecord>? allRecords,
     required List<EmployeeHealthRecord> abnormalRecords,
     required List<MedicalSurveillanceFollowup> followups,
     CompanyProfile? company,
@@ -31,157 +34,733 @@ class HealthOfficialPdfService {
         italic: fontItalic,
       );
 
-      final orgName = (company?.companyName.isNotEmpty == true) ? company!.companyName : 'สถานประกอบกิจการ';
-      final fullAddress = _formatCompanyAddress(company);
-      final taxId = company?.taxId ?? '01055XXXXXXXX';
       final now = DateTime.now();
-      final year = checkupYear ?? '${now.year + 543}';
+      const thaiMonths = [
+        '', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      final reportDay = '${now.day}';
+      final reportMonth = thaiMonths[now.month];
+      final reportYear = checkupYear ?? '${now.year + 543}';
 
-      // Group by department
-      final Map<String, List<EmployeeHealthRecord>> deptMap = {};
-      for (final r in abnormalRecords) {
-        final d = r.department ?? 'ฝ่ายผลิตหลัก';
-        deptMap.putIfAbsent(d, () => []).add(r);
+      final employerName = company?.employerName?.trim() ?? '';
+      final companyName = (company?.companyName.trim().isNotEmpty == true) ? company!.companyName.trim() : '';
+      final taxId = company?.taxId?.trim() ?? '';
+      final businessType = company?.businessCategoryTitle?.trim() ?? '';
+
+      final addressNo = company?.addressNumber?.trim() ?? '';
+      final moo = company?.moo?.trim() ?? '';
+      final soi = company?.soi?.trim() ?? '';
+      final road = company?.road?.trim() ?? '';
+      final subdistrict = company?.subdistrict?.trim() ?? '';
+      final district = company?.district?.trim() ?? '';
+      final province = company?.province?.trim() ?? '';
+      final postalCode = company?.postalCode?.trim() ?? '';
+      final phone = company?.phone?.trim() ?? '';
+      final fax = company?.fax?.trim() ?? '';
+      final mobile = company?.mobile?.trim() ?? '';
+
+      // Determine dataset
+      final effectiveRecords = (allRecords != null && allRecords.isNotEmpty) ? allRecords : abnormalRecords;
+
+      // Checkup types
+      final hasPreEmployment = effectiveRecords.any((r) => r.checkupType == 'PRE_EMPLOYMENT');
+      final hasJobChange = effectiveRecords.any((r) => r.checkupType == 'JOB_CHANGE');
+      final hasRiskSurveillance = effectiveRecords.any((r) => r.checkupType == 'RISK_BASED');
+      final hasAnnual = effectiveRecords.any((r) => r.checkupType == 'ANNUAL') ||
+          (!hasPreEmployment && !hasJobChange && !hasRiskSurveillance);
+
+      // Checkup date range
+      final checkupDates = effectiveRecords.map((r) => r.checkupDate.trim()).where((d) => d.isNotEmpty).toSet().toList();
+      String checkupDateDisplay = '';
+      if (checkupDates.length == 1) {
+        checkupDateDisplay = formatThaiDate(checkupDates.first);
+      } else if (checkupDates.length > 1) {
+        checkupDates.sort();
+        checkupDateDisplay = '${formatThaiDate(checkupDates.first, short: true)} ถึง ${formatThaiDate(checkupDates.last, short: true)}';
       }
 
+      // Doctors
+      final doctors = <({String name, String license})>[];
+      for (final r in effectiveRecords) {
+        if (r.doctorName != null && r.doctorName!.trim().isNotEmpty) {
+          final dName = r.doctorName!.trim();
+          final dLic = r.doctorLicenseNo?.trim() ?? '';
+          if (!doctors.any((d) => d.name == dName)) {
+            doctors.add((name: dName, license: dLic));
+          }
+        }
+      }
+      final doc1Name = doctors.isNotEmpty ? doctors[0].name : '';
+      final doc1License = doctors.isNotEmpty ? doctors[0].license : '';
+      final doc2Name = doctors.length > 1 ? doctors[1].name : '';
+      final doc2License = doctors.length > 1 ? doctors[1].license : '';
+      final doc3Name = doctors.length > 2 ? doctors[2].name : '';
+      final doc3License = doctors.length > 2 ? doctors[2].license : '';
+
+      // Hospitals
+      final hospitalNames = effectiveRecords.map((r) => r.hospitalName.trim()).where((h) => h.isNotEmpty).toSet().toList();
+      final hospitalName = hospitalNames.isNotEmpty ? hospitalNames.join(', ') : '';
+
+      // Page 2: Department aggregation
+      final Map<String, List<EmployeeHealthRecord>> allDeptMap = {};
+      for (final r in effectiveRecords) {
+        final d = r.department?.trim().isNotEmpty == true ? r.department!.trim() : 'ฝ่ายผลิตหลัก';
+        allDeptMap.putIfAbsent(d, () => []).add(r);
+      }
+
+      final List<Map<String, dynamic>> deptSummaryList = [];
+      allDeptMap.forEach((dept, deptRecords) {
+        final testedCount = deptRecords.length;
+        final normalCount = deptRecords.where((r) => r.overallResult == 'NORMAL').length;
+        final abnormalCount = deptRecords.where((r) => r.overallResult != 'NORMAL').length;
+
+        // Extract tested risk factors
+        final riskSet = deptRecords.expand((r) => r.riskFactorsTested).where((rf) => rf.trim().isNotEmpty).toSet().toList();
+        if (riskSet.isEmpty) {
+          for (final r in deptRecords) {
+            riskSet.addAll(r.riskFactorResults.keys.where((k) => k.trim().isNotEmpty));
+          }
+        }
+        if (riskSet.isEmpty) {
+          riskSet.addAll(['สารเคมีอันตราย', 'เสียงดัง', 'ฝุ่นละออง']);
+        }
+
+        // Followups / Actions
+        final deptFollowups = followups.where((f) => deptRecords.any((r) => r.id == f.healthRecordId)).toList();
+        final treatmentText = deptFollowups.isNotEmpty && deptFollowups.any((f) => f.actionDetails.isNotEmpty)
+            ? deptFollowups.map((f) => f.actionDetails).where((a) => a.isNotEmpty).toSet().join('; ')
+            : (abnormalCount > 0 ? 'ส่งตรวจซ้ำทางห้องปฏิบัติการ และส่งพบแพทย์อาชีวเวชศาสตร์เพื่อรับการรักษา' : '-');
+
+        final envText = abnormalCount > 0
+            ? 'ตรวจวัดสภาพแวดล้อมในการทำงาน (เสียง/สารเคมี) และบำรุงรักษาเครื่องจักร'
+            : '-';
+
+        final protText = abnormalCount > 0
+            ? 'จัดและควบคุมดูแลให้สวมใส่อุปกรณ์คุ้มครองความปลอดภัยส่วนบุคคล (PPE)'
+            : '-';
+
+        deptSummaryList.add({
+          'dept': dept,
+          'risks': riskSet.take(3).toList(),
+          'testedCount': testedCount,
+          'normalCount': normalCount,
+          'abnormalCount': abnormalCount,
+          'treatment': treatmentText,
+          'environment': envText,
+          'protection': protText,
+        });
+      });
+
+      final totalTested = deptSummaryList.fold<int>(0, (sum, d) => sum + (d['testedCount'] as int));
+      final totalNormal = deptSummaryList.fold<int>(0, (sum, d) => sum + (d['normalCount'] as int));
+      final totalAbnormal = deptSummaryList.fold<int>(0, (sum, d) => sum + (d['abnormalCount'] as int));
+
+      // ----------------------------------------------------------------------
+      // PAGE 1: ข้อ ๑ - ๕ (แนวนอน ราชกิจจานุเบกษา)
+      // ----------------------------------------------------------------------
       doc.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
+        pw.Page(
+          pageFormat: PdfPageFormat.a4.landscape,
           theme: theme,
-          margin: const pw.EdgeInsets.symmetric(horizontal: 28, vertical: 24),
-          header: (pw.Context ctx) {
+          margin: const pw.EdgeInsets.symmetric(horizontal: 38, vertical: 28),
+          build: (pw.Context ctx) {
             return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
+                // Top Right: แบบ จผส. ๑
+                pw.Align(
+                  alignment: pw.Alignment.topRight,
+                  child: pw.Text(
+                    'แบบ จผส. ๑',
+                    style: pw.TextStyle(fontSize: 11.5, fontWeight: pw.FontWeight.bold),
+                  ),
+                ),
+                pw.SizedBox(height: 10),
+
+                // Title
+                pw.Center(
+                  child: pw.Text(
+                    'แบบแจ้งผลการตรวจสุขภาพของลูกจ้างที่ผิดปกติหรือที่มีอาการหรือเจ็บป่วยเนื่องจากการทำงาน การให้การรักษาพยาบาล และการป้องกันแก้ไข',
+                    style: pw.TextStyle(fontSize: 12.5, fontWeight: pw.FontWeight.bold),
+                    textAlign: pw.TextAlign.center,
+                  ),
+                ),
+                pw.SizedBox(height: 12),
+
+                // Date
+                pw.Align(
+                  alignment: pw.Alignment.centerRight,
+                  child: pw.Row(
+                    mainAxisSize: pw.MainAxisSize.min,
+                    children: [
+                      pw.Text('วันที่ ', style: const pw.TextStyle(fontSize: 10)),
+                      pw.Container(
+                        width: 40,
+                        child: pw.Stack(
+                          alignment: pw.Alignment.bottomCenter,
+                          children: [
+                            pw.Text('....................', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                            if (reportDay.isNotEmpty)
+                              pw.Container(
+                                color: PdfColors.white,
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 2),
+                                child: pw.Text(reportDay, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                              ),
+                          ],
+                        ),
+                      ),
+                      pw.Text(' เดือน ', style: const pw.TextStyle(fontSize: 10)),
+                      pw.Container(
+                        width: 80,
+                        child: pw.Stack(
+                          alignment: pw.Alignment.bottomCenter,
+                          children: [
+                            pw.Text('................................', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                            if (reportMonth.isNotEmpty)
+                              pw.Container(
+                                color: PdfColors.white,
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 2),
+                                child: pw.Text(reportMonth, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                              ),
+                          ],
+                        ),
+                      ),
+                      pw.Text(' พ.ศ. ', style: const pw.TextStyle(fontSize: 10)),
+                      pw.Container(
+                        width: 55,
+                        child: pw.Stack(
+                          alignment: pw.Alignment.bottomCenter,
+                          children: [
+                            pw.Text('......................', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+                            if (reportYear.isNotEmpty)
+                              pw.Container(
+                                color: PdfColors.white,
+                                padding: const pw.EdgeInsets.symmetric(horizontal: 2),
+                                child: pw.Text(reportYear, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                pw.SizedBox(height: 12),
+
+                // ข้อ ๑
                 pw.Row(
-                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
-                    pw.Text('กรมสวัสดิการและคุ้มครองแรงงาน (กฎกระทรวงตรวจสุขภาพตามปัจจัยเสี่ยง พ.ศ. ๒๕๖๓)', style: pw.TextStyle(fontSize: 8, color: PdfColors.grey700)),
-                    pw.Container(
-                      padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.blue900, width: 1), borderRadius: pw.BorderRadius.circular(4)),
-                      child: pw.Text('แบบ จผส. ๑', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                    _buildJorPhorSor1DottedField(
+                      label: '๑. ข้าพเจ้า (นาย/นาง/นางสาว) ',
+                      value: employerName,
+                      suffix: ' นายจ้าง/ผู้มีอำนาจกระทำการแทน',
+                      flex: 1,
                     ),
                   ],
                 ),
-                pw.Divider(thickness: 0.5, color: PdfColors.grey400),
-                pw.SizedBox(height: 4),
+                pw.SizedBox(height: 8),
+
+                // ข้อ ๒
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '๒. ชื่อสถานประกอบกิจการ ', value: companyName, flex: 5),
+                    pw.SizedBox(width: 8),
+                    _buildJorPhorSor1DottedField(label: 'เลขทะเบียนนิติบุคคล ', value: taxId, flex: 3),
+                    pw.SizedBox(width: 8),
+                    _buildJorPhorSor1DottedField(label: 'ประกอบกิจการ ', value: businessType, flex: 4),
+                  ],
+                ),
+                pw.SizedBox(height: 6),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    ตั้งอยู่เลขที่ ', value: addressNo, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'หมู่ที่ ', value: moo, flex: 1),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'ตรอก/ซอย ', value: soi, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'ถนน ', value: road, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: subdistrict, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: district, flex: 2),
+                  ],
+                ),
+                pw.SizedBox(height: 6),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    จังหวัด ', value: province, flex: 3),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'รหัสไปรษณีย์ ', value: postalCode, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: phone, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'โทรสาร ', value: fax, flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: mobile, flex: 2),
+                  ],
+                ),
+                pw.SizedBox(height: 10),
+
+                // ข้อ ๓
+                pw.Text('๓. การดำเนินการตรวจสุขภาพของลูกจ้างซึ่งทำงานเกี่ยวกับปัจจัยเสี่ยง', style: const pw.TextStyle(fontSize: 10)),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1RadioCircle(hasPreEmployment, 'ตรวจสุขภาพครั้งแรก (ให้เสร็จสิ้นภายใน ๓๐ วัน นับแต่วันที่รับลูกจ้างเข้าทำงาน)'),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1RadioCircle(hasAnnual, 'ตรวจประจำปี'),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1RadioCircle(hasJobChange, 'ตรวจเมื่อเปลี่ยนงาน'),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1RadioCircle(hasRiskSurveillance, 'ตรวจเฝ้าระวังตามความจำเป็น'),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    วันที่ตรวจสุขภาพ ', value: checkupDateDisplay, flex: 1),
+                  ],
+                ),
+                pw.SizedBox(height: 10),
+
+                // ข้อ ๔
+                pw.Text('๔. แพทย์ผู้ทำการตรวจสุขภาพ', style: const pw.TextStyle(fontSize: 10)),
+                pw.Text(
+                  '   (แพทย์ซึ่งได้รับวุฒิบัตรหรือหนังสืออนุมัติสาขาวิชาเวชศาสตร์ป้องกัน แขนงอาชีวเวชศาสตร์/แพทย์ซึ่งผ่านการอบรมด้านอาชีวเวชศาสตร์ตามหลักสูตรที่กระทรวงสาธารณสุขรับรอง)',
+                  style: const pw.TextStyle(fontSize: 8.8, color: PdfColors.grey800),
+                ),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    ๔.๑ ชื่อ-นามสกุล ', value: doc1Name, flex: 1),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1DottedField(label: 'เลขที่ใบประกอบวิชาชีพ ', value: doc1License, flex: 1),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    ๔.๒ ชื่อ-นามสกุล ', value: doc2Name, flex: 1),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1DottedField(label: 'เลขที่ใบประกอบวิชาชีพ ', value: doc2License, flex: 1),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    ๔.๓ ชื่อ-นามสกุล ', value: doc3Name, flex: 1),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1DottedField(label: 'เลขที่ใบประกอบวิชาชีพ ', value: doc3License, flex: 1),
+                  ],
+                ),
+                pw.SizedBox(height: 10),
+
+                // ข้อ ๕
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '๕. ชื่อหน่วยบริการตรวจสุขภาพ ', value: hospitalName, flex: 1),
+                    pw.SizedBox(width: 14),
+                    _buildJorPhorSor1DottedField(label: 'เลขทะเบียนหน่วยบริการ ', value: '', flex: 1),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    ตั้งอยู่เลขที่ ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'หมู่ที่ ', value: '', flex: 1),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'ตรอก/ซอย ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'ถนน ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: '', flex: 2),
+                  ],
+                ),
+                pw.SizedBox(height: 5),
+                pw.Row(
+                  children: [
+                    _buildJorPhorSor1DottedField(label: '    จังหวัด ', value: '', flex: 3),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'รหัสไปรษณีย์ ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'โทรสาร ', value: '', flex: 2),
+                    pw.SizedBox(width: 6),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: '', flex: 2),
+                  ],
+                ),
               ],
             );
           },
+        ),
+      );
+
+      // ----------------------------------------------------------------------
+      // PAGE 2: ข้อ ๖ (ตารางผลการตรวจสุขภาพฯ ๘ คอลัมน์ ๒ ชั้น แนวนอน)
+      // ----------------------------------------------------------------------
+      doc.addPage(
+        pw.Page(
+          pageFormat: PdfPageFormat.a4.landscape,
+          theme: theme,
+          margin: const pw.EdgeInsets.symmetric(horizontal: 38, vertical: 28),
           build: (pw.Context ctx) {
-            final tableRows = <List<String>>[];
-            int deptIndex = 1;
+            // Build table rows
+            final tableRows = <pw.TableRow>[];
 
-            deptMap.forEach((dept, records) {
-              final riskSummary = records.expand((r) => r.riskFactorsTested).toSet().join(', ');
-              final treatedSummary = followups.where((f) => records.any((r) => r.id == f.healthRecordId)).map((f) => '• ${f.actionDetails}').join('\n');
+            for (int i = 0; i < deptSummaryList.length; i++) {
+              final item = deptSummaryList[i];
+              final risks = item['risks'] as List<dynamic>;
 
-              tableRows.add([
-                '$deptIndex. $dept',
-                riskSummary.isNotEmpty ? riskSummary : 'สารเคมี/เสียงดัง/ฝุ่น',
-                '${records.length}',
-                '0',
-                '${records.length}',
-                treatedSummary.isNotEmpty ? treatedSummary : 'ส่งตรวจซ้ำและพบแพทย์อาชีวเวชศาสตร์',
-                'ตรวจวัดสภาพแวดล้อมและบำรุงรักษาเครื่องจักร',
-                'กวดขันการสวมใส่ PPE และปรับปรุงเวลาทำงาน',
-              ]);
-              deptIndex++;
-            });
-
-            return [
-              pw.Container(
-                width: double.infinity,
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.center,
+              tableRows.add(
+                pw.TableRow(
                   children: [
-                    pw.Text(
-                      'แบบแจ้งผลการตรวจสุขภาพของลูกจ้างที่ผิดปกติหรือที่มีอาการหรือเจ็บป่วยเนื่องจากการทำงาน\nการให้การรักษาพยาบาล และการป้องกันแก้ไข',
-                      style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900),
-                      textAlign: pw.TextAlign.center,
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text(
+                        '${_toThaiDigit(i + 1)}. ${item['dept']}',
+                        style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
+                      ),
                     ),
-                    pw.SizedBox(height: 2),
-                    pw.Text('ประจำปี พ.ศ. $year', style: pw.TextStyle(fontSize: 9.5, fontWeight: pw.FontWeight.bold)),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          for (int rIdx = 0; rIdx < risks.length; rIdx++)
+                            pw.Text(
+                              '${_toThaiDigit(rIdx + 1)}. ${risks[rIdx]}',
+                              style: const pw.TextStyle(fontSize: 8),
+                            ),
+                        ],
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Center(
+                        child: pw.Text('${item['testedCount']}', style: const pw.TextStyle(fontSize: 8.5)),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Center(
+                        child: pw.Text('${item['normalCount']}', style: const pw.TextStyle(fontSize: 8.5)),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Center(
+                        child: pw.Text(
+                          '${item['abnormalCount']}',
+                          style: pw.TextStyle(
+                            fontSize: 8.5,
+                            fontWeight: (item['abnormalCount'] as int) > 0 ? pw.FontWeight.bold : pw.FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text('${item['treatment']}', style: const pw.TextStyle(fontSize: 8)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text('${item['environment']}', style: const pw.TextStyle(fontSize: 8)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text('${item['protection']}', style: const pw.TextStyle(fontSize: 8)),
+                    ),
                   ],
                 ),
-              ),
-              pw.SizedBox(height: 6),
+              );
+            }
 
-              _buildInfoRow('๑. ข้าพเจ้า / ผู้มีอำนาจ', company?.employerName ?? 'ผู้รับมอบอำนาจทำการแทนนายจ้าง'),
-              _buildInfoRow('๒. ชื่อสถานประกอบกิจการ', '$orgName  |  เลขนิติบุคคล: $taxId'),
-              _buildInfoRow('ที่ตั้งสถานประกอบการ', '$fullAddress  |  โทรศัพท์: ${company?.phone ?? "-"}'),
-              _buildInfoRow('๓. การตรวจสุขภาพตามปัจจัยเสี่ยง', '[X] ตรวจสุขภาพประจำปี  [X] ตรวจเฝ้าระวังทางการแพทย์'),
-              pw.SizedBox(height: 6),
-
-              pw.Text('๖. ผลการตรวจสุขภาพของลูกจ้างที่ผิดปกติ และการดำเนินการแก้ไขป้องกัน:', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
-              pw.SizedBox(height: 4),
-
-              if (tableRows.isEmpty)
-                pw.Container(
-                  width: double.infinity,
-                  padding: const pw.EdgeInsets.all(12),
-                  decoration: pw.BoxDecoration(border: pw.Border.all(color: PdfColors.grey300), borderRadius: pw.BorderRadius.circular(4)),
-                  child: pw.Center(child: pw.Text('ไม่พบผลการตรวจสุขภาพที่ผิดปกติในรอบปีนี้', style: const pw.TextStyle(fontSize: 9.5))),
-                )
-              else
-                pw.TableHelper.fromTextArray(
-                  border: pw.TableBorder.all(color: PdfColors.grey400, width: 0.5),
-                  headerStyle: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold, color: PdfColors.white),
-                  headerDecoration: const pw.BoxDecoration(color: PdfColors.blue900),
-                  cellStyle: const pw.TextStyle(fontSize: 7),
-                  columnWidths: {
-                    0: const pw.FlexColumnWidth(1.2),
-                    1: const pw.FlexColumnWidth(1.4),
-                    2: const pw.FlexColumnWidth(0.7),
-                    3: const pw.FlexColumnWidth(0.6),
-                    4: const pw.FlexColumnWidth(0.6),
-                    5: const pw.FlexColumnWidth(1.6),
-                    6: const pw.FlexColumnWidth(1.5),
-                    7: const pw.FlexColumnWidth(1.5),
-                  },
-                  headers: <String>[
-                    'แผนก',
-                    'งานเกี่ยวกับ\nปัจจัยเสี่ยง',
-                    'ตรวจ\n(คน)',
-                    'ปกติ',
-                    'ผิดปกติ',
-                    'การให้การรักษา / ส่งตรวจซ้ำ',
-                    'การแก้ไขสภาพแวดล้อม',
-                    'การป้องกันที่ตัวลูกจ้าง',
+            // Fill placeholder rows if fewer than 3 departments (matching gazette form)
+            for (int emptyIdx = deptSummaryList.length; emptyIdx < 3; emptyIdx++) {
+              tableRows.add(
+                pw.TableRow(
+                  children: [
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Text('${_toThaiDigit(emptyIdx + 1)}. ..................', style: const pw.TextStyle(fontSize: 8.5)),
+                    ),
+                    pw.Padding(
+                      padding: const pw.EdgeInsets.all(5),
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text('๑. ..................', style: const pw.TextStyle(fontSize: 8)),
+                          pw.Text('๒. ..................', style: const pw.TextStyle(fontSize: 8)),
+                          pw.Text('๓. ..................', style: const pw.TextStyle(fontSize: 8)),
+                        ],
+                      ),
+                    ),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Center(child: pw.Text('', style: const pw.TextStyle(fontSize: 8.5)))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Center(child: pw.Text('', style: const pw.TextStyle(fontSize: 8.5)))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Center(child: pw.Text('', style: const pw.TextStyle(fontSize: 8.5)))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
+                    pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
                   ],
-                  data: tableRows,
                 ),
-              pw.SizedBox(height: 8),
+              );
+            }
 
-              pw.Text(
-                'หมายเหตุ: ๑. งานเกี่ยวกับปัจจัยเสี่ยงตามกฎกระทรวง พ.ศ. ๒๕๖๓  ๒. การให้การรักษา เช่น ส่งตรวจสุขภาพซ้ำ, ส่งรักษา  ๓. การแก้ไขสภาพแวดล้อม เช่น ปรับปรุงเครื่องจักร  ๔. การป้องกันที่ตัวลูกจ้าง เช่น สวมใส่ PPE, ปรับเปลี่ยนงาน',
-                style: const pw.TextStyle(fontSize: 6.5, color: PdfColors.grey700),
-              ),
-              pw.SizedBox(height: 12),
-
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            // Summary row: รวมจำนวนลูกจ้าง (คน)
+            tableRows.add(
+              pw.TableRow(
                 children: [
-                  pw.Text('วันที่รายงาน: ${now.day}/${now.month}/${now.year + 543}', style: const pw.TextStyle(fontSize: 8)),
-                  pw.Column(
-                    children: [
-                      pw.Text('ลงชื่อ.................................................................', style: const pw.TextStyle(fontSize: 8.5)),
-                      pw.SizedBox(height: 2),
-                      pw.Text('(.................................................................)', style: const pw.TextStyle(fontSize: 8)),
-                      pw.Text('นายจ้าง / ผู้มีอำนาจกระทำการแทน', style: const pw.TextStyle(fontSize: 7.5, color: PdfColors.grey700)),
-                    ],
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(5),
+                    child: pw.Text(
+                      'รวมจำนวนลูกจ้าง (คน)',
+                      style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold),
+                    ),
                   ),
+                  pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(5),
+                    child: pw.Center(
+                      child: pw.Text('$totalTested', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    ),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(5),
+                    child: pw.Center(
+                      child: pw.Text('$totalNormal', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    ),
+                  ),
+                  pw.Padding(
+                    padding: const pw.EdgeInsets.all(5),
+                    child: pw.Center(
+                      child: pw.Text('$totalAbnormal', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    ),
+                  ),
+                  pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
+                  pw.Padding(padding: const pw.EdgeInsets.all(5), child: pw.Text('', style: const pw.TextStyle(fontSize: 8))),
                 ],
               ),
-            ];
+            );
+
+            return pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                // Title
+                pw.Text(
+                  '๖. ผลการตรวจสุขภาพของลูกจ้างที่ผิดปกติหรือที่มีอาการหรือเจ็บป่วยเนื่องจากการทำงาน การให้การรักษาพยาบาล และการป้องกันแก้ไข',
+                  style: pw.TextStyle(fontSize: 10.5, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 6),
+
+                // 2-Tier Header Box (Aligned flex 14, 16, 13, 7, 7, 21, 21, 21 = 120 total)
+                pw.Container(
+                  height: 44,
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                      top: pw.BorderSide(color: PdfColors.black, width: 0.5),
+                      left: pw.BorderSide(color: PdfColors.black, width: 0.5),
+                      right: pw.BorderSide(color: PdfColors.black, width: 0.5),
+                    ),
+                  ),
+                  child: pw.Row(
+                    children: [
+                      // แผนก
+                      pw.Expanded(
+                        flex: 14,
+                        child: pw.Center(
+                          child: pw.Text('แผนก', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold)),
+                        ),
+                      ),
+                      // งานเกี่ยวกับปัจจัยเสี่ยง๑.
+                      pw.Expanded(
+                        flex: 16,
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                          child: pw.Center(
+                            child: pw.Text('งานเกี่ยวกับ\nปัจจัยเสี่ยง๑.', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                      // จำนวนลูกจ้างแต่ละแผนกที่ได้รับการตรวจสุขภาพ (คน)
+                      pw.Expanded(
+                        flex: 13,
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                          child: pw.Center(
+                            child: pw.Text('จำนวนลูกจ้างแต่ละแผนก\nที่ได้รับการตรวจสุขภาพ\n(คน)', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 7.8, fontWeight: pw.FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                      // จำนวนลูกจ้างที่ตรวจ (ปกติ | ผิดปกติ)
+                      pw.Expanded(
+                        flex: 14,
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                          child: pw.Column(
+                            children: [
+                              pw.Container(
+                                height: 18,
+                                decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                                child: pw.Center(child: pw.Text('จำนวนลูกจ้างที่ตรวจ', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold))),
+                              ),
+                              pw.Expanded(
+                                child: pw.Row(
+                                  children: [
+                                    pw.Expanded(
+                                      flex: 7,
+                                      child: pw.Center(child: pw.Text('ปกติ\n(คน)', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                                    ),
+                                    pw.Expanded(
+                                      flex: 7,
+                                      child: pw.Container(
+                                        decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                                        child: pw.Center(child: pw.Text('ผิดปกติ\n(คน)', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 7.5, fontWeight: pw.FontWeight.bold))),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // การดำเนินการ (การให้การรักษา๒. | การแก้ไขสภาพแวดล้อม๓. | การป้องกันที่ตัวลูกจ้าง๔.)
+                      pw.Expanded(
+                        flex: 63,
+                        child: pw.Container(
+                          decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                          child: pw.Column(
+                            children: [
+                              pw.Container(
+                                height: 18,
+                                decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                                child: pw.Center(child: pw.Text('การดำเนินการ', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold))),
+                              ),
+                              pw.Expanded(
+                                child: pw.Row(
+                                  children: [
+                                    pw.Expanded(
+                                      flex: 21,
+                                      child: pw.Center(child: pw.Text('การให้การรักษา๒.\n(โปรดระบุรายละเอียด)', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                                    ),
+                                    pw.Expanded(
+                                      flex: 21,
+                                      child: pw.Container(
+                                        decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                                        child: pw.Center(child: pw.Text('การแก้ไขสภาพแวดล้อม๓.\n(โปรดระบุรายละเอียด)', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                                      ),
+                                    ),
+                                    pw.Expanded(
+                                      flex: 21,
+                                      child: pw.Container(
+                                        decoration: const pw.BoxDecoration(border: pw.Border(left: pw.BorderSide(color: PdfColors.black, width: 0.5))),
+                                        child: pw.Center(child: pw.Text('การป้องกันที่ตัวลูกจ้าง๔.\n(โปรดระบุรายละเอียด)', textAlign: pw.TextAlign.center, style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold))),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Table Data Body
+                pw.Table(
+                  border: pw.TableBorder(
+                    top: const pw.BorderSide(color: PdfColors.black, width: 0.5),
+                    bottom: const pw.BorderSide(color: PdfColors.black, width: 0.5),
+                    left: const pw.BorderSide(color: PdfColors.black, width: 0.5),
+                    right: const pw.BorderSide(color: PdfColors.black, width: 0.5),
+                    horizontalInside: const pw.BorderSide(color: PdfColors.black, width: 0.5),
+                    verticalInside: const pw.BorderSide(color: PdfColors.black, width: 0.5),
+                  ),
+                  columnWidths: const {
+                    0: pw.FlexColumnWidth(14),
+                    1: pw.FlexColumnWidth(16),
+                    2: pw.FlexColumnWidth(13),
+                    3: pw.FlexColumnWidth(7),
+                    4: pw.FlexColumnWidth(7),
+                    5: pw.FlexColumnWidth(21),
+                    6: pw.FlexColumnWidth(21),
+                    7: pw.FlexColumnWidth(21),
+                  },
+                  children: tableRows,
+                ),
+                pw.SizedBox(height: 14),
+
+                // Signature Box (Right-aligned)
+                pw.Align(
+                  alignment: pw.Alignment.centerRight,
+                  child: pw.Container(
+                    width: 250,
+                    child: pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.center,
+                      children: [
+                        pw.Text('ลงชื่อ..............................................................', style: const pw.TextStyle(fontSize: 10)),
+                        pw.SizedBox(height: 4),
+                        pw.Text(
+                          employerName.isNotEmpty ? '($employerName)' : '(............................................................)',
+                          style: const pw.TextStyle(fontSize: 10),
+                        ),
+                        pw.SizedBox(height: 2),
+                        pw.Text('นายจ้าง/ผู้มีอำนาจกระทำการแทน', style: const pw.TextStyle(fontSize: 9.5)),
+                      ],
+                    ),
+                  ),
+                ),
+                pw.SizedBox(height: 12),
+
+                // Footnotes (Left-aligned)
+                pw.Row(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('หมายเหตุ ', style: pw.TextStyle(fontSize: 8.5, fontWeight: pw.FontWeight.bold)),
+                    pw.Expanded(
+                      child: pw.Column(
+                        crossAxisAlignment: pw.CrossAxisAlignment.start,
+                        children: [
+                          pw.Text(
+                            '๑. งานเกี่ยวกับปัจจัยเสี่ยง หมายถึง งานที่ลูกจ้างทำ ตามกฎกระทรวงกำหนดมาตรฐานการตรวจสุขภาพลูกจ้างซึ่งทำงานเกี่ยวกับปัจจัยเสี่ยง พ.ศ. ๒๕๖๓',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                          pw.Text(
+                            '๒. การให้การรักษา (โปรดระบุรายละเอียด) เช่น การส่งตัวลูกจ้างเข้ารับการตรวจสุขภาพซ้ำ การส่งลูกจ้างเข้ารับการรักษาพยาบาล เป็นต้น',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                          pw.Text(
+                            '๓. การแก้ไขสภาพแวดล้อม (โปรดระบุรายละเอียด) เช่น การบำรุงรักษาเครื่องจักร การปรับปรุงแก้ไขเครื่องจักร เป็นต้น',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                          pw.Text(
+                            '๔. การป้องกันที่ตัวลูกจ้าง (โปรดระบุรายละเอียด) เช่น จัดและควบคุมดูแลให้ลูกจ้างสวมใส่ปลั๊กลดเสียงหรือที่ครอบหูลดเสียง การเปลี่ยนงาน เป็นต้น',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
           },
         ),
       );
 
       await Printing.layoutPdf(
         onLayout: (_) => doc.save(),
-        name: 'JorPhorSor1_Report_$year',
-        format: PdfPageFormat.a4,
+        name: 'แบบ_จผส_๑_$reportYear',
+        format: PdfPageFormat.a4.landscape,
       );
     } catch (e) {
       if (context.mounted) {
@@ -190,6 +769,96 @@ class HealthOfficialPdfService {
         );
       }
     }
+  }
+
+  // Helper for radio circle
+  static pw.Widget _buildJorPhorSor1RadioCircle(bool isChecked, String label) {
+    return pw.Row(
+      mainAxisSize: pw.MainAxisSize.min,
+      crossAxisAlignment: pw.CrossAxisAlignment.center,
+      children: [
+        pw.Container(
+          width: 9.5,
+          height: 9.5,
+          decoration: pw.BoxDecoration(
+            shape: pw.BoxShape.circle,
+            border: pw.Border.all(color: PdfColors.black, width: 0.8),
+          ),
+          child: isChecked
+              ? pw.Center(
+                  child: pw.Container(
+                    width: 5,
+                    height: 5,
+                    decoration: const pw.BoxDecoration(
+                      shape: pw.BoxShape.circle,
+                      color: PdfColors.black,
+                    ),
+                  ),
+                )
+              : null,
+        ),
+        pw.SizedBox(width: 4),
+        pw.Text(label, style: const pw.TextStyle(fontSize: 9.5)),
+      ],
+    );
+  }
+
+  // Helper for dotted line fill-in field
+  static pw.Widget _buildJorPhorSor1DottedField({
+    required String label,
+    required String value,
+    String? suffix,
+    int flex = 1,
+    double fontSize = 10,
+  }) {
+    final hasVal = value.trim().isNotEmpty && value != '-';
+    return pw.Expanded(
+      flex: flex,
+      child: pw.Row(
+        mainAxisSize: pw.MainAxisSize.min,
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          pw.Text(label, style: pw.TextStyle(fontSize: fontSize)),
+          pw.Expanded(
+            child: pw.Stack(
+              alignment: pw.Alignment.bottomLeft,
+              children: [
+                pw.Container(
+                  width: double.infinity,
+                  child: pw.Text(
+                    '........................................................................................................................................................................................................',
+                    maxLines: 1,
+                    overflow: pw.TextOverflow.clip,
+                    style: pw.TextStyle(fontSize: fontSize, color: PdfColors.grey700),
+                  ),
+                ),
+                if (hasVal)
+                  pw.Container(
+                    color: PdfColors.white,
+                    padding: const pw.EdgeInsets.symmetric(horizontal: 2),
+                    child: pw.Text(
+                      value,
+                      style: pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          if (suffix != null) pw.Text(suffix, style: pw.TextStyle(fontSize: fontSize)),
+        ],
+      ),
+    );
+  }
+
+  // Helper for Thai numerals
+  static String _toThaiDigit(int number) {
+    const arabic = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const thai = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙'];
+    String s = number.toString();
+    for (int i = 0; i < 10; i++) {
+      s = s.replaceAll(arabic[i], thai[i]);
+    }
+    return s;
   }
 
   // ==========================================================================
@@ -1408,24 +2077,6 @@ class HealthOfficialPdfService {
           ),
         ),
       ],
-    );
-  }
-
-  static pw.Widget _buildInfoRow(String label, String value) {
-    return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 1),
-      child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: [
-          pw.SizedBox(
-            width: 140,
-            child: pw.Text(label, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.black)),
-          ),
-          pw.Expanded(
-            child: pw.Text(': $value', style: const pw.TextStyle(fontSize: 8)),
-          ),
-        ],
-      ),
     );
   }
 }

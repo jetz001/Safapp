@@ -1394,9 +1394,11 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                     onPressed: () {
                       HealthOfficialPdfService.printJorPhorSor1Report(
                         context: context,
+                        allRecords: records,
                         abnormalRecords: abnormalRecords,
                         followups: followups,
                         company: companyProfile,
+                        checkupYear: _selectedYearFilter != 'ALL' ? _selectedYearFilter : null,
                       );
                     },
                     icon: const Icon(Icons.print_rounded, size: 18),
