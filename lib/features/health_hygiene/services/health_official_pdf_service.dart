@@ -723,9 +723,9 @@ class HealthOfficialPdfService {
                   },
                   children: tableRows,
                 ),
-                pw.SizedBox(height: 14),
+                pw.SizedBox(height: 38),
 
-                // Signature Box (Right-aligned)
+                // Signature Box (Right-aligned with ample space for signing)
                 pw.Align(
                   alignment: pw.Alignment.centerRight,
                   child: pw.Container(
@@ -734,18 +734,18 @@ class HealthOfficialPdfService {
                       crossAxisAlignment: pw.CrossAxisAlignment.center,
                       children: [
                         pw.Text('ลงชื่อ..............................................................', style: const pw.TextStyle(fontSize: 10)),
-                        pw.SizedBox(height: 4),
+                        pw.SizedBox(height: 5),
                         pw.Text(
                           employerName.isNotEmpty ? '($employerName)' : '(............................................................)',
                           style: const pw.TextStyle(fontSize: 10),
                         ),
-                        pw.SizedBox(height: 2),
+                        pw.SizedBox(height: 3),
                         pw.Text('นายจ้าง/ผู้มีอำนาจกระทำการแทน', style: const pw.TextStyle(fontSize: 9.5)),
                       ],
                     ),
                   ),
                 ),
-                pw.SizedBox(height: 12),
+                pw.SizedBox(height: 16),
 
                 // Footnotes (Left-aligned)
                 pw.Row(
