@@ -255,17 +255,17 @@ class HealthOfficialPdfService {
                     children: [
                       pw.Text('วันที่ ', style: const pw.TextStyle(fontSize: 10)),
                       pw.Text(
-                        reportDay.isNotEmpty ? reportDay : '............',
+                        reportDay.isNotEmpty ? reportDay : '-',
                         style: pw.TextStyle(fontSize: 10, fontWeight: reportDay.isNotEmpty ? pw.FontWeight.bold : pw.FontWeight.normal),
                       ),
                       pw.Text(' เดือน ', style: const pw.TextStyle(fontSize: 10)),
                       pw.Text(
-                        reportMonth.isNotEmpty ? reportMonth : '........................',
+                        reportMonth.isNotEmpty ? reportMonth : '-',
                         style: pw.TextStyle(fontSize: 10, fontWeight: reportMonth.isNotEmpty ? pw.FontWeight.bold : pw.FontWeight.normal),
                       ),
                       pw.Text(' พ.ศ. ', style: const pw.TextStyle(fontSize: 10)),
                       pw.Text(
-                        reportYear.isNotEmpty ? reportYear : '................',
+                        reportYear.isNotEmpty ? reportYear : '-',
                         style: pw.TextStyle(fontSize: 10, fontWeight: reportYear.isNotEmpty ? pw.FontWeight.bold : pw.FontWeight.normal),
                       ),
                     ],
@@ -293,7 +293,7 @@ class HealthOfficialPdfService {
                     pw.SizedBox(width: 8),
                     _buildJorPhorSor1DottedField(label: 'เลขทะเบียนนิติบุคคล ', value: taxId, flex: 3),
                     pw.SizedBox(width: 8),
-                    _buildJorPhorSor1DottedField(label: 'ประกอบกิจการ ', value: businessType, flex: 5),
+                    _buildJorPhorSor1DottedField(label: 'ประกอบกิจการ ', value: businessType, flex: 6),
                   ],
                 ),
                 pw.SizedBox(height: 6),
@@ -307,9 +307,9 @@ class HealthOfficialPdfService {
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'ถนน ', value: road, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: subdistrict, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: subdistrict, flex: 3),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: district, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: district, flex: 3),
                   ],
                 ),
                 pw.SizedBox(height: 6),
@@ -319,11 +319,11 @@ class HealthOfficialPdfService {
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'รหัสไปรษณีย์ ', value: postalCode, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: phone, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: phone, flex: 3),
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'โทรสาร ', value: fax, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: mobile, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: mobile, flex: 3),
                   ],
                 ),
                 pw.SizedBox(height: 10),
@@ -386,9 +386,9 @@ class HealthOfficialPdfService {
                 // ข้อ ๕
                 pw.Row(
                   children: [
-                    _buildJorPhorSor1DottedField(label: '๕. ชื่อหน่วยบริการตรวจสุขภาพ ', value: s5HospitalName, flex: 1),
+                    _buildJorPhorSor1DottedField(label: '๕. ชื่อหน่วยบริการตรวจสุขภาพ ', value: s5HospitalName, flex: 3),
                     pw.SizedBox(width: 14),
-                    _buildJorPhorSor1DottedField(label: 'เลขทะเบียนหน่วยบริการ ', value: s5TaxId, flex: 1),
+                    _buildJorPhorSor1DottedField(label: 'เลขทะเบียนหน่วยบริการ ', value: s5TaxId, flex: 2),
                   ],
                 ),
                 pw.SizedBox(height: 5),
@@ -402,9 +402,9 @@ class HealthOfficialPdfService {
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'ถนน ', value: s5Road, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: s5Subdistrict, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: s5Subdistrict, flex: 3),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: s5District, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: s5District, flex: 3),
                   ],
                 ),
                 pw.SizedBox(height: 5),
@@ -414,11 +414,11 @@ class HealthOfficialPdfService {
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'รหัสไปรษณีย์ ', value: s5PostalCode, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: s5Phone, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: s5Phone, flex: 3),
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'โทรสาร ', value: '', flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: s5Mobile, flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: s5Mobile, flex: 3),
                   ],
                 ),
               ],
@@ -514,16 +514,16 @@ class HealthOfficialPdfService {
                   children: [
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(5),
-                      child: pw.Text('${_toThaiDigit(emptyIdx + 1)}. ..................', style: const pw.TextStyle(fontSize: 8.5)),
+                      child: pw.Text('${_toThaiDigit(emptyIdx + 1)}. -', style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey500)),
                     ),
                     pw.Padding(
                       padding: const pw.EdgeInsets.all(5),
                       child: pw.Column(
                         crossAxisAlignment: pw.CrossAxisAlignment.start,
                         children: [
-                          pw.Text('๑. ..................', style: const pw.TextStyle(fontSize: 8)),
-                          pw.Text('๒. ..................', style: const pw.TextStyle(fontSize: 8)),
-                          pw.Text('๓. ..................', style: const pw.TextStyle(fontSize: 8)),
+                          pw.Text('๑. -', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+                          pw.Text('๒. -', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+                          pw.Text('๓. -', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
                         ],
                       ),
                     ),
@@ -880,7 +880,7 @@ class HealthOfficialPdfService {
     };
   }
 
-  // Helper for dotted line fill-in field (bulletproof single-line rendering without stack dropping)
+  // Helper for fill-in field (clean official format without trailing dots, full width to text)
   static pw.Widget _buildJorPhorSor1DottedField({
     required String label,
     required String value,
@@ -890,8 +890,10 @@ class HealthOfficialPdfService {
   }) {
     final hasVal = value.trim().isNotEmpty && value != '-';
     final trimmedVal = value.trim();
-    // Reduce font slightly for long text to ensure it never drops to a 2nd line
-    final effectiveFontSize = (trimmedVal.length > 32 && fontSize >= 9.5) ? 8.5 : fontSize;
+    // Dynamic font scaling: ensure longer text fits comfortably without being clipped
+    final effectiveFontSize = (trimmedVal.length > 40)
+        ? 7.5
+        : (trimmedVal.length > 25 ? 8.2 : fontSize);
 
     return pw.Expanded(
       flex: flex,
@@ -900,26 +902,15 @@ class HealthOfficialPdfService {
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
           pw.Text(label, style: pw.TextStyle(fontSize: effectiveFontSize)),
-          if (hasVal) ...[
-            pw.Flexible(
-              fit: pw.FlexFit.loose,
-              child: pw.Text(
-                trimmedVal,
-                maxLines: 1,
-                overflow: pw.TextOverflow.clip,
-                style: pw.TextStyle(fontSize: effectiveFontSize, fontWeight: pw.FontWeight.bold),
-              ),
-            ),
-            pw.SizedBox(width: 2),
-          ],
           pw.Expanded(
-            child: pw.ClipRect(
-              child: pw.Text(
-                '........................................................................................................................................................................................................',
-                maxLines: 1,
-                softWrap: false,
-                overflow: pw.TextOverflow.clip,
-                style: pw.TextStyle(fontSize: effectiveFontSize, color: PdfColors.grey700),
+            child: pw.Text(
+              hasVal ? trimmedVal : '-',
+              maxLines: 1,
+              overflow: pw.TextOverflow.clip,
+              style: pw.TextStyle(
+                fontSize: effectiveFontSize,
+                fontWeight: hasVal ? pw.FontWeight.bold : pw.FontWeight.normal,
+                color: hasVal ? PdfColors.black : PdfColors.grey500,
               ),
             ),
           ),

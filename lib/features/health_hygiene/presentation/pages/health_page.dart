@@ -16,7 +16,6 @@ import '../../../employee/presentation/widgets/employee_profile_dialog.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
 import '../../../contractor/domain/models/contractor_models.dart';
 import '../../../contractor/presentation/providers/contractor_providers.dart';
-import '../../../contractor/presentation/widgets/contractor_company_dialog.dart';
 
 class HealthPage extends ConsumerStatefulWidget {
   const HealthPage({super.key});
@@ -1406,7 +1405,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'ข้อมูลหน่วยบริการตรวจสุขภาพ (ข้อ ๕ แบบ จผส. ๑ - ดึงจากโมดูลผู้รับเหมา)',
+                              'ข้อมูลหน่วยบริการตรวจสุขภาพ (ข้อ ๕ แบบ จผส. ๑)',
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                             ),
                             Text(
@@ -1416,27 +1415,6 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                               style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
                             ),
                           ],
-                        ),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () async {
-                          final result = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => ContractorCompanyDialog(
-                              initialCompanyName: detectedHospital,
-                              initialServiceType: 'บริการตรวจสุขภาพ & โรงพยาบาล',
-                            ),
-                          );
-                          if (result == true) {
-                            ref.invalidate(contractorCompaniesProvider);
-                          }
-                        },
-                        icon: const Icon(Icons.add_business_rounded, size: 16),
-                        label: const Text('+ ลงทะเบียนผู้รับเหมา/รพ.', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0D9488),
-                          side: const BorderSide(color: Color(0xFF0D9488)),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         ),
                       ),
                     ],
