@@ -880,7 +880,7 @@ class HealthOfficialPdfService {
     };
   }
 
-  // Helper for fill-in field (clean official format without trailing dots, full width to text)
+  // Helper for fill-in field (clean official format without trailing dots, uniform labels, scalable answers)
   static pw.Widget _buildJorPhorSor1DottedField({
     required String label,
     required String value,
@@ -890,10 +890,12 @@ class HealthOfficialPdfService {
   }) {
     final hasVal = value.trim().isNotEmpty && value != '-';
     final trimmedVal = value.trim();
-    // Dynamic font scaling: ensure longer text fits comfortably without being clipped
-    final effectiveFontSize = (trimmedVal.length > 40)
-        ? 7.5
-        : (trimmedVal.length > 25 ? 8.2 : fontSize);
+    // อนุญาตให้เฉพาะ "คำตอบ" ปรับลดขนาดฟอนต์ได้ตามความยาว ส่วน "หัวข้อ (Label)" และ "คำต่อท้าย (Suffix)" ขนาดเท่ากันคงที่ 10pt ตลอดทั้งเอกสาร
+    final valueFontSize = (trimmedVal.length > 45)
+        ? (fontSize * 0.75)
+        : (trimmedVal.length > 30
+            ? (fontSize * 0.82)
+            : (trimmedVal.length > 18 ? (fontSize * 0.90) : fontSize));
 
     return pw.Expanded(
       flex: flex,
@@ -901,14 +903,14 @@ class HealthOfficialPdfService {
         mainAxisSize: pw.MainAxisSize.min,
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
-          pw.Text(label, style: pw.TextStyle(fontSize: effectiveFontSize)),
+          pw.Text(label, style: pw.TextStyle(fontSize: fontSize)),
           pw.Expanded(
             child: pw.Text(
               hasVal ? trimmedVal : '-',
               maxLines: 1,
               overflow: pw.TextOverflow.clip,
               style: pw.TextStyle(
-                fontSize: effectiveFontSize,
+                fontSize: valueFontSize,
                 fontWeight: hasVal ? pw.FontWeight.bold : pw.FontWeight.normal,
                 color: hasVal ? PdfColors.black : PdfColors.grey500,
               ),
@@ -916,7 +918,7 @@ class HealthOfficialPdfService {
           ),
           if (suffix != null) ...[
             pw.SizedBox(width: 2),
-            pw.Text(suffix, style: pw.TextStyle(fontSize: effectiveFontSize)),
+            pw.Text(suffix, style: pw.TextStyle(fontSize: fontSize)),
           ],
         ],
       ),
