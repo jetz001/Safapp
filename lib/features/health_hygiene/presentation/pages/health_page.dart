@@ -12,6 +12,7 @@ import '../../services/health_official_pdf_service.dart';
 import '../../services/health_excel_service.dart';
 import '../../../employee/domain/models/employee_models.dart';
 import '../../../employee/presentation/providers/employee_providers.dart';
+import '../../../employee/presentation/widgets/employee_profile_dialog.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
 
 class HealthPage extends ConsumerStatefulWidget {
@@ -789,140 +790,224 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                     resultFg = Colors.red.shade800;
                   }
 
+                  final empList = employeesAsync.asData?.value ?? [];
+                  final emp = empList.firstWhere(
+                    (e) => e.id == r.employeeId,
+                    orElse: () => Employee(
+                      id: r.employeeId,
+                      employeeCode: r.employeeCode ?? '-',
+                      fullName: r.employeeName ?? '-',
+                      department: r.department ?? '-',
+                      position: r.position ?? '-',
+                      photoPath: r.photoPath,
+                    ),
+                  );
+
+                  final hasPhoto = (emp.photoPath != null && emp.photoPath!.isNotEmpty && File(emp.photoPath!).existsSync()) ||
+                                   (r.photoPath != null && r.photoPath!.isNotEmpty && File(r.photoPath!).existsSync());
+                  final photoFile = hasPhoto ? File(emp.photoPath ?? r.photoPath!) : null;
+
                   return Card(
                     elevation: 1,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(14),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(color: resultBg, borderRadius: BorderRadius.circular(10)),
-                            child: Icon(
-                              r.overallResult == 'NORMAL' ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
-                              color: resultFg,
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => EmployeeProfileDialog(employee: emp, initialTab: 1),
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Photo / Avatar with status badge
+                            if (hasPhoto && photoFile != null)
+                              Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.grey.shade300, width: 1.5),
+                                    ),
+                                    child: ClipOval(
+                                      child: Image.file(photoFile, fit: BoxFit.cover),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    bottom: -2,
+                                    right: -2,
+                                    child: Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: BoxDecoration(
+                                        color: resultBg,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 1.5),
+                                      ),
+                                      child: Center(
+                                        child: Icon(
+                                          r.overallResult == 'NORMAL' ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                          color: resultFg,
+                                          size: 10,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(color: resultBg, shape: BoxShape.circle),
+                                child: Icon(
+                                  r.overallResult == 'NORMAL' ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+                                  color: resultFg,
+                                  size: 24,
+                                ),
+                              ),
+                            const SizedBox(width: 14),
 
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      '${r.employeeCode ?? "-"} - ${r.employeeName ?? "พนักงาน"}',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(6)),
-                                      child: Text(r.checkupTypeLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(color: resultBg, borderRadius: BorderRadius.circular(6)),
-                                      child: Text(r.overallResultLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: resultFg)),
-                                    ),
-                                    if (_recordYearBe(r).isNotEmpty) ...[
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        '${r.employeeCode ?? "-"} - ${r.employeeName ?? "พนักงาน"}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
+                                      ),
                                       const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFF1E3A8A).withValues(alpha: 0.08),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: const Color(0xFF1E3A8A).withValues(alpha: 0.25), width: 0.8),
-                                        ),
-                                        child: Text(_recordYearBe(r), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                                        decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(6)),
+                                        child: Text(r.department ?? '-', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
                                       ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(color: Colors.indigo.shade50, borderRadius: BorderRadius.circular(6)),
+                                        child: Text(r.checkupTypeLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.indigo.shade900)),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(color: resultBg, borderRadius: BorderRadius.circular(6)),
+                                        child: Text(r.overallResultLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: resultFg)),
+                                      ),
+                                      if (_recordYearBe(r).isNotEmpty) ...[
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFF1E3A8A).withValues(alpha: 0.08),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: const Color(0xFF1E3A8A).withValues(alpha: 0.25), width: 0.8),
+                                          ),
+                                          child: Text(_recordYearBe(r), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                                        ),
+                                      ],
                                     ],
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'แผนก: ${r.department ?? "-"}  |  ตำแหน่ง: ${r.position ?? "-"}  |  วันที่ตรวจ: ${r.checkupDate}  |  รพ.: ${r.hospitalName}',
-                                  style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
-                                      child: Text('BP: ${r.bpReading}', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
-                                      child: Text('BMI: ${r.bmi?.toStringAsFixed(1) ?? "-"}', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(4)),
-                                      child: Text('ความพร้อม: ${r.fitnessLabel}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal.shade900)),
-                                    ),
-                                    if (hasPdf) ...[
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'ตำแหน่ง: ${r.position ?? "-"}  |  วันที่ตรวจ: ${HealthOfficialPdfService.formatThaiDate(r.checkupDate, short: true)}  |  รพ.: ${r.hospitalName}',
+                                    style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
+                                        child: Text('BP: ${r.bpReading}', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
+                                      ),
                                       const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                        decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(4)),
-                                        child: const Text('📄 แนบเล่มเดี่ยวแล้ว', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
+                                        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
+                                        child: Text('BMI: ${r.bmi?.toStringAsFixed(1) ?? "-"}', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
                                       ),
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                        decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(4)),
+                                        child: Text('ความพร้อม: ${r.fitnessLabel}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal.shade900)),
+                                      ),
+                                      if (hasPdf) ...[
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(4)),
+                                          child: const Text('📄 แนบเล่มเดี่ยวแล้ว', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
+                                        ),
+                                      ],
                                     ],
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
 
-                          // Actions
-                          Wrap(
-                            spacing: 6,
-                            children: [
-                              OutlinedButton.icon(
-                                onPressed: () {
-                                  final empList = employeesAsync.asData?.value ?? [];
-                                  final emp = empList.firstWhere((e) => e.id == r.employeeId, orElse: () => Employee(employeeCode: r.employeeCode ?? '-', fullName: r.employeeName ?? '-', department: r.department ?? '-', position: r.position ?? '-'));
-                                  final empRecords = records.where((rec) => rec.employeeId == r.employeeId).toList();
-                                  HealthOfficialPdfService.printElectronicHealthBook(
-                                    context: context,
-                                    employee: emp,
-                                    healthRecords: empRecords,
-                                    company: companyProfile,
-                                  );
-                                },
-                                icon: const Icon(Icons.menu_book_rounded, size: 15),
-                                label: const Text('สมุดสุขภาพ', style: TextStyle(fontSize: 11)),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFF1E3A8A),
-                                  side: const BorderSide(color: Color(0xFF1E3A8A)),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            // Actions
+                            Wrap(
+                              spacing: 6,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder: (ctx) => EmployeeProfileDialog(employee: emp, initialTab: 1),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.badge_outlined, size: 14),
+                                  label: const Text('ดูประวัติ', style: TextStyle(fontSize: 11)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0F172A),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  ),
                                 ),
-                              ),
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  HealthOfficialPdfService.printHealthSummaryCertificate(
-                                    context: context,
-                                    record: r,
-                                    company: companyProfile,
-                                  );
-                                },
-                                icon: const Icon(Icons.print_rounded, size: 15),
-                                label: const Text('ใบสรุปผล', style: TextStyle(fontSize: 11)),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0D9488),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                OutlinedButton.icon(
+                                  onPressed: () {
+                                    final empRecords = records.where((rec) => rec.employeeId == r.employeeId).toList();
+                                    HealthOfficialPdfService.printElectronicHealthBook(
+                                      context: context,
+                                      employee: emp,
+                                      healthRecords: empRecords,
+                                      company: companyProfile,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.menu_book_rounded, size: 14),
+                                  label: const Text('สมุดสุขภาพ', style: TextStyle(fontSize: 11)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: const Color(0xFF1E3A8A),
+                                    side: const BorderSide(color: Color(0xFF1E3A8A)),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  ),
                                 ),
-                              ),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    HealthOfficialPdfService.printHealthSummaryCertificate(
+                                      context: context,
+                                      record: r,
+                                      company: companyProfile,
+                                    );
+                                  },
+                                  icon: const Icon(Icons.print_rounded, size: 14),
+                                  label: const Text('ใบสรุปผล', style: TextStyle(fontSize: 11)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0D9488),
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                  ),
+                                ),
                               if (hasPdf) ...[
                                 ElevatedButton.icon(
                                   onPressed: () => _openPdfViewer(
@@ -974,7 +1059,8 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                         ],
                       ),
                     ),
-                  );
+                  ),
+                );
                 },
               ),
           ],
