@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import '../domain/models/health_models.dart';
 import '../../risk_assessment/domain/models/risk_assessment_models.dart';
 import '../../employee/domain/models/employee_models.dart';
+import '../../contractor/domain/models/contractor_models.dart';
 
 class HealthOfficialPdfService {
   // ==========================================================================
@@ -20,6 +21,8 @@ class HealthOfficialPdfService {
     required List<MedicalSurveillanceFollowup> followups,
     CompanyProfile? company,
     String? checkupYear,
+    ContractorCompany? contractorService,
+    List<ContractorCompany>? contractorCompanies,
   }) async {
     try {
       final doc = pw.Document();
@@ -98,9 +101,64 @@ class HealthOfficialPdfService {
       final doc3Name = doctors.length > 2 ? doctors[2].name : '';
       final doc3License = doctors.length > 2 ? doctors[2].license : '';
 
-      // Hospitals
+      // Hospitals & Contractor Resolution (Section ๕)
       final hospitalNames = effectiveRecords.map((r) => r.hospitalName.trim()).where((h) => h.isNotEmpty).toSet().toList();
       final hospitalName = hospitalNames.isNotEmpty ? hospitalNames.join(', ') : '';
+
+      ContractorCompany? matchedContractor = contractorService;
+      if (matchedContractor == null && contractorCompanies != null && contractorCompanies.isNotEmpty) {
+        if (hospitalName.isNotEmpty) {
+          final hLower = hospitalName.toLowerCase();
+          for (final c in contractorCompanies) {
+            final cLower = c.companyName.toLowerCase();
+            if (hLower.contains(cLower) || cLower.contains(hLower)) {
+              matchedContractor = c;
+              break;
+            }
+          }
+        }
+        matchedContractor ??= contractorCompanies.where((c) {
+          final st = c.serviceType.toLowerCase();
+          final cn = c.companyName.toLowerCase();
+          return st.contains('ตรวจสุขภาพ') || st.contains('โรงพยาบาล') || st.contains('แพทย์') ||
+                 cn.contains('โรงพยาบาล') || cn.contains('คลินิก') || cn.contains('ศูนย์แพทย์');
+        }).firstOrNull;
+      }
+
+      final s5HospitalName = matchedContractor?.companyName.trim().isNotEmpty == true
+          ? matchedContractor!.companyName.trim()
+          : hospitalName;
+      final s5TaxId = matchedContractor?.taxId?.trim() ?? '';
+      final s5Phone = matchedContractor?.phone?.trim() ?? '';
+      final s5Mobile = matchedContractor?.safetyOfficerPhone?.trim().isNotEmpty == true
+          ? matchedContractor!.safetyOfficerPhone!.trim()
+          : (matchedContractor?.phone?.trim() ?? '');
+
+      final parsedAddr = _parseAddressText(matchedContractor?.notes);
+      final s5AddressNo = matchedContractor?.addressNumber?.trim().isNotEmpty == true
+          ? matchedContractor!.addressNumber!.trim()
+          : (parsedAddr['addressNo'] ?? '');
+      final s5Moo = matchedContractor?.moo?.trim().isNotEmpty == true
+          ? matchedContractor!.moo!.trim()
+          : (parsedAddr['moo'] ?? '');
+      final s5Soi = matchedContractor?.soi?.trim().isNotEmpty == true
+          ? matchedContractor!.soi!.trim()
+          : (parsedAddr['soi'] ?? '');
+      final s5Road = matchedContractor?.road?.trim().isNotEmpty == true
+          ? matchedContractor!.road!.trim()
+          : (parsedAddr['road'] ?? '');
+      final s5Subdistrict = matchedContractor?.subdistrict?.trim().isNotEmpty == true
+          ? matchedContractor!.subdistrict!.trim()
+          : (parsedAddr['subdistrict'] ?? '');
+      final s5District = matchedContractor?.district?.trim().isNotEmpty == true
+          ? matchedContractor!.district!.trim()
+          : (parsedAddr['district'] ?? '');
+      final s5Province = matchedContractor?.province?.trim().isNotEmpty == true
+          ? matchedContractor!.province!.trim()
+          : (parsedAddr['province'] ?? '');
+      final s5PostalCode = matchedContractor?.postalCode?.trim().isNotEmpty == true
+          ? matchedContractor!.postalCode!.trim()
+          : (parsedAddr['postalCode'] ?? '');
 
       // Page 2: Department aggregation
       final Map<String, List<EmployeeHealthRecord>> allDeptMap = {};
@@ -188,59 +246,27 @@ class HealthOfficialPdfService {
                 ),
                 pw.SizedBox(height: 12),
 
-                // Date
+                // Date (bulletproof baseline row without Stack wrapping)
                 pw.Align(
                   alignment: pw.Alignment.centerRight,
                   child: pw.Row(
                     mainAxisSize: pw.MainAxisSize.min,
+                    crossAxisAlignment: pw.CrossAxisAlignment.center,
                     children: [
                       pw.Text('วันที่ ', style: const pw.TextStyle(fontSize: 10)),
-                      pw.Container(
-                        width: 40,
-                        child: pw.Stack(
-                          alignment: pw.Alignment.bottomCenter,
-                          children: [
-                            pw.Text('....................', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                            if (reportDay.isNotEmpty)
-                              pw.Container(
-                                color: PdfColors.white,
-                                padding: const pw.EdgeInsets.symmetric(horizontal: 2),
-                                child: pw.Text(reportDay, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                              ),
-                          ],
-                        ),
+                      pw.Text(
+                        reportDay.isNotEmpty ? reportDay : '............',
+                        style: pw.TextStyle(fontSize: 10, fontWeight: reportDay.isNotEmpty ? pw.FontWeight.bold : pw.FontWeight.normal),
                       ),
                       pw.Text(' เดือน ', style: const pw.TextStyle(fontSize: 10)),
-                      pw.Container(
-                        width: 80,
-                        child: pw.Stack(
-                          alignment: pw.Alignment.bottomCenter,
-                          children: [
-                            pw.Text('................................', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                            if (reportMonth.isNotEmpty)
-                              pw.Container(
-                                color: PdfColors.white,
-                                padding: const pw.EdgeInsets.symmetric(horizontal: 2),
-                                child: pw.Text(reportMonth, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                              ),
-                          ],
-                        ),
+                      pw.Text(
+                        reportMonth.isNotEmpty ? reportMonth : '........................',
+                        style: pw.TextStyle(fontSize: 10, fontWeight: reportMonth.isNotEmpty ? pw.FontWeight.bold : pw.FontWeight.normal),
                       ),
                       pw.Text(' พ.ศ. ', style: const pw.TextStyle(fontSize: 10)),
-                      pw.Container(
-                        width: 55,
-                        child: pw.Stack(
-                          alignment: pw.Alignment.bottomCenter,
-                          children: [
-                            pw.Text('......................', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-                            if (reportYear.isNotEmpty)
-                              pw.Container(
-                                color: PdfColors.white,
-                                padding: const pw.EdgeInsets.symmetric(horizontal: 2),
-                                child: pw.Text(reportYear, style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                              ),
-                          ],
-                        ),
+                      pw.Text(
+                        reportYear.isNotEmpty ? reportYear : '................',
+                        style: pw.TextStyle(fontSize: 10, fontWeight: reportYear.isNotEmpty ? pw.FontWeight.bold : pw.FontWeight.normal),
                       ),
                     ],
                   ),
@@ -263,11 +289,11 @@ class HealthOfficialPdfService {
                 // ข้อ ๒
                 pw.Row(
                   children: [
-                    _buildJorPhorSor1DottedField(label: '๒. ชื่อสถานประกอบกิจการ ', value: companyName, flex: 5),
+                    _buildJorPhorSor1DottedField(label: '๒. ชื่อสถานประกอบกิจการ ', value: companyName, flex: 4),
                     pw.SizedBox(width: 8),
                     _buildJorPhorSor1DottedField(label: 'เลขทะเบียนนิติบุคคล ', value: taxId, flex: 3),
                     pw.SizedBox(width: 8),
-                    _buildJorPhorSor1DottedField(label: 'ประกอบกิจการ ', value: businessType, flex: 4),
+                    _buildJorPhorSor1DottedField(label: 'ประกอบกิจการ ', value: businessType, flex: 5),
                   ],
                 ),
                 pw.SizedBox(height: 6),
@@ -360,39 +386,39 @@ class HealthOfficialPdfService {
                 // ข้อ ๕
                 pw.Row(
                   children: [
-                    _buildJorPhorSor1DottedField(label: '๕. ชื่อหน่วยบริการตรวจสุขภาพ ', value: hospitalName, flex: 1),
+                    _buildJorPhorSor1DottedField(label: '๕. ชื่อหน่วยบริการตรวจสุขภาพ ', value: s5HospitalName, flex: 1),
                     pw.SizedBox(width: 14),
-                    _buildJorPhorSor1DottedField(label: 'เลขทะเบียนหน่วยบริการ ', value: '', flex: 1),
+                    _buildJorPhorSor1DottedField(label: 'เลขทะเบียนหน่วยบริการ ', value: s5TaxId, flex: 1),
                   ],
                 ),
                 pw.SizedBox(height: 5),
                 pw.Row(
                   children: [
-                    _buildJorPhorSor1DottedField(label: '    ตั้งอยู่เลขที่ ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: '    ตั้งอยู่เลขที่ ', value: s5AddressNo, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'หมู่ที่ ', value: '', flex: 1),
+                    _buildJorPhorSor1DottedField(label: 'หมู่ที่ ', value: s5Moo, flex: 1),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'ตรอก/ซอย ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'ตรอก/ซอย ', value: s5Soi, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'ถนน ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'ถนน ', value: s5Road, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'ตำบล/แขวง ', value: s5Subdistrict, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'อำเภอ/เขต ', value: s5District, flex: 2),
                   ],
                 ),
                 pw.SizedBox(height: 5),
                 pw.Row(
                   children: [
-                    _buildJorPhorSor1DottedField(label: '    จังหวัด ', value: '', flex: 3),
+                    _buildJorPhorSor1DottedField(label: '    จังหวัด ', value: s5Province, flex: 3),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'รหัสไปรษณีย์ ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'รหัสไปรษณีย์ ', value: s5PostalCode, flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์ ', value: s5Phone, flex: 2),
                     pw.SizedBox(width: 6),
                     _buildJorPhorSor1DottedField(label: 'โทรสาร ', value: '', flex: 2),
                     pw.SizedBox(width: 6),
-                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: '', flex: 2),
+                    _buildJorPhorSor1DottedField(label: 'โทรศัพท์มือถือ ', value: s5Mobile, flex: 2),
                   ],
                 ),
               ],
@@ -803,7 +829,58 @@ class HealthOfficialPdfService {
     );
   }
 
-  // Helper for dotted line fill-in field
+  // Helper to parse address text from notes if dedicated fields are not available
+  static Map<String, String> _parseAddressText(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return {};
+    final text = raw.trim();
+
+    String addressNo = '';
+    String moo = '';
+    String soi = '';
+    String road = '';
+    String subdistrict = '';
+    String district = '';
+    String province = '';
+    String postalCode = '';
+
+    final postMatch = RegExp(r'\b(1[0-9]{4}|2[0-9]{4}|3[0-9]{4}|4[0-9]{4}|5[0-9]{4}|6[0-9]{4}|7[0-9]{4}|8[0-9]{4}|9[0-9]{4})\b').firstMatch(text);
+    if (postMatch != null) postalCode = postMatch.group(0)!;
+
+    final noMatch = RegExp(r'(?:เลขที่|บ้านเลขที่|\bno\.?)\s*([0-9]+(/[0-9]+)?)', caseSensitive: false).firstMatch(text) ??
+        RegExp(r'^([0-9]+(/[0-9]+)?)').firstMatch(text);
+    if (noMatch != null) addressNo = noMatch.group(1)!;
+
+    final mooMatch = RegExp(r'(?:หมู่ที่|หมู่|ม\.)\s*([0-9]+)').firstMatch(text);
+    if (mooMatch != null) moo = mooMatch.group(1)!;
+
+    final soiMatch = RegExp(r'(?:ตรอก|ซอย|ซ\.)\s*([^\s,]+(?: [^\s,]+)*?)(?=\s+(?:ถนน|ถ\.|ตำบล|ต\.|แขวง|อำเภอ|อ\.|เขต|จังหวัด|จ\.|\d{5}|$))').firstMatch(text);
+    if (soiMatch != null) soi = soiMatch.group(1)!;
+
+    final roadMatch = RegExp(r'(?:ถนน|ถ\.)\s*([^\s,]+(?: [^\s,]+)*?)(?=\s+(?:ตำบล|ต\.|แขวง|อำเภอ|อ\.|เขต|จังหวัด|จ\.|\d{5}|$))').firstMatch(text);
+    if (roadMatch != null) road = roadMatch.group(1)!;
+
+    final subMatch = RegExp(r'(?:ตำบล|ต\.|แขวง)\s*([^\s,]+)').firstMatch(text);
+    if (subMatch != null) subdistrict = subMatch.group(1)!;
+
+    final distMatch = RegExp(r'(?:อำเภอ|อ\.|เขต)\s*([^\s,]+)').firstMatch(text);
+    if (distMatch != null) district = distMatch.group(1)!;
+
+    final provMatch = RegExp(r'(?:จังหวัด|จ\.)\s*([^\s,]+)').firstMatch(text);
+    if (provMatch != null) province = provMatch.group(1)!;
+
+    return {
+      'addressNo': addressNo,
+      'moo': moo,
+      'soi': soi,
+      'road': road,
+      'subdistrict': subdistrict,
+      'district': district,
+      'province': province,
+      'postalCode': postalCode,
+    };
+  }
+
+  // Helper for dotted line fill-in field (bulletproof single-line rendering without stack dropping)
   static pw.Widget _buildJorPhorSor1DottedField({
     required String label,
     required String value,
@@ -812,39 +889,44 @@ class HealthOfficialPdfService {
     double fontSize = 10,
   }) {
     final hasVal = value.trim().isNotEmpty && value != '-';
+    final trimmedVal = value.trim();
+    // Reduce font slightly for long text to ensure it never drops to a 2nd line
+    final effectiveFontSize = (trimmedVal.length > 32 && fontSize >= 9.5) ? 8.5 : fontSize;
+
     return pw.Expanded(
       flex: flex,
       child: pw.Row(
         mainAxisSize: pw.MainAxisSize.min,
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: [
-          pw.Text(label, style: pw.TextStyle(fontSize: fontSize)),
+          pw.Text(label, style: pw.TextStyle(fontSize: effectiveFontSize)),
+          if (hasVal) ...[
+            pw.Flexible(
+              fit: pw.FlexFit.loose,
+              child: pw.Text(
+                trimmedVal,
+                maxLines: 1,
+                overflow: pw.TextOverflow.clip,
+                style: pw.TextStyle(fontSize: effectiveFontSize, fontWeight: pw.FontWeight.bold),
+              ),
+            ),
+            pw.SizedBox(width: 2),
+          ],
           pw.Expanded(
-            child: pw.Stack(
-              alignment: pw.Alignment.bottomLeft,
-              children: [
-                pw.Container(
-                  width: double.infinity,
-                  child: pw.Text(
-                    '........................................................................................................................................................................................................',
-                    maxLines: 1,
-                    overflow: pw.TextOverflow.clip,
-                    style: pw.TextStyle(fontSize: fontSize, color: PdfColors.grey700),
-                  ),
-                ),
-                if (hasVal)
-                  pw.Container(
-                    color: PdfColors.white,
-                    padding: const pw.EdgeInsets.symmetric(horizontal: 2),
-                    child: pw.Text(
-                      value,
-                      style: pw.TextStyle(fontSize: fontSize, fontWeight: pw.FontWeight.bold),
-                    ),
-                  ),
-              ],
+            child: pw.ClipRect(
+              child: pw.Text(
+                '........................................................................................................................................................................................................',
+                maxLines: 1,
+                softWrap: false,
+                overflow: pw.TextOverflow.clip,
+                style: pw.TextStyle(fontSize: effectiveFontSize, color: PdfColors.grey700),
+              ),
             ),
           ),
-          if (suffix != null) pw.Text(suffix, style: pw.TextStyle(fontSize: fontSize)),
+          if (suffix != null) ...[
+            pw.SizedBox(width: 2),
+            pw.Text(suffix, style: pw.TextStyle(fontSize: effectiveFontSize)),
+          ],
         ],
       ),
     );

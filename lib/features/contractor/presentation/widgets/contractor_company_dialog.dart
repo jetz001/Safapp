@@ -2,14 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/contractor_models.dart';
 import '../providers/contractor_providers.dart';
+import '../../../../core/widgets/thai_address_cascade_widget.dart';
 
 class ContractorCompanyDialog extends ConsumerStatefulWidget {
   final ContractorCompany? existingCompany;
+  final String? initialCompanyName;
+  final String? initialServiceType;
 
   const ContractorCompanyDialog({
-    Key? key,
+    super.key,
     this.existingCompany,
-  }) : super(key: key);
+    this.initialCompanyName,
+    this.initialServiceType,
+  });
 
   @override
   ConsumerState<ContractorCompanyDialog> createState() => _ContractorCompanyDialogState();
@@ -27,12 +32,22 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
   late TextEditingController _safetyOfficerPhoneController;
   late TextEditingController _notesController;
 
+  late TextEditingController _addressNumberController;
+  late TextEditingController _mooController;
+  late TextEditingController _soiController;
+  late TextEditingController _roadController;
+  late TextEditingController _subdistrictController;
+  late TextEditingController _districtController;
+  late TextEditingController _provinceController;
+  late TextEditingController _postalCodeController;
+
   String _serviceType = 'งานติดตั้งเครื่องจักร & ซ่อมบำรุง';
   String _status = 'ACTIVE';
   int _safetyScore = 100;
   bool _isSaving = false;
 
   final List<String> _serviceTypes = [
+    'บริการตรวจสุขภาพ & โรงพยาบาล',
     'งานติดตั้งเครื่องจักร & ซ่อมบำรุง',
     'งานก่อสร้าง & นั่งร้าน',
     'งานระบบไฟฟ้า & อิเล็กทรอนิกส์',
@@ -48,7 +63,7 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
     super.initState();
     final c = widget.existingCompany;
 
-    _nameController = TextEditingController(text: c?.companyName ?? '');
+    _nameController = TextEditingController(text: c?.companyName ?? widget.initialCompanyName ?? '');
     _taxIdController = TextEditingController(text: c?.taxId ?? '');
     _contactPersonController = TextEditingController(text: c?.contactPerson ?? '');
     _phoneController = TextEditingController(text: c?.phone ?? '');
@@ -57,12 +72,23 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
     _safetyOfficerPhoneController = TextEditingController(text: c?.safetyOfficerPhone ?? '');
     _notesController = TextEditingController(text: c?.notes ?? '');
 
+    _addressNumberController = TextEditingController(text: c?.addressNumber ?? '');
+    _mooController = TextEditingController(text: c?.moo ?? '');
+    _soiController = TextEditingController(text: c?.soi ?? '');
+    _roadController = TextEditingController(text: c?.road ?? '');
+    _subdistrictController = TextEditingController(text: c?.subdistrict ?? '');
+    _districtController = TextEditingController(text: c?.district ?? '');
+    _provinceController = TextEditingController(text: c?.province ?? '');
+    _postalCodeController = TextEditingController(text: c?.postalCode ?? '');
+
     if (c != null) {
       if (_serviceTypes.contains(c.serviceType)) {
         _serviceType = c.serviceType;
       }
       _status = c.status;
       _safetyScore = c.safetyScore;
+    } else if (widget.initialServiceType != null && _serviceTypes.contains(widget.initialServiceType)) {
+      _serviceType = widget.initialServiceType!;
     }
   }
 
@@ -76,6 +102,15 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
     _safetyOfficerNameController.dispose();
     _safetyOfficerPhoneController.dispose();
     _notesController.dispose();
+
+    _addressNumberController.dispose();
+    _mooController.dispose();
+    _soiController.dispose();
+    _roadController.dispose();
+    _subdistrictController.dispose();
+    _districtController.dispose();
+    _provinceController.dispose();
+    _postalCodeController.dispose();
     super.dispose();
   }
 
@@ -97,6 +132,14 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
         safetyScore: _safetyScore,
         status: _status,
         notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        addressNumber: _addressNumberController.text.trim().isEmpty ? null : _addressNumberController.text.trim(),
+        moo: _mooController.text.trim().isEmpty ? null : _mooController.text.trim(),
+        soi: _soiController.text.trim().isEmpty ? null : _soiController.text.trim(),
+        road: _roadController.text.trim().isEmpty ? null : _roadController.text.trim(),
+        subdistrict: _subdistrictController.text.trim().isEmpty ? null : _subdistrictController.text.trim(),
+        district: _districtController.text.trim().isEmpty ? null : _districtController.text.trim(),
+        province: _provinceController.text.trim().isEmpty ? null : _provinceController.text.trim(),
+        postalCode: _postalCodeController.text.trim().isEmpty ? null : _postalCodeController.text.trim(),
       );
 
       await ref.read(contractorCompaniesProvider.notifier).saveCompany(company);
@@ -214,7 +257,22 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
                 ),
                 const SizedBox(height: 16),
 
-                _buildSectionHeader('๒. ข้อมูลผู้ประสานงาน & จป. ผู้รับเหมา'),
+                _buildSectionHeader('๒. ที่ตั้งสถานประกอบกิจการ / สถานพยาบาล'),
+                ThaiAddressCascadeWidget(
+                  addressNumberController: _addressNumberController,
+                  mooController: _mooController,
+                  soiController: _soiController,
+                  roadController: _roadController,
+                  subdistrictController: _subdistrictController,
+                  districtController: _districtController,
+                  provinceController: _provinceController,
+                  postalCodeController: _postalCodeController,
+                  showContactFields: false,
+                  showCountry: false,
+                ),
+                const SizedBox(height: 16),
+
+                _buildSectionHeader('๓. ข้อมูลผู้ประสานงาน & จป. ผู้รับเหมา'),
                 Row(
                   children: [
                     Expanded(
@@ -252,11 +310,11 @@ class _ContractorCompanyDialogState extends ConsumerState<ContractorCompanyDialo
                 ),
                 const SizedBox(height: 16),
 
-                _buildSectionHeader('๓. หมายเหตุ / ข้อมูลเพิ่มเติม'),
+                _buildSectionHeader('๔. หมายเหตุ / ข้อมูลเพิ่มเติม'),
                 TextFormField(
                   controller: _notesController,
                   maxLines: 2,
-                  decoration: _inputDecoration('หมายเหตุหรือประวัติสำคัญ', icon: Icons.notes),
+                  decoration: _inputDecoration('หมายเหตุหรือข้อมูลเพิ่มเติม', icon: Icons.notes),
                 ),
               ],
             ),

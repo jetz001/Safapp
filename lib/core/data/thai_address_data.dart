@@ -343,6 +343,45 @@ class ThaiAddressRepository {
     }
   }
 
+  /// ค้นหาที่อยู่แบบรวดเร็ว (Auto-Complete Search)
+  /// กรองข้อมูล ตำบล / อำเภอ / จังหวัด / รหัสไปรษณีย์ จากคำค้น เพื่อลดขั้นตอนการเลือกให้เสร็จในคลิกเดียว
+  static List<ThaiAddressModel> searchAddress(String query, {int limit = 20}) {
+    if (query.trim().isEmpty) return [];
+    final clean = query.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    final tokens = clean.split(' ');
+
+    final results = <ThaiAddressModel>[];
+
+    // 1. ค้นหาจากฐานข้อมูลตำบล/อำเภอ/รหัสไปรษณีย์
+    for (final item in _addressData) {
+      final combined = '${item.subdistrict} ${item.district} ${item.province} ${item.zipCode}'.toLowerCase();
+      if (tokens.every((t) => combined.contains(t))) {
+        results.add(item);
+        if (results.length >= limit) return results;
+      }
+    }
+
+    // 2. ถ้ายังไม่เต็ม limit และมีการค้นหาชื่อจังหวัดใน ๗๗ จังหวัด
+    if (results.length < limit) {
+      for (final p in provinces) {
+        final pLower = p.toLowerCase();
+        if (tokens.every((t) => pLower.contains(t))) {
+          if (!results.any((r) => r.province == p)) {
+            results.add(ThaiAddressModel(
+              province: p,
+              district: p.startsWith('กรุงเทพ') ? 'พระนคร' : 'เมือง$p',
+              subdistrict: '',
+              zipCode: '',
+            ));
+            if (results.length >= limit) return results;
+          }
+        }
+      }
+    }
+
+    return results;
+  }
+
   /// เพิ่มหรือลงทะเบียนข้อมูลที่อยู่ใหม่เข้า Memory ถ้าผู้ใช้พิมพ์เอง
   static void registerCustomAddress({
     required String province,

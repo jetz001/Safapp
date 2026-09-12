@@ -13,6 +13,14 @@ class ContractorCompany {
   final int safetyScore;
   final String status; // 'ACTIVE', 'SUSPENDED', 'BLACKLISTED'
   final String? notes;
+  final String? addressNumber;
+  final String? moo;
+  final String? soi;
+  final String? road;
+  final String? subdistrict;
+  final String? district;
+  final String? province;
+  final String? postalCode;
   final String? createdAt;
   final String? updatedAt;
 
@@ -33,6 +41,14 @@ class ContractorCompany {
     this.safetyScore = 100,
     this.status = 'ACTIVE',
     this.notes,
+    this.addressNumber,
+    this.moo,
+    this.soi,
+    this.road,
+    this.subdistrict,
+    this.district,
+    this.province,
+    this.postalCode,
     this.createdAt,
     this.updatedAt,
     this.workerCount,
@@ -44,6 +60,20 @@ class ContractorCompany {
     if (safetyScore >= 75) return 'Grade B (ดี)';
     if (safetyScore >= 60) return 'Grade C (พอใช้)';
     return 'Grade D (ต้องปรับปรุง)';
+  }
+
+  String get fullAddress {
+    final parts = <String>[];
+    if (addressNumber != null && addressNumber!.trim().isNotEmpty) parts.add('เลขที่ ${addressNumber!.trim()}');
+    if (moo != null && moo!.trim().isNotEmpty) parts.add('หมู่ ${moo!.trim()}');
+    if (soi != null && soi!.trim().isNotEmpty) parts.add('ซอย${soi!.trim()}');
+    if (road != null && road!.trim().isNotEmpty) parts.add('ถนน${road!.trim()}');
+    if (subdistrict != null && subdistrict!.trim().isNotEmpty) parts.add('ต.${subdistrict!.trim()}');
+    if (district != null && district!.trim().isNotEmpty) parts.add('อ.${district!.trim()}');
+    if (province != null && province!.trim().isNotEmpty) parts.add('จ.${province!.trim()}');
+    if (postalCode != null && postalCode!.trim().isNotEmpty) parts.add(postalCode!.trim());
+    if (parts.isEmpty && notes != null && notes!.trim().isNotEmpty) return notes!.trim();
+    return parts.join(' ');
   }
 
   Map<String, dynamic> toMap() {
@@ -60,6 +90,14 @@ class ContractorCompany {
       'safety_score': safetyScore,
       'status': status,
       'notes': notes,
+      'address_number': addressNumber,
+      'moo': moo,
+      'soi': soi,
+      'road': road,
+      'subdistrict': subdistrict,
+      'district': district,
+      'province': province,
+      'postal_code': postalCode,
       'created_at': createdAt ?? DateTime.now().toIso8601String(),
       'updated_at': DateTime.now().toIso8601String(),
     };
@@ -79,6 +117,14 @@ class ContractorCompany {
       safetyScore: map['safety_score'] as int? ?? 100,
       status: map['status'] ?? 'ACTIVE',
       notes: map['notes'],
+      addressNumber: map['address_number'],
+      moo: map['moo'],
+      soi: map['soi'],
+      road: map['road'],
+      subdistrict: map['subdistrict'],
+      district: map['district'],
+      province: map['province'],
+      postalCode: map['postal_code'],
       createdAt: map['created_at'],
       updatedAt: map['updated_at'],
       workerCount: map['worker_count'] as int?,
@@ -99,6 +145,14 @@ class ContractorCompany {
     int? safetyScore,
     String? status,
     String? notes,
+    String? addressNumber,
+    String? moo,
+    String? soi,
+    String? road,
+    String? subdistrict,
+    String? district,
+    String? province,
+    String? postalCode,
     String? createdAt,
     String? updatedAt,
     int? workerCount,
@@ -117,6 +171,14 @@ class ContractorCompany {
       safetyScore: safetyScore ?? this.safetyScore,
       status: status ?? this.status,
       notes: notes ?? this.notes,
+      addressNumber: addressNumber ?? this.addressNumber,
+      moo: moo ?? this.moo,
+      soi: soi ?? this.soi,
+      road: road ?? this.road,
+      subdistrict: subdistrict ?? this.subdistrict,
+      district: district ?? this.district,
+      province: province ?? this.province,
+      postalCode: postalCode ?? this.postalCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       workerCount: workerCount ?? this.workerCount,

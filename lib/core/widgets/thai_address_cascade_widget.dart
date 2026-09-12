@@ -10,12 +10,14 @@ class ThaiAddressCascadeWidget extends StatefulWidget {
   final TextEditingController districtController;
   final TextEditingController provinceController;
   final TextEditingController postalCodeController;
-  final TextEditingController phoneController;
-  final TextEditingController faxController;
-  final TextEditingController mobileController;
+  final TextEditingController? phoneController;
+  final TextEditingController? faxController;
+  final TextEditingController? mobileController;
+  final bool showContactFields;
+  final bool showCountry;
 
   const ThaiAddressCascadeWidget({
-    Key? key,
+    super.key,
     required this.addressNumberController,
     required this.mooController,
     required this.soiController,
@@ -24,9 +26,11 @@ class ThaiAddressCascadeWidget extends StatefulWidget {
     required this.districtController,
     required this.provinceController,
     required this.postalCodeController,
-    required this.phoneController,
-    required this.faxController,
-    required this.mobileController,
+    this.phoneController,
+    this.faxController,
+    this.mobileController,
+    this.showContactFields = true,
+    this.showCountry = true,
   }) : super(key: key);
 
   @override
@@ -257,18 +261,24 @@ class _ThaiAddressCascadeWidgetState extends State<ThaiAddressCascadeWidget> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 0. ประเทศ
-            if (isCompact)
-              countryField
-            else
-              Row(
-                children: [
-                  SizedBox(width: 280, child: countryField),
-                ],
-              ),
+            // 0. ค้นหาด่วน (Quick Address Autocomplete: ลดขั้นตอนการเลือก จังหวัด/อำเภอ/ตำบล/รหัสไปรษณีย์ ให้เหลือขั้นตอนเดียว)
+            _buildQuickSearchField(),
             const SizedBox(height: 12),
 
-            // 1. จังหวัด / อำเภอ / ตำบล / รหัสไปรษณีย์
+            // 1. ประเทศ (แสดงเฉพาะเมื่อเปิดใช้งาน)
+            if (widget.showCountry) ...[
+              if (isCompact)
+                countryField
+              else
+                Row(
+                  children: [
+                    SizedBox(width: 280, child: countryField),
+                  ],
+                ),
+              const SizedBox(height: 12),
+            ],
+
+            // 2. จังหวัด / อำเภอ / ตำบล / รหัสไปรษณีย์
             if (isCompact) ...[
               Row(
                 children: [
@@ -299,7 +309,7 @@ class _ThaiAddressCascadeWidgetState extends State<ThaiAddressCascadeWidget> {
               ),
             const SizedBox(height: 12),
 
-            // 2. เลขที่ / หมู่ / ซอย / ถนน
+            // 3. เลขที่ / หมู่ / ซอย / ถนน
             if (isCompact) ...[
               Row(
                 children: [
@@ -328,30 +338,129 @@ class _ThaiAddressCascadeWidgetState extends State<ThaiAddressCascadeWidget> {
                   Expanded(flex: 3, child: roadField),
                 ],
               ),
-            const SizedBox(height: 12),
 
-            // 3. โทรศัพท์ / โทรสาร / มือถือ
-            if (isCompact) ...[
-              Row(
-                children: [
-                  Expanded(child: phoneField),
-                  const SizedBox(width: 8),
-                  Expanded(child: faxField),
-                ],
-              ),
-              const SizedBox(height: 10),
-              mobileField,
-            ] else
-              Row(
-                children: [
-                  Expanded(child: phoneField),
-                  const SizedBox(width: 8),
-                  Expanded(child: faxField),
-                  const SizedBox(width: 8),
-                  Expanded(child: mobileField),
-                ],
-              ),
+            // 4. โทรศัพท์ / โทรสาร / มือถือ (ถ้าเปิดใช้งาน)
+            if (widget.showContactFields && (widget.phoneController != null || widget.mobileController != null)) ...[
+              const SizedBox(height: 12),
+              if (isCompact) ...[
+                Row(
+                  children: [
+                    Expanded(child: phoneField),
+                    const SizedBox(width: 8),
+                    Expanded(child: faxField),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                mobileField,
+              ] else
+                Row(
+                  children: [
+                    Expanded(child: phoneField),
+                    const SizedBox(width: 8),
+                    Expanded(child: faxField),
+                    const SizedBox(width: 8),
+                    Expanded(child: mobileField),
+                  ],
+                ),
+            ],
           ],
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickSearchField() {
+    return Autocomplete<ThaiAddressModel>(
+      optionsBuilder: (TextEditingValue textEditingValue) {
+        if (textEditingValue.text.trim().isEmpty) {
+          return const Iterable<ThaiAddressModel>.empty();
+        }
+        return ThaiAddressRepository.searchAddress(textEditingValue.text);
+      },
+      displayStringForOption: (ThaiAddressModel option) =>
+          '${option.subdistrict.isNotEmpty ? "ต.${option.subdistrict} " : ""}อ.${option.district} จ.${option.province} ${option.zipCode}'.trim(),
+      onSelected: (ThaiAddressModel selection) {
+        setState(() {
+          widget.provinceController.text = selection.province;
+          widget.districtController.text = selection.district;
+          widget.subdistrictController.text = selection.subdistrict;
+          if (selection.zipCode.isNotEmpty) {
+            widget.postalCodeController.text = selection.zipCode;
+          }
+          _updateCascades();
+        });
+      },
+      fieldViewBuilder: (context, textEditingController, focusNode, onFieldSubmitted) {
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEF2FF),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: const Color(0xFFC7D2FE)),
+          ),
+          child: TextFormField(
+            controller: textEditingController,
+            focusNode: focusNode,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+            decoration: InputDecoration(
+              labelText: '⚡ ค้นหาด่วน: ตำบล / อำเภอ / จังหวัด / รหัสไปรษณีย์ (คลิกเลือกเพื่อกรอกครบอัตโนมัติ)',
+              labelStyle: const TextStyle(color: Color(0xFF4338CA), fontSize: 12, fontWeight: FontWeight.bold),
+              hintText: 'พิมพ์ เช่น ปากน้ำ, 10270, บางพลี, เมือง นนทบุรี, ศรีราชา...',
+              hintStyle: TextStyle(color: Colors.indigo.shade300, fontSize: 12),
+              prefixIcon: const Icon(Icons.flash_on_rounded, color: Color(0xFF4F46E5), size: 20),
+              suffixIcon: textEditingController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, size: 16, color: Color(0xFF6366F1)),
+                      onPressed: () => textEditingController.clear(),
+                    )
+                  : null,
+              isDense: true,
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            ),
+          ),
+        );
+      },
+      optionsViewBuilder: (context, onSelected, options) {
+        return Align(
+          alignment: Alignment.topLeft,
+          child: Material(
+            elevation: 8,
+            borderRadius: BorderRadius.circular(10),
+            child: Container(
+              width: 500,
+              constraints: const BoxConstraints(maxHeight: 250),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.indigo.shade100),
+              ),
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                shrinkWrap: true,
+                itemCount: options.length,
+                separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey.shade100),
+                itemBuilder: (context, index) {
+                  final option = options.elementAt(index);
+                  return ListTile(
+                    dense: true,
+                    leading: const Icon(Icons.location_on_outlined, color: Color(0xFF4F46E5), size: 18),
+                    title: Text(
+                      '${option.subdistrict.isNotEmpty ? "ต.${option.subdistrict} " : ""}อ.${option.district} จ.${option.province}',
+                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    trailing: option.zipCode.isNotEmpty
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(color: Colors.indigo.shade50, borderRadius: BorderRadius.circular(6)),
+                            child: Text(option.zipCode, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF4338CA))),
+                          )
+                        : null,
+                    onTap: () => onSelected(option),
+                  );
+                },
+              ),
+            ),
+          ),
         );
       },
     );

@@ -228,6 +228,14 @@ class DatabaseHelper {
     try {
       await db.execute('ALTER TABLE company_profiles ADD COLUMN safety_officer_phone TEXT');
     } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN address_number TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN moo TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN soi TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN road TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN subdistrict TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN district TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN province TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE contractors ADD COLUMN postal_code TEXT'); } catch (_) {}
   }
 
   Future<void> _createRiskAssessmentTables(Database db) async {
@@ -403,6 +411,14 @@ class DatabaseHelper {
         safety_score INTEGER DEFAULT 100,
         status TEXT DEFAULT 'ACTIVE',
         notes TEXT,
+        address_number TEXT,
+        moo TEXT,
+        soi TEXT,
+        road TEXT,
+        subdistrict TEXT,
+        district TEXT,
+        province TEXT,
+        postal_code TEXT,
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       )

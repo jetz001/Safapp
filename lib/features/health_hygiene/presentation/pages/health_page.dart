@@ -14,6 +14,9 @@ import '../../../employee/domain/models/employee_models.dart';
 import '../../../employee/presentation/providers/employee_providers.dart';
 import '../../../employee/presentation/widgets/employee_profile_dialog.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
+import '../../../contractor/domain/models/contractor_models.dart';
+import '../../../contractor/presentation/providers/contractor_providers.dart';
+import '../../../contractor/presentation/widgets/contractor_company_dialog.dart';
 
 class HealthPage extends ConsumerStatefulWidget {
   const HealthPage({super.key});
@@ -29,6 +32,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
   String _selectedYearFilter = 'ALL';
   String _searchQuery = '';
   String _selectedFollowupFilter = 'ALL';
+  int? _selectedContractorHospitalId;
 
   List<String> _extractAvailableYears(List<EmployeeHealthRecord> records) {
     final currentYearCe = DateTime.now().year;
@@ -1349,15 +1353,160 @@ class _HealthPageState extends ConsumerState<HealthPage> {
     AsyncValue<List<MedicalSurveillanceFollowup>> followupsAsync,
   ) {
     final companyProfile = ref.watch(companyProfileNotifierProvider).asData?.value;
+    final contractorsAsync = ref.watch(contractorCompaniesProvider);
 
     return healthRecordsAsync.when(
       data: (records) {
         final abnormalRecords = records.where((r) => r.overallResult == 'ABNORMAL' || r.overallResult == 'WATCH').toList();
         final followups = followupsAsync.asData?.value ?? [];
+        final contractors = contractorsAsync.asData?.value ?? [];
+
+        // Detect hospital name from health records
+        final hospitalNames = records.map((r) => r.hospitalName.trim()).where((h) => h.isNotEmpty).toSet().toList();
+        final detectedHospital = hospitalNames.isNotEmpty ? hospitalNames.first : null;
+
+        // Auto-match contractor if none selected
+        ContractorCompany? selectedContractor;
+        if (_selectedContractorHospitalId != null) {
+          selectedContractor = contractors.where((c) => c.id == _selectedContractorHospitalId).firstOrNull;
+        } else if (detectedHospital != null) {
+          selectedContractor = contractors.where((c) =>
+            c.companyName.toLowerCase().contains(detectedHospital.toLowerCase()) ||
+            detectedHospital.toLowerCase().contains(c.companyName.toLowerCase())
+          ).firstOrNull;
+          selectedContractor ??= contractors.where((c) =>
+            c.serviceType.contains('ตรวจสุขภาพ') || c.serviceType.contains('โรงพยาบาล')
+          ).firstOrNull;
+        }
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Card: ข้อมูลหน่วยบริการตรวจสุขภาพ (ดึงจากโมดูลผู้รับเหมา)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.teal.shade200),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(8)),
+                        child: const Icon(Icons.local_hospital_rounded, color: Color(0xFF0D9488), size: 22),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'ข้อมูลหน่วยบริการตรวจสุขภาพ (ข้อ ๕ แบบ จผส. ๑ - ดึงจากโมดูลผู้รับเหมา)',
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                            ),
+                            Text(
+                              detectedHospital != null
+                                  ? 'ตรวจพบหน่วยบริการจากบันทึกผลตรวจ: "$detectedHospital"'
+                                  : 'เลือกหน่วยบริการที่ขึ้นทะเบียนไว้ในระบบ เพื่อดึงชื่อ เลขทะเบียน และที่ตั้งอัตโนมัติ',
+                              style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final result = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => ContractorCompanyDialog(
+                              initialCompanyName: detectedHospital,
+                              initialServiceType: 'บริการตรวจสุขภาพ & โรงพยาบาล',
+                            ),
+                          );
+                          if (result == true) {
+                            ref.invalidate(contractorCompaniesProvider);
+                          }
+                        },
+                        icon: const Icon(Icons.add_business_rounded, size: 16),
+                        label: const Text('+ ลงทะเบียนผู้รับเหมา/รพ.', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: const Color(0xFF0D9488),
+                          side: const BorderSide(color: Color(0xFF0D9488)),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<int?>(
+                    isExpanded: true,
+                    value: selectedContractor?.id,
+                    decoration: InputDecoration(
+                      labelText: 'เลือกสถานพยาบาล / หน่วยบริการตรวจสุขภาพ (ข้อ ๕)',
+                      labelStyle: const TextStyle(fontSize: 12),
+                      filled: true,
+                      fillColor: const Color(0xFFF0FDFA),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide(color: Colors.teal.shade200)),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    ),
+                    items: [
+                      DropdownMenuItem<int?>(
+                        value: null,
+                        child: Text(
+                          detectedHospital != null
+                              ? '-- ใช้ชื่อจากผลตรวจ: $detectedHospital (ยังไม่เชื่อมโยงเลขทะเบียน/ที่อยู่) --'
+                              : '-- ยังไม่เลือกหน่วยบริการ --',
+                          style: TextStyle(fontSize: 12.5, color: Colors.grey.shade700),
+                        ),
+                      ),
+                      ...contractors.map((c) => DropdownMenuItem<int?>(
+                            value: c.id,
+                            child: Text(
+                              '${c.companyName} (${c.serviceType}) ${c.taxId != null ? "• เลขนิติบุคคล: ${c.taxId}" : ""}',
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w500),
+                            ),
+                          )),
+                    ],
+                    onChanged: (id) {
+                      setState(() {
+                        _selectedContractorHospitalId = id;
+                      });
+                    },
+                  ),
+                  if (selectedContractor != null) ...[
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.teal.shade50.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle_rounded, color: Color(0xFF0D9488), size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'เชื่อมโยง: ${selectedContractor.companyName} | ทะเบียน: ${selectedContractor.taxId ?? "-"} | ที่ตั้ง: ${selectedContractor.fullAddress.isNotEmpty ? selectedContractor.fullAddress : "-"} | โทร: ${selectedContractor.phone ?? "-"}',
+                              style: TextStyle(fontSize: 11, color: Colors.teal.shade900),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1399,6 +1548,8 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                         followups: followups,
                         company: companyProfile,
                         checkupYear: _selectedYearFilter != 'ALL' ? _selectedYearFilter : null,
+                        contractorService: selectedContractor,
+                        contractorCompanies: contractors,
                       );
                     },
                     icon: const Icon(Icons.print_rounded, size: 18),
@@ -1415,9 +1566,9 @@ class _HealthPageState extends ConsumerState<HealthPage> {
             ),
             const SizedBox(height: 14),
 
-            const Text(
-              'รายการพนักงานที่ผลตรวจสุขภาพผิดปกติ / ต้องติดตามอาการ (รวม ${0} คน)',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
+            Text(
+              'รายการพนักงานที่ผลตรวจสุขภาพผิดปกติ / ต้องติดตามอาการ (รวม ${abnormalRecords.length} คน)',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF334155)),
             ),
             const SizedBox(height: 8),
 
