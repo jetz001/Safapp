@@ -15,7 +15,7 @@ import '../../../risk_assessment/presentation/widgets/contractor_doc_upload_dial
 import '../../../risk_assessment/presentation/pages/contractor_doc_viewer_page.dart';
 
 class ContractorPage extends ConsumerStatefulWidget {
-  const ContractorPage({Key? key}) : super(key: key);
+  const ContractorPage({super.key});
 
   @override
   ConsumerState<ContractorPage> createState() => _ContractorPageState();
@@ -48,10 +48,12 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
     );
   }
 
-  void _openUploadDocDialog() {
+  void _openUploadDocDialog({String? preselectedContractorName}) {
     showDialog(
       context: context,
-      builder: (ctx) => const ContractorDocUploadDialog(),
+      builder: (ctx) => ContractorDocUploadDialog(
+        preselectedContractorName: preselectedContractorName,
+      ),
     );
   }
 
@@ -502,7 +504,7 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: companies.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (_, _) => const SizedBox(height: 12),
           itemBuilder: (ctx, idx) {
             final c = companies[idx];
             final scoreColor = c.safetyScore >= 90
@@ -606,6 +608,8 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
                           onSelected: (val) {
                             if (val == 'edit') {
                               _openCompanyDialog(company: c);
+                            } else if (val == 'upload_doc') {
+                              _openUploadDocDialog(preselectedContractorName: c.companyName);
                             } else if (val == 'violation') {
                               _openViolationDialog(preselectedContractorId: c.id);
                             } else if (val == 'delete') {
@@ -614,6 +618,7 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
                           },
                           itemBuilder: (ctx) => [
                             const PopupMenuItem(value: 'edit', child: Text('แก้ไขข้อมูลบริษัท')),
+                            const PopupMenuItem(value: 'upload_doc', child: Text('อัปโหลด JSA / เอกสาร')),
                             const PopupMenuItem(value: 'violation', child: Text('ออกใบตักเตือนความปลอดภัย')),
                             const PopupMenuItem(value: 'delete', child: Text('ลบบริษัทนี้', style: TextStyle(color: Colors.red))),
                           ],
@@ -652,7 +657,7 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: workers.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (ctx, idx) {
             final w = workers[idx];
             final status = w.inductionStatus;
@@ -816,7 +821,7 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: docs.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (ctx, idx) {
             final doc = docs[idx];
             final pdfCount = doc.filePaths.where((f) => p.extension(f).toLowerCase() == '.pdf').length;
@@ -932,7 +937,7 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: violations.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 10),
+          separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (ctx, idx) {
             final v = violations[idx];
             Color sevBg;

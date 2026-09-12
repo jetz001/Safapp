@@ -2,16 +2,19 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path/path.dart' as p;
+import '../../../contractor/presentation/providers/contractor_providers.dart';
 import '../../domain/models/contractor_jsa_models.dart';
 import '../providers/risk_assessment_providers.dart';
 
 class ContractorDocUploadDialog extends ConsumerStatefulWidget {
   final ContractorJsaDocument? existingDoc;
+  final String? preselectedContractorName;
 
   const ContractorDocUploadDialog({
-    Key? key,
+    super.key,
     this.existingDoc,
-  }) : super(key: key);
+    this.preselectedContractorName,
+  });
 
   @override
   ConsumerState<ContractorDocUploadDialog> createState() => _ContractorDocUploadDialogState();
@@ -27,6 +30,9 @@ class _ContractorDocUploadDialogState extends ConsumerState<ContractorDocUploadD
   late TextEditingController _validUntilDateController;
   late TextEditingController _assessorNameController;
   late TextEditingController _notesController;
+
+  String? _selectedContractorName;
+  bool _isCustomContractor = false;
 
   String _documentType = 'JSA ผู้รับเหมา (Job Safety Analysis)';
 
@@ -47,8 +53,12 @@ class _ContractorDocUploadDialogState extends ConsumerState<ContractorDocUploadD
   void initState() {
     super.initState();
     final doc = widget.existingDoc;
+    final initialName = doc?.contractorName ?? widget.preselectedContractorName ?? '';
 
-    _contractorNameController = TextEditingController(text: doc?.contractorName ?? '');
+    _contractorNameController = TextEditingController(text: initialName);
+    if (initialName.isNotEmpty) {
+      _selectedContractorName = initialName;
+    }
     _projectTitleController = TextEditingController(text: doc?.projectTitle ?? '');
     _workLocationController = TextEditingController(text: doc?.workLocation ?? '');
     _assessmentDateController = TextEditingController(
@@ -171,6 +181,7 @@ class _ContractorDocUploadDialogState extends ConsumerState<ContractorDocUploadD
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existingDoc != null;
+    final companiesAsync = ref.watch(contractorCompaniesProvider);
 
     return AlertDialog(
       title: Row(
@@ -230,10 +241,140 @@ class _ContractorDocUploadDialogState extends ConsumerState<ContractorDocUploadD
                   children: [
                     Expanded(
                       flex: 3,
-                      child: TextFormField(
-                        controller: _contractorNameController,
-                        decoration: _inputDecoration('ชื่อบริษัทผู้รับเหมา *', icon: Icons.business),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'กรุณากรอกชื่อผู้รับเหมา' : null,
+                      child: companiesAsync.when(
+                        data: (companies) {
+                          if (_isCustomContractor || companies.isEmpty) {
+                            return TextFormField(
+                              controller: _contractorNameController,
+                              decoration: _inputDecoration(
+                                'ชื่อบริษัทผู้รับเหมา *',
+                                icon: Icons.business,
+                              ).copyWith(
+                                suffixIcon: companies.isNotEmpty
+                                    ? Tooltip(
+                                        message: 'เลือกจากบริษัทที่ลงทะเบียน',
+                                        child: IconButton(
+                                          icon: const Icon(Icons.arrow_drop_down_circle_outlined, size: 20, color: Color(0xFF1E3A8A)),
+                                          onPressed: () {
+                                            setState(() {
+                                              _isCustomContractor = false;
+                                              if (companies.isNotEmpty) {
+                                                _selectedContractorName = companies.first.companyName;
+                                                _contractorNameController.text = companies.first.companyName;
+                                              }
+                                            });
+                                          },
+                                        ),
+                                      )
+                                    : null,
+                              ),
+                              validator: (v) => v == null || v.trim().isEmpty ? 'กรุณากรอกชื่อผู้รับเหมา' : null,
+                            );
+                          }
+
+                          final companyNames = companies.map((c) => c.companyName).toList();
+                          if (_selectedContractorName == null || _selectedContractorName!.isEmpty) {
+                            if (_contractorNameController.text.isNotEmpty) {
+                              _selectedContractorName = _contractorNameController.text;
+                            } else {
+                              _selectedContractorName = companyNames.first;
+                              _contractorNameController.text = companyNames.first;
+                            }
+                          }
+
+                          if (!companyNames.contains(_selectedContractorName)) {
+                            companyNames.insert(0, _selectedContractorName!);
+                          }
+
+                          return DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            // ignore: deprecated_member_use
+                            value: _selectedContractorName,
+                            decoration: _inputDecoration('บริษัทผู้รับเหมา (ที่ลงทะเบียน) *', icon: Icons.business).copyWith(
+                              suffixIcon: Tooltip(
+                                message: 'พิมพ์ระบุชื่อเอง',
+                                child: IconButton(
+                                  icon: const Icon(Icons.edit_note_rounded, size: 22, color: Color(0xFF1E3A8A)),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isCustomContractor = true;
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            items: [
+                              ...companyNames.map((name) {
+                                final comp = companies.where((c) => c.companyName == name).firstOrNull;
+                                return DropdownMenuItem<String>(
+                                  value: name,
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.domain_rounded, size: 16, color: Color(0xFF1E3A8A)),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          name + (comp != null && comp.serviceType.isNotEmpty ? ' (${comp.serviceType})' : ''),
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                              const DropdownMenuItem<String>(
+                                value: '__CUSTOM__',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.add_circle_outline, size: 16, color: Colors.blueGrey),
+                                    SizedBox(width: 8),
+                                    Text('+ ระบุชื่อบริษัทอื่น...', style: TextStyle(fontSize: 12, color: Colors.blueGrey, fontStyle: FontStyle.italic)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            onChanged: (val) {
+                              if (val == '__CUSTOM__') {
+                                setState(() {
+                                  _isCustomContractor = true;
+                                  _contractorNameController.clear();
+                                  _selectedContractorName = null;
+                                });
+                              } else if (val != null) {
+                                setState(() {
+                                  _selectedContractorName = val;
+                                  _contractorNameController.text = val;
+
+                                  final comp = companies.where((c) => c.companyName == val).firstOrNull;
+                                  if (comp != null) {
+                                    if (_projectTitleController.text.trim().isEmpty && comp.serviceType.isNotEmpty) {
+                                      _projectTitleController.text = comp.serviceType;
+                                    }
+                                    if (_assessorNameController.text.trim().isEmpty && comp.safetyOfficerName?.isNotEmpty == true) {
+                                      _assessorNameController.text = comp.safetyOfficerName!;
+                                    }
+                                  }
+                                });
+                              }
+                            },
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty || v == '__CUSTOM__') {
+                                return 'กรุณาเลือกผู้รับเหมา';
+                              }
+                              return null;
+                            },
+                          );
+                        },
+                        loading: () => const SizedBox(
+                          height: 48,
+                          child: Center(child: LinearProgressIndicator()),
+                        ),
+                        error: (err, stack) => TextFormField(
+                          controller: _contractorNameController,
+                          decoration: _inputDecoration('ชื่อบริษัทผู้รับเหมา *', icon: Icons.business),
+                          validator: (v) => v == null || v.trim().isEmpty ? 'กรุณากรอกชื่อผู้รับเหมา' : null,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -241,6 +382,7 @@ class _ContractorDocUploadDialogState extends ConsumerState<ContractorDocUploadD
                       flex: 2,
                       child: DropdownButtonFormField<String>(
                         isExpanded: true,
+                        // ignore: deprecated_member_use
                         value: _documentType,
                         decoration: _inputDecoration('ประเภทเอกสาร *', icon: Icons.category),
                         items: _docTypes.map((t) {
