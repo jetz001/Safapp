@@ -236,6 +236,16 @@ class DatabaseHelper {
     try { await db.execute('ALTER TABLE contractors ADD COLUMN district TEXT'); } catch (_) {}
     try { await db.execute('ALTER TABLE contractors ADD COLUMN province TEXT'); } catch (_) {}
     try { await db.execute('ALTER TABLE contractors ADD COLUMN postal_code TEXT'); } catch (_) {}
+
+    // PPE Suppliers (ASL) structured address migration
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN address_number TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN moo TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN soi TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN road TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN subdistrict TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN district TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN province TEXT'); } catch (_) {}
+    try { await db.execute('ALTER TABLE ppe_suppliers ADD COLUMN postal_code TEXT'); } catch (_) {}
   }
 
   Future<void> _createRiskAssessmentTables(Database db) async {
@@ -1695,6 +1705,14 @@ class DatabaseHelper {
         phone TEXT,
         email TEXT,
         address TEXT,
+        address_number TEXT,
+        moo TEXT,
+        soi TEXT,
+        road TEXT,
+        subdistrict TEXT,
+        district TEXT,
+        province TEXT,
+        postal_code TEXT,
         supplied_categories TEXT NOT NULL,
         standard_certificates TEXT,
         rating REAL DEFAULT 5.0,

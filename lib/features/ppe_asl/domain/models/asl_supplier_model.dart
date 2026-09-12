@@ -27,6 +27,14 @@ class AslSupplier {
   final String? phone;
   final String? email;
   final String? address;
+  final String? addressNumber;
+  final String? moo;
+  final String? soi;
+  final String? road;
+  final String? subdistrict;
+  final String? district;
+  final String? province;
+  final String? postalCode;
   final String suppliedCategories; // e.g. "ศีรษะ, สายตา, มือ"
   final String? standardCertificates; // e.g. "ISO 9001:2015, มอก., CE"
   final double rating; // 1.0 - 5.0
@@ -47,6 +55,14 @@ class AslSupplier {
     this.phone,
     this.email,
     this.address,
+    this.addressNumber,
+    this.moo,
+    this.soi,
+    this.road,
+    this.subdistrict,
+    this.district,
+    this.province,
+    this.postalCode,
     required this.suppliedCategories,
     this.standardCertificates,
     this.rating = 5.0,
@@ -59,6 +75,20 @@ class AslSupplier {
     this.updatedAt,
   });
 
+  String get formattedAddress {
+    final parts = <String>[];
+    if (addressNumber?.trim().isNotEmpty == true) parts.add('เลขที่ ${addressNumber!.trim()}');
+    if (moo?.trim().isNotEmpty == true) parts.add('หมู่ ${moo!.trim()}');
+    if (soi?.trim().isNotEmpty == true) parts.add('ซอย ${soi!.trim()}');
+    if (road?.trim().isNotEmpty == true) parts.add('ถนน ${road!.trim()}');
+    if (subdistrict?.trim().isNotEmpty == true) parts.add('ต.${subdistrict!.trim()}');
+    if (district?.trim().isNotEmpty == true) parts.add('อ.${district!.trim()}');
+    if (province?.trim().isNotEmpty == true) parts.add('จ.${province!.trim()}');
+    if (postalCode?.trim().isNotEmpty == true) parts.add(postalCode!.trim());
+    if (parts.isNotEmpty) return parts.join(' ');
+    return address ?? '-';
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -68,7 +98,15 @@ class AslSupplier {
       'contact_person': contactPerson,
       'phone': phone,
       'email': email,
-      'address': address,
+      'address': address ?? formattedAddress,
+      'address_number': addressNumber,
+      'moo': moo,
+      'soi': soi,
+      'road': road,
+      'subdistrict': subdistrict,
+      'district': district,
+      'province': province,
+      'postal_code': postalCode,
       'supplied_categories': suppliedCategories,
       'standard_certificates': standardCertificates,
       'rating': rating,
@@ -92,6 +130,14 @@ class AslSupplier {
       phone: map['phone']?.toString(),
       email: map['email']?.toString(),
       address: map['address']?.toString(),
+      addressNumber: map['address_number']?.toString(),
+      moo: map['moo']?.toString(),
+      soi: map['soi']?.toString(),
+      road: map['road']?.toString(),
+      subdistrict: map['subdistrict']?.toString(),
+      district: map['district']?.toString(),
+      province: map['province']?.toString(),
+      postalCode: map['postal_code']?.toString(),
       suppliedCategories: map['supplied_categories']?.toString() ?? '',
       standardCertificates: map['standard_certificates']?.toString(),
       rating: (map['rating'] as num?)?.toDouble() ?? 5.0,
@@ -114,6 +160,14 @@ class AslSupplier {
     String? phone,
     String? email,
     String? address,
+    String? addressNumber,
+    String? moo,
+    String? soi,
+    String? road,
+    String? subdistrict,
+    String? district,
+    String? province,
+    String? postalCode,
     String? suppliedCategories,
     String? standardCertificates,
     double? rating,
@@ -134,6 +188,14 @@ class AslSupplier {
       phone: phone ?? this.phone,
       email: email ?? this.email,
       address: address ?? this.address,
+      addressNumber: addressNumber ?? this.addressNumber,
+      moo: moo ?? this.moo,
+      soi: soi ?? this.soi,
+      road: road ?? this.road,
+      subdistrict: subdistrict ?? this.subdistrict,
+      district: district ?? this.district,
+      province: province ?? this.province,
+      postalCode: postalCode ?? this.postalCode,
       suppliedCategories: suppliedCategories ?? this.suppliedCategories,
       standardCertificates: standardCertificates ?? this.standardCertificates,
       rating: rating ?? this.rating,
@@ -143,7 +205,6 @@ class AslSupplier {
       notes: notes ?? this.notes,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

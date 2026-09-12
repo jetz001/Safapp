@@ -36,38 +36,44 @@ class _PpePageState extends ConsumerState<PpePage> with SingleTickerProviderStat
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
+        toolbarHeight: 74,
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 1,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: primaryColor.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(10),
+        title: Padding(
+          padding: const EdgeInsets.only(top: 10, bottom: 6),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.shield, color: primaryColor, size: 24),
               ),
-              child: const Icon(Icons.shield, color: primaryColor, size: 24),
-            ),
-            const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ทะเบียนอุปกรณ์ (PPE) และผู้รับเหมา/คู่ค้า (ASL)',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                ),
-                Text(
-                  'ตาม พ.ร.บ. ความปลอดภัยฯ พ.ศ. ๒๕๕๔ มาตรา ๒๒ และ Approved Supplier List',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-              ],
-            ),
-          ],
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ทะเบียนอุปกรณ์ (PPE) และผู้รับเหมา/คู่ค้า (ASL)',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                  Text(
+                    'ตาม พ.ร.บ. ความปลอดภัยฯ พ.ศ. ๒๕๕๔ มาตรา ๒๒ และ Approved Supplier List',
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         actions: [
           // Quick Low Stock Alert Badge in Header
-          metricsAsync.when(
+          Padding(
+            padding: const EdgeInsets.only(top: 10, bottom: 6, right: 16),
+            child: metricsAsync.when(
             data: (m) {
               final lowCount = (m['lowStockCount'] as int?) ?? 0;
               if (lowCount == 0) {
@@ -105,6 +111,7 @@ class _PpePageState extends ConsumerState<PpePage> with SingleTickerProviderStat
             },
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
+            ),
           ),
         ],
         bottom: PreferredSize(

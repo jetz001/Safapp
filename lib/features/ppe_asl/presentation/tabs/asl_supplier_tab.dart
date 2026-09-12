@@ -282,8 +282,8 @@ class _AslSupplierTabState extends ConsumerState<AslSupplierTab> {
                       _buildInfoRow(Icons.phone_outlined, 'โทร: ${sup.phone}'),
                     if (sup.email != null)
                       _buildInfoRow(Icons.email_outlined, 'อีเมล: ${sup.email}'),
-                    if (sup.address != null)
-                      _buildInfoRow(Icons.pin_drop_outlined, 'ที่อยู่: ${sup.address}'),
+                    if (sup.formattedAddress.isNotEmpty && sup.formattedAddress != '-')
+                      _buildInfoRow(Icons.pin_drop_outlined, 'ที่อยู่: ${sup.formattedAddress}'),
                   ],
                 ),
               ),
