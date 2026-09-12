@@ -48,7 +48,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
             unselectedLabelColor: Colors.grey.shade600,
             indicatorColor: const Color(0xFF0D9488),
             tabs: const [
-              Tab(icon: Icon(Icons.playlist_add_check, size: 18), text: 'รายการติดตามมติที่ประชุม (Action Items / CAPA)'),
+              Tab(icon: Icon(Icons.playlist_add_check, size: 18), text: 'รายการติดตามงาน (Action Items / CAPA)'),
               Tab(icon: Icon(Icons.forward_to_inbox, size: 18), text: 'ประวัติการแจกจ่ายรายงานการประชุม (Distribution Logs)'),
             ],
           ),
@@ -221,7 +221,7 @@ class _CpoActionTrackerTabState extends ConsumerState<CpoActionTrackerTab> with 
         children: [
           Icon(Icons.check_circle_outline, size: 64, color: Colors.grey.shade400),
           const SizedBox(height: 12),
-          Text('ไม่มีรายการติดตามมติที่ประชุม', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
+          Text('ไม่มีรายการติดตามงาน', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
           const SizedBox(height: 6),
           Text(
             'สามารถกดดึงมติและงานจากวาระที่ ๔ และ ๕ มาสร้างเป็น Action Item ได้อัตโนมัติ',

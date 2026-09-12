@@ -123,7 +123,7 @@ class _CpoMainPageState extends ConsumerState<CpoMainPage> with SingleTickerProv
                     children: [
                       Icon(Icons.checklist_rounded, size: 18),
                       SizedBox(width: 8),
-                      Text('มติที่ประชุม & ติดตามงาน'),
+                      Text('ติดตามงาน'),
                     ],
                   ),
                 ),
