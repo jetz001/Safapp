@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/models/health_models.dart';
@@ -7,12 +9,13 @@ import '../widgets/bulk_report_upload_dialog.dart';
 import '../widgets/followup_action_dialog.dart';
 import '../widgets/health_report_viewer_dialog.dart';
 import '../../services/health_official_pdf_service.dart';
+import '../../services/health_excel_service.dart';
 import '../../../employee/domain/models/employee_models.dart';
 import '../../../employee/presentation/providers/employee_providers.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
 
 class HealthPage extends ConsumerStatefulWidget {
-  const HealthPage({Key? key}) : super(key: key);
+  const HealthPage({super.key});
 
   @override
   ConsumerState<HealthPage> createState() => _HealthPageState();
@@ -22,8 +25,213 @@ class _HealthPageState extends ConsumerState<HealthPage> {
   int _selectedTab = 0; // 0 = Individual Register, 1 = Bulk Reports, 2 = Surveillance, 3 = Official JorPhorSor1
   String _selectedTypeFilter = 'ALL';
   String _selectedResultFilter = 'ALL';
+  String _selectedYearFilter = 'ALL';
   String _searchQuery = '';
   String _selectedFollowupFilter = 'ALL';
+
+  List<String> _extractAvailableYears(List<EmployeeHealthRecord> records) {
+    final currentYearCe = DateTime.now().year;
+    final currentYearBe = currentYearCe + 543;
+    final years = <String>{'$currentYearBe', '${currentYearBe - 1}'};
+
+    for (final r in records) {
+      if (r.checkupDate.isNotEmpty) {
+        final parsedYear = int.tryParse(r.checkupDate.split('-').first);
+        if (parsedYear != null) {
+          final be = parsedYear > 2400 ? parsedYear : parsedYear + 543;
+          years.add('$be');
+        }
+      }
+    }
+    final sorted = years.toList()..sort((a, b) => b.compareTo(a));
+    return sorted;
+  }
+
+  bool _recordMatchesYear(EmployeeHealthRecord r, String yearFilter) {
+    if (yearFilter == 'ALL') return true;
+    final targetBe = int.tryParse(yearFilter);
+    if (targetBe == null) return true;
+    final targetCe = targetBe > 2400 ? targetBe - 543 : targetBe;
+
+    final recYear = int.tryParse(r.checkupDate.split('-').first);
+    if (recYear == null) return false;
+    final recCe = recYear > 2400 ? recYear - 543 : recYear;
+    return recCe == targetCe;
+  }
+
+  String _recordYearBe(EmployeeHealthRecord r) {
+    final recYear = int.tryParse(r.checkupDate.split('-').first);
+    if (recYear == null) return '';
+    final be = recYear > 2400 ? recYear : recYear + 543;
+    return 'ปี $be';
+  }
+
+  Future<void> _handleDownloadTemplate() async {
+    final currentYearCe = DateTime.now().year;
+    final path = await HealthExcelService.downloadTemplate(year: currentYearCe);
+    if (path != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('บันทึก Template ตรวจสุขภาพเรียบร้อยที่: $path'),
+          backgroundColor: Colors.green.shade700,
+          action: Platform.isWindows
+              ? SnackBarAction(
+                  label: 'เปิดโฟลเดอร์',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    Process.run('explorer.exe', ['/select,', path]);
+                  },
+                )
+              : null,
+        ),
+      );
+    }
+  }
+
+  Future<void> _handleImportExcel() async {
+    final result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+    );
+
+    if (result != null && result.files.isNotEmpty && result.files.single.path != null) {
+      final filePath = result.files.single.path!;
+      final healthRepo = ref.read(healthRepoProvider);
+      final employeeRepo = ref.read(employeeRepoProvider);
+
+      int? defaultYear;
+      if (_selectedYearFilter != 'ALL') {
+        final be = int.tryParse(_selectedYearFilter);
+        if (be != null) defaultYear = be > 2400 ? be - 543 : be;
+      }
+
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: Card(
+            child: Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('กำลังนำเข้าข้อมูลผลตรวจสุขภาพ...'),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final importRes = await HealthExcelService.importHealthRecordsFromExcel(
+        filePath,
+        healthRepo,
+        employeeRepo,
+        defaultYear: defaultYear,
+      );
+
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+
+      ref.invalidate(healthRecordsProvider);
+      ref.invalidate(employeesProvider);
+
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: Row(
+              children: [
+                Icon(
+                  importRes.failedCount == 0 ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                  color: importRes.failedCount == 0 ? Colors.green : Colors.orange,
+                  size: 28,
+                ),
+                const SizedBox(width: 12),
+                const Text('ผลการนำเข้าข้อมูลตรวจสุขภาพ'),
+              ],
+            ),
+            content: SizedBox(
+              width: 500,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('• ข้อมูลในไฟล์ทั้งหมด: ${importRes.totalRows} แถว'),
+                  const SizedBox(height: 4),
+                  Text('• นำเข้าสำเร็จ: ${importRes.successCount} รายการ',
+                      style: TextStyle(color: Colors.green.shade800, fontWeight: FontWeight.bold)),
+                  if (importRes.failedCount > 0) ...[
+                    const SizedBox(height: 4),
+                    Text('• พบข้อผิดพลาด: ${importRes.failedCount} รายการ',
+                        style: TextStyle(color: Colors.red.shade800, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 12),
+                    const Text('รายละเอียดข้อผิดพลาด:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 6),
+                    Container(
+                      constraints: const BoxConstraints(maxHeight: 180),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.red.shade50,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: importRes.errorMessages.length,
+                        itemBuilder: (_, i) => Text('• ${importRes.errorMessages[i]}',
+                            style: TextStyle(fontSize: 11.5, color: Colors.red.shade900)),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(),
+                child: const Text('ตกลง'),
+              ),
+            ],
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleExportExcel(List<EmployeeHealthRecord> records) async {
+    if (records.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ไม่มีข้อมูลผลตรวจสุขภาพสำหรับส่งออก')),
+      );
+      return;
+    }
+
+    final path = await HealthExcelService.exportHealthRecordsToExcel(
+      records,
+      yearLabel: _selectedYearFilter == 'ALL' ? 'All' : _selectedYearFilter,
+    );
+
+    if (path != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('ส่งออกข้อมูล Excel เรียบร้อยที่: $path'),
+          backgroundColor: Colors.green.shade700,
+          action: Platform.isWindows
+              ? SnackBarAction(
+                  label: 'เปิดโฟลเดอร์',
+                  textColor: Colors.white,
+                  onPressed: () {
+                    Process.run('explorer.exe', ['/select,', path]);
+                  },
+                )
+              : null,
+        ),
+      );
+    }
+  }
 
   void _openHealthRecordDialog({EmployeeHealthRecord? existingRecord, int? preselectedEmployeeId}) {
     showDialog(
@@ -147,7 +355,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
             healthRecordsAsync.when(
               data: (records) => _buildKpiRow(records, bulkReportsAsync.asData?.value.length ?? 0),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const SizedBox(),
+              error: (err, stack) => const SizedBox(),
             ),
             const SizedBox(height: 16),
 
@@ -271,15 +479,36 @@ class _HealthPageState extends ConsumerState<HealthPage> {
           const SizedBox(width: 16),
           Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: [
               OutlinedButton.icon(
+                onPressed: _handleDownloadTemplate,
+                icon: const Icon(Icons.download_rounded, size: 16),
+                label: const Text('ดาวน์โหลด Template'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white70),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: _handleImportExcel,
+                icon: const Icon(Icons.file_upload_rounded, size: 16),
+                label: const Text('นำเข้า Excel'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  side: const BorderSide(color: Colors.white70),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                ),
+              ),
+              OutlinedButton.icon(
                 onPressed: () => _openBulkUploadDialog(),
-                icon: const Icon(Icons.upload_file_rounded, size: 16),
+                icon: const Icon(Icons.menu_book_rounded, size: 16),
                 label: const Text('อัปโหลดเล่มรวม รพ.'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white70),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 ),
               ),
               ElevatedButton.icon(
@@ -289,7 +518,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.tealAccent.shade700,
                   foregroundColor: const Color(0xFF0F172A),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   elevation: 2,
                 ),
@@ -305,10 +534,11 @@ class _HealthPageState extends ConsumerState<HealthPage> {
   // KPI ROW
   // ==========================================================================
   Widget _buildKpiRow(List<EmployeeHealthRecord> records, int bulkReportsCount) {
-    final total = records.length;
-    final normal = records.where((r) => r.overallResult == 'NORMAL').length;
-    final watch = records.where((r) => r.overallResult == 'WATCH').length;
-    final abnormal = records.where((r) => r.overallResult == 'ABNORMAL').length;
+    final yearFiltered = records.where((r) => _recordMatchesYear(r, _selectedYearFilter)).toList();
+    final total = yearFiltered.length;
+    final normal = yearFiltered.where((r) => r.overallResult == 'NORMAL').length;
+    final watch = yearFiltered.where((r) => r.overallResult == 'WATCH').length;
+    final abnormal = yearFiltered.where((r) => r.overallResult == 'ABNORMAL').length;
 
     return Row(
       children: [
@@ -411,7 +641,12 @@ class _HealthPageState extends ConsumerState<HealthPage> {
 
     return healthRecordsAsync.when(
       data: (records) {
+        final availableYears = _extractAvailableYears(records);
+
         var filtered = records;
+        if (_selectedYearFilter != 'ALL') {
+          filtered = filtered.where((r) => _recordMatchesYear(r, _selectedYearFilter)).toList();
+        }
         if (_selectedTypeFilter != 'ALL') {
           filtered = filtered.where((r) => r.checkupType == _selectedTypeFilter).toList();
         }
@@ -454,6 +689,29 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                     ),
                   ),
                   const SizedBox(width: 10),
+                  // Year Filter Dropdown
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedYearFilter,
+                        icon: const Icon(Icons.calendar_today_rounded, size: 15, color: Color(0xFF1E3A8A)),
+                        items: [
+                          const DropdownMenuItem(value: 'ALL', child: Text('ทุกปี (All Years)', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))),
+                          ...availableYears.map((y) => DropdownMenuItem(value: y, child: Text('ปี พ.ศ. $y', style: const TextStyle(fontSize: 12)))),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => _selectedYearFilter = v);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   DropdownButton<String>(
                     value: _selectedTypeFilter,
                     items: const [
@@ -481,6 +739,21 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                       if (v != null) setState(() => _selectedResultFilter = v);
                     },
                   ),
+                  const SizedBox(width: 8),
+                  Tooltip(
+                    message: 'ส่งออกข้อมูล Excel (${_selectedYearFilter == "ALL" ? "ทั้งหมด" : "ปี $_selectedYearFilter"})',
+                    child: OutlinedButton.icon(
+                      onPressed: () => _handleExportExcel(filtered),
+                      icon: const Icon(Icons.file_download_outlined, size: 15),
+                      label: const Text('Excel', style: TextStyle(fontSize: 12)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0D9488),
+                        side: const BorderSide(color: Color(0xFF0D9488)),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -490,14 +763,14 @@ class _HealthPageState extends ConsumerState<HealthPage> {
               _buildEmptyState(
                 icon: Icons.health_and_safety_outlined,
                 title: 'ไม่พบประวัติการตรวจสุขภาพพนักงาน',
-                subtitle: 'กดปุ่ม "บันทึกผลตรวจรายคน" ด้านบน เพื่อเริ่มบันทึกผลตรวจสุขภาพรายการแรก',
+                subtitle: 'กดปุ่ม "ดาวน์โหลด Template" หรือ "นำเข้า Excel" ด้านบน เพื่อเริ่มบันทึกผลตรวจสุขภาพ',
               )
             else
               ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filtered.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 10),
+                separatorBuilder: (context, index) => const SizedBox(height: 10),
                 itemBuilder: (ctx, idx) {
                   final r = filtered[idx];
                   final hasPdf = r.pdfFilePath != null && r.pdfFilePath!.isNotEmpty;
@@ -557,6 +830,18 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                                       decoration: BoxDecoration(color: resultBg, borderRadius: BorderRadius.circular(6)),
                                       child: Text(r.overallResultLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: resultFg)),
                                     ),
+                                    if (_recordYearBe(r).isNotEmpty) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFF1E3A8A).withValues(alpha: 0.08),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: const Color(0xFF1E3A8A).withValues(alpha: 0.25), width: 0.8),
+                                        ),
+                                        child: Text(_recordYearBe(r), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                                      ),
+                                    ],
                                   ],
                                 ),
                                 const SizedBox(height: 4),
@@ -718,7 +1003,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: reports.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 12),
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
           itemBuilder: (ctx, idx) {
             final b = reports[idx];
 
@@ -887,7 +1172,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: filtered.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
                 itemBuilder: (ctx, idx) {
                   final f = filtered[idx];
 
@@ -1059,7 +1344,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: abnormalRecords.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (context, index) => const SizedBox(height: 8),
                 itemBuilder: (ctx, idx) {
                   final r = abnormalRecords[idx];
                   return Container(
