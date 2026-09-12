@@ -31,7 +31,7 @@ class ThaiAddressCascadeWidget extends StatefulWidget {
     this.mobileController,
     this.showContactFields = true,
     this.showCountry = true,
-  }) : super(key: key);
+  });
 
   @override
   State<ThaiAddressCascadeWidget> createState() => _ThaiAddressCascadeWidgetState();
