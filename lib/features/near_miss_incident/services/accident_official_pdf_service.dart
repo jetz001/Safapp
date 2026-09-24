@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/accident_models.dart';
 import '../../risk_assessment/domain/models/risk_assessment_models.dart';
 
@@ -211,9 +212,15 @@ class AccidentOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'AccidentInvestigationReport_${investigation.eventNo}',
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'รายงานการสอบสวนอุบัติเหตุอย่างเป็นทางการ',
+        subtitle: 'เลขที่เหตุการณ์: ${investigation.eventNo}',
+        formCode: 'Official Investigation',
+        fileName: 'AccidentInvestigationReport_${investigation.eventNo}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {
@@ -384,9 +391,15 @@ class AccidentOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'KorTor44_${investigation.eventNo}',
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'แบบรายงานอุบัติเหตุจากการทำงาน (แบบ กท. ๔๔)',
+        subtitle: 'เลขที่เหตุการณ์: ${investigation.eventNo}',
+        formCode: 'แบบ กท. ๔๔',
+        fileName: 'แบบ_กท๔๔_${investigation.eventNo}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {
@@ -488,9 +501,15 @@ class AccidentOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'PorSorRor5_${investigation.eventNo}',
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'แบบรายงานกรณีเกิดอุบัติภัยร้ายแรง (แบบ ปสร. ๕)',
+        subtitle: 'เลขที่เหตุการณ์: ${investigation.eventNo}',
+        formCode: 'แบบ ปสร. ๕',
+        fileName: 'แบบ_ปสร๕_${investigation.eventNo}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {
@@ -598,9 +617,15 @@ class AccidentOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'KorTor16_${investigation.eventNo}',
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'แบบแจ้งการประสบอันตราย เจ็บป่วย หรือสูญหาย (แบบ กท. ๑๖)',
+        subtitle: 'เลขที่เหตุการณ์: ${investigation.eventNo}',
+        formCode: 'แบบ กท. ๑๖',
+        fileName: 'แบบ_กท๑๖_${investigation.eventNo}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {

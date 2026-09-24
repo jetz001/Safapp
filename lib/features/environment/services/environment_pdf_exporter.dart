@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 
 import '../domain/models/environment_standard_model.dart';
 import '../domain/models/environment_session_model.dart';
@@ -827,9 +828,14 @@ class EnvironmentPdfExporter {
     );
 
     final filename = 'SAFAPP_Environmental_Report_${session.sessionId}_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => bytes,
-      name: filename,
+    if (!context.mounted) return;
+    await SafappPrintPreview.showBytes(
+      context,
+      title: 'รายงานผลการตรวจวัดสภาพแวดล้อมในการทำงาน (สสค.)',
+      subtitle: 'รอบการตรวจวัด: ${session.sessionTitle}',
+      formCode: 'Environmental Report',
+      fileName: filename,
+      pdfBytes: bytes,
     );
   }
 

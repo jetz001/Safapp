@@ -10,6 +10,9 @@ import '../widgets/training_record_dialog.dart';
 import '../widgets/committee_member_dialog.dart';
 import '../widgets/certificate_viewer_dialog.dart';
 import '../widgets/employee_profile_dialog.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
+import '../../services/employee_pdf_report_service.dart';
+import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
 
 class EmployeePage extends ConsumerStatefulWidget {
   const EmployeePage({Key? key}) : super(key: key);
@@ -142,6 +145,27 @@ class _EmployeePageState extends ConsumerState<EmployeePage> {
     }
   }
 
+  Future<void> _handlePrintSummary(List<Employee> employees) async {
+    if (employees.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ไม่มีข้อมูลพนักงานสำหรับพิมพ์รายงาน')),
+      );
+      return;
+    }
+    final companyName = ref.read(companyProfileNotifierProvider).asData?.value?.companyName ?? 'สถานประกอบกิจการ';
+    await SafappPrintPreview.show(
+      context,
+      title: 'รายงานสรุปทะเบียนพนักงานและประวัติการฝึกอบรมความปลอดภัย',
+      subtitle: '$companyName • จำนวนพนักงานทั้งหมด ${employees.length} คน',
+      formCode: 'แบบรายงาน OSH ทะเบียนพนักงาน',
+      fileName: 'Employee_OSH_Summary_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      onLayout: (format) => EmployeePdfReportService.generateEmployeeSummaryReportPdf(
+        employees: employees,
+        companyName: companyName,
+      ),
+    );
+  }
+
   Future<void> _deleteEmployee(Employee emp) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -252,6 +276,7 @@ class _EmployeePageState extends ConsumerState<EmployeePage> {
               onImportExcel: _handleImportExcel,
               onDownloadTemplate: _handleDownloadTemplate,
               onExportExcel: () => _handleExportExcel(employees),
+              onPrintSummary: () => _handlePrintSummary(employees),
             ),
             const SizedBox(height: 20),
 
@@ -348,6 +373,7 @@ class _EmployeePageState extends ConsumerState<EmployeePage> {
     required VoidCallback onImportExcel,
     required VoidCallback onDownloadTemplate,
     required VoidCallback onExportExcel,
+    required VoidCallback onPrintSummary,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -414,6 +440,18 @@ class _EmployeePageState extends ConsumerState<EmployeePage> {
                 icon: const Icon(Icons.upload_file_rounded, size: 16),
                 label: const Text('Import Excel'),
                 onPressed: onImportExcel,
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: const Color(0xFF1E3A8A),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  elevation: 2,
+                ),
+                icon: const Icon(Icons.print_rounded, size: 16),
+                label: const Text('พิมพ์รายงานสรุป (PDF)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                onPressed: onPrintSummary,
               ),
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(

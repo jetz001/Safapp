@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:printing/printing.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 import '../../data/models/cpo_election_model.dart';
 import '../../data/models/cpo_committee_model.dart';
 import '../../domain/enums/cpo_election_status.dart';
@@ -1409,7 +1409,12 @@ class _CpoElectionTabState extends ConsumerState<CpoElectionTab> {
       return;
     }
     final companyName = ref.read(companyProfileNotifierProvider).asData?.value?.companyName ?? 'สถานประกอบกิจการ';
-    await Printing.layoutPdf(
+    await SafappPrintPreview.show(
+      context,
+      title: 'ประกาศผลการเลือกตั้งผู้แทนลูกจ้างเป็นกรรมการ คปอ.',
+      subtitle: 'วาระปี พ.ศ. ${election.termYear} • ${election.electionCode}',
+      formCode: 'ประกาศ กกต. คปอ.',
+      fileName: 'CPO_Election_Announcement_${election.electionCode}.pdf',
       onLayout: (format) => CpoPdfGenerator.generateElectionAnnouncementPdf(election, companyName: companyName),
     );
   }

@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/contractor_models.dart';
 
 class SafetyPassPdfService {
@@ -11,9 +13,23 @@ class SafetyPassPdfService {
     try {
       final doc = pw.Document();
 
-      final fontRegular = await PdfGoogleFonts.sarabunRegular();
-      final fontBold = await PdfGoogleFonts.sarabunBold();
-      final fontItalic = await PdfGoogleFonts.sarabunItalic();
+      pw.Font? fontRegular;
+      pw.Font? fontBold;
+      pw.Font? fontItalic;
+
+      try {
+        fontRegular = await PdfGoogleFonts.sarabunRegular();
+        fontBold = await PdfGoogleFonts.sarabunBold();
+        fontItalic = await PdfGoogleFonts.sarabunItalic();
+      } catch (_) {
+        try {
+          final regData = await rootBundle.load('google_fonts/Prompt-Regular.ttf');
+          final boldData = await rootBundle.load('google_fonts/Prompt-Bold.ttf');
+          fontRegular = pw.Font.ttf(regData);
+          fontBold = pw.Font.ttf(boldData);
+          fontItalic = fontRegular;
+        } catch (_) {}
+      }
 
       final theme = pw.ThemeData.withFont(
         base: fontRegular,
@@ -111,10 +127,15 @@ class SafetyPassPdfService {
         ),
       );
 
-      // Trigger Windows / Native Print Preview directly
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => doc.save(),
-        name: 'SafetyPass_${worker.workerName.replaceAll(" ", "_")}',
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'บัตรอนุญาตความปลอดภัย (Safety Passport)',
+        subtitle: 'ผู้รับเหมา: ${worker.workerName}',
+        formCode: 'Safety Pass',
+        fileName: 'SafetyPass_${worker.workerName.replaceAll(" ", "_")}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {

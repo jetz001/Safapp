@@ -1,10 +1,12 @@
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/audit_models.dart';
 
 class SafetyAuditPdfExporter {
@@ -485,7 +487,24 @@ class SafetyAuditPdfExporter {
     return file.path;
   }
 
-  static Future<void> printOrPreviewPdf(Uint8List bytes, String title) async {
+  static Future<void> printOrPreviewPdf(
+    Uint8List bytes,
+    String title, {
+    BuildContext? context,
+    String? subtitle,
+    String? formCode,
+  }) async {
+    if (context != null && context.mounted) {
+      await SafappPrintPreview.showBytes(
+        context,
+        title: title,
+        subtitle: subtitle,
+        formCode: formCode,
+        fileName: '$title.pdf',
+        pdfBytes: bytes,
+      );
+      return;
+    }
     await Printing.layoutPdf(
       onLayout: (PdfPageFormat format) async => bytes,
       name: title,

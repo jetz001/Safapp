@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/contractor_models.dart';
 import '../../risk_assessment/domain/models/risk_assessment_models.dart';
 
@@ -270,10 +271,15 @@ class SafetyViolationPdfService {
         ),
       );
 
-      // Trigger Windows / Native Print Preview
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => doc.save(),
-        name: 'SafetyViolationNotice_$docNo',
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'ใบแจ้งเตือนการฝ่าฝืนกฎความปลอดภัย (Safety Violation Notice)',
+        subtitle: 'เลขที่เอกสาร: $docNo • ผู้รับเหมา: ${violation.contractorName}',
+        formCode: 'ใบแจ้งเตือน',
+        fileName: 'SafetyViolationNotice_$docNo.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {

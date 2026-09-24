@@ -59,7 +59,14 @@ class SafetyInductionTab extends ConsumerWidget {
                     onPressed: () async {
                       try {
                         final bytes = await SafetyManualPdfExporter.generateInductionLeafletBytes(leaflet: leaflet);
-                        await SafetyManualPdfExporter.printOrPreviewPdf(bytes, 'Safety_Induction_Leaflet');
+                        if (!context.mounted) return;
+                        await SafetyManualPdfExporter.printOrPreviewPdf(
+                          bytes,
+                          'Safety_Induction_Leaflet',
+                          context: context,
+                          subtitle: 'แผ่นพับความปลอดภัยสำหรับการปฐมนิเทศ (Safety Induction Leaflet)',
+                          formCode: 'Induction Leaflet',
+                        );
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(

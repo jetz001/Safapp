@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:printing/printing.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 
 import '../../data/models/cpo_action_item_model.dart';
 import '../../data/models/cpo_committee_model.dart';
@@ -179,8 +179,12 @@ class _CpoDashboardTabState extends ConsumerState<CpoDashboardTab> {
         companyProfile?.employerName ??
         'ประธาน คปอ.';
 
-    await Printing.layoutPdf(
-      name: 'CPO_Action_Tracking_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    await SafappPrintPreview.show(
+      context,
+      title: 'รายงานการติดตามผลการดำเนินงาน คปอ.',
+      subtitle: '$companyName • ช่วงเวลา: $periodLabel',
+      formCode: 'รายงาน คปอ. สรุป',
+      fileName: 'CPO_Action_Tracking_Report_${DateTime.now().millisecondsSinceEpoch}.pdf',
       onLayout: (format) => CpoPdfGenerator.generateActionTrackingReportPdf(
         allActions: actions,
         periodLabel: periodLabel,

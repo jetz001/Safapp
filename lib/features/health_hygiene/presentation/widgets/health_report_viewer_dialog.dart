@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 
 class HealthReportViewerDialog extends StatelessWidget {
   final String filePath;
@@ -26,15 +26,21 @@ class HealthReportViewerDialog extends StatelessWidget {
     } catch (_) {}
   }
 
-  Future<void> _printDocument() async {
+  Future<void> _printDocument(BuildContext context) async {
     try {
       final file = File(filePath);
       if (await file.exists()) {
         final bytes = await file.readAsBytes();
-        await Printing.layoutPdf(
-          onLayout: (_) => bytes,
-          name: p.basenameWithoutExtension(filePath),
-        );
+        if (context.mounted) {
+          await SafappPrintPreview.showBytes(
+            context,
+            title: title,
+            subtitle: subtitle,
+            formCode: 'รายงานผลการตรวจสุขภาพ (สปร.๔)',
+            fileName: p.basename(filePath),
+            pdfBytes: bytes,
+          );
+        }
       }
     } catch (_) {}
   }
@@ -159,7 +165,7 @@ class HealthReportViewerDialog extends StatelessWidget {
                   const Spacer(),
                   if (_isPdf) ...[
                     ElevatedButton.icon(
-                      onPressed: fileExists ? _printDocument : null,
+                      onPressed: fileExists ? () => _printDocument(context) : null,
                       icon: const Icon(Icons.print, size: 16),
                       label: const Text('พิมพ์เอกสาร (Print PDF)'),
                       style: ElevatedButton.styleFrom(

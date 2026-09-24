@@ -45,15 +45,36 @@ class _ManualsPageState extends ConsumerState<ManualsPage> {
       if (type == 'MASTER') {
         final chapters = ref.read(masterManualChaptersProvider);
         final bytes = await SafetyManualPdfExporter.generateMasterManualBytes(chapters: chapters);
-        await SafetyManualPdfExporter.printOrPreviewPdf(bytes, 'Master_Safety_Manual');
+        if (!mounted) return;
+        await SafetyManualPdfExporter.printOrPreviewPdf(
+          bytes,
+          'Master_Safety_Manual',
+          context: context,
+          subtitle: 'คู่มือความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (ฉบับหลัก)',
+          formCode: 'Master Manual',
+        );
       } else if (type == 'HANDBOOK') {
         final chapters = ref.read(employeeHandbookChaptersProvider);
         final bytes = await SafetyManualPdfExporter.generateEmployeeHandbookBytes(chapters: chapters);
-        await SafetyManualPdfExporter.printOrPreviewPdf(bytes, 'Employee_Safety_Handbook');
+        if (!mounted) return;
+        await SafetyManualPdfExporter.printOrPreviewPdf(
+          bytes,
+          'Employee_Safety_Handbook',
+          context: context,
+          subtitle: 'คู่มือความปลอดภัยสำหรับลูกจ้างใหม่และพนักงานประจำ',
+          formCode: 'Handbook',
+        );
       } else if (type == 'INDUCTION') {
         final leaflet = ref.read(safetyInductionLeafletProvider);
         final bytes = await SafetyManualPdfExporter.generateInductionLeafletBytes(leaflet: leaflet);
-        await SafetyManualPdfExporter.printOrPreviewPdf(bytes, 'Safety_Induction_Leaflet');
+        if (!mounted) return;
+        await SafetyManualPdfExporter.printOrPreviewPdf(
+          bytes,
+          'Safety_Induction_Leaflet',
+          context: context,
+          subtitle: 'แผ่นพับความปลอดภัยสำหรับการปฐมนิเทศ',
+          formCode: 'Induction Leaflet',
+        );
       }
     } catch (e) {
       if (mounted) {

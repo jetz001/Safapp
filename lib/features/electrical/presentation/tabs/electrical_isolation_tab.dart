@@ -66,14 +66,21 @@ class _ElectricalIsolationTabState extends ConsumerState<ElectricalIsolationTab>
                       const SizedBox(width: 12),
                       Expanded(
                         child: DropdownButtonFormField<String>(
+                          isExpanded: true,
                           initialValue: voltageLevel,
                           decoration: const InputDecoration(
                             labelText: 'ระดับแรงดันไฟฟ้า',
                             border: OutlineInputBorder(),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'LOW_VOLTAGE', child: Text('แรงต่ำ (< 1,000V)')),
-                            DropdownMenuItem(value: 'HIGH_VOLTAGE', child: Text('แรงสูง (>= 1,000V)')),
+                            DropdownMenuItem(
+                              value: 'LOW_VOLTAGE',
+                              child: Text('แรงต่ำ (< 1,000V)', overflow: TextOverflow.ellipsis),
+                            ),
+                            DropdownMenuItem(
+                              value: 'HIGH_VOLTAGE',
+                              child: Text('แรงสูง (>= 1,000V)', overflow: TextOverflow.ellipsis),
+                            ),
                           ],
                           onChanged: (v) {
                             if (v != null) setDlgState(() => voltageLevel = v);

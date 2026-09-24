@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 import '../../domain/models/legal_master_item_model.dart';
 import '../../domain/models/legal_compliance_assessment_model.dart';
 import '../providers/legal_register_providers.dart';
@@ -142,10 +143,16 @@ class _LegalGazetteViewerDialogState extends ConsumerState<LegalGazetteViewerDia
     );
 
     final bytes = await doc.save();
-    await Printing.layoutPdf(
-      onLayout: (_) => bytes,
-      name: 'Gazette_${item.itemId}.pdf',
-    );
+    if (mounted) {
+      await SafappPrintPreview.showBytes(
+        context,
+        title: item.title,
+        subtitle: '${item.lawNameTh} • ${item.articleNo}',
+        formCode: 'เอกสารกฎหมาย',
+        fileName: 'Gazette_${item.itemId}.pdf',
+        pdfBytes: bytes,
+      );
+    }
   }
 
   void _openAssessmentForThisItem() async {

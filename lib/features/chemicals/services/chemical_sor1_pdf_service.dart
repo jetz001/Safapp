@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/chemical_sds_sor1_model.dart';
 
 /// Official Statutory PDF Generator for Form สอ.๑ (SDS 16 Sections)
@@ -300,9 +301,14 @@ class ChemicalSor1PdfService {
     String? companyAddress,
   }) async {
     final bytes = await generatePdf(item, companyName: companyName, companyAddress: companyAddress);
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => bytes,
-      name: 'Form_SorOr1_${item.casNumber.replaceAll("-", "")}.pdf',
+    if (!context.mounted) return;
+    await SafappPrintPreview.showBytes(
+      context,
+      title: 'แบบแจ้งการครอบครองสารเคมีอันตราย (สอ.๑)',
+      subtitle: 'สารเคมี: ${item.tradeName} (CAS: ${item.casNumber})',
+      formCode: 'แบบ สอ.๑',
+      fileName: 'Form_SorOr1_${item.casNumber.replaceAll("-", "")}.pdf',
+      pdfBytes: bytes,
     );
   }
 

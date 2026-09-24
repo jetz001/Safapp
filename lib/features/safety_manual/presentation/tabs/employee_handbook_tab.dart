@@ -60,7 +60,14 @@ class EmployeeHandbookTab extends ConsumerWidget {
                     onPressed: () async {
                       try {
                         final bytes = await SafetyManualPdfExporter.generateEmployeeHandbookBytes(chapters: sections);
-                        await SafetyManualPdfExporter.printOrPreviewPdf(bytes, 'Employee_Safety_Handbook');
+                        if (!context.mounted) return;
+                        await SafetyManualPdfExporter.printOrPreviewPdf(
+                          bytes,
+                          'Employee_Safety_Handbook',
+                          context: context,
+                          subtitle: 'คู่มือความปลอดภัยสำหรับลูกจ้างใหม่และพนักงานประจำ',
+                          formCode: 'Handbook',
+                        );
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(

@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 
 class CertificateViewerDialog extends StatelessWidget {
   final String filePath;
@@ -24,15 +24,21 @@ class CertificateViewerDialog extends StatelessWidget {
     } catch (_) {}
   }
 
-  Future<void> _printDocument() async {
+  Future<void> _printDocument(BuildContext context) async {
     try {
       final file = File(filePath);
       if (await file.exists()) {
         final bytes = await file.readAsBytes();
-        await Printing.layoutPdf(
-          onLayout: (_) => bytes,
-          name: 'Certificate_${p.basenameWithoutExtension(filePath)}',
-        );
+        if (context.mounted) {
+          await SafappPrintPreview.showBytes(
+            context,
+            title: title,
+            subtitle: employeeName.isNotEmpty ? 'ผู้ได้รับวุฒิบัตร: $employeeName' : null,
+            formCode: 'ใบวุฒิบัตร / ใบรับรอง',
+            fileName: 'Certificate_${p.basenameWithoutExtension(filePath)}.pdf',
+            pdfBytes: bytes,
+          );
+        }
       }
     } catch (_) {}
   }
@@ -84,7 +90,7 @@ class CertificateViewerDialog extends StatelessWidget {
                   IconButton(
                     icon: const Icon(Icons.print_rounded, color: Colors.white70),
                     tooltip: 'สั่งพิมพ์วุฒิบัตร (Print)',
-                    onPressed: _printDocument,
+                    onPressed: () => _printDocument(context),
                   ),
                   IconButton(
                     icon: const Icon(Icons.open_in_new_rounded, color: Colors.white70),

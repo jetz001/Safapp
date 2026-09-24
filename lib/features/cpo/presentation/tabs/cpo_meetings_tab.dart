@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:printing/printing.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 import '../../data/models/cpo_meeting_model.dart';
 import '../../domain/enums/cpo_meeting_status.dart';
 import '../../domain/services/cpo_statutory_evaluator.dart';
@@ -791,7 +791,12 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
       }
     }
 
-    await Printing.layoutPdf(
+    await SafappPrintPreview.show(
+      context,
+      title: 'หนังสือเชิญประชุม คปอ. ครั้งที่ ${meeting.meetingNo}/${meeting.meetingYear}',
+      subtitle: '$companyName • กำหนดการ: ${meeting.meetingDate}',
+      formCode: 'หนังสือเชิญประชุม คปอ.',
+      fileName: 'CPO_Meeting_Notice_${meeting.meetingNo}_${meeting.meetingYear}.pdf',
       onLayout: (format) => CpoPdfGenerator.generateMeetingNoticePdf(
         meeting,
         companyName: companyName,
@@ -805,7 +810,12 @@ class _CpoMeetingsTabState extends ConsumerState<CpoMeetingsTab> {
     final companyProfile = ref.read(companyProfileNotifierProvider).asData?.value;
     final companyName = companyProfile?.companyName ?? 'สถานประกอบกิจการ';
     final logoPath = companyProfile?.logoPath;
-    await Printing.layoutPdf(
+    await SafappPrintPreview.show(
+      context,
+      title: 'รายงานการประชุม คปอ. ครั้งที่ ${meeting.meetingNo}/${meeting.meetingYear}',
+      subtitle: '$companyName • มติที่ประชุมตามกฎหมาย',
+      formCode: 'รายงานการประชุม คปอ.',
+      fileName: 'CPO_Meeting_Minutes_${meeting.meetingNo}_${meeting.meetingYear}.pdf',
       onLayout: (format) => CpoPdfGenerator.generateMeetingMinutesPdf(
         meeting,
         companyName: companyName,

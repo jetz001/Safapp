@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
-import 'package:printing/printing.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 
 /// Full-screen dialog viewer for chemical attachments (SDS PDFs, photos, and lab certificates).
 class ChemicalDocViewerDialog extends StatelessWidget {
@@ -31,15 +31,21 @@ class ChemicalDocViewerDialog extends StatelessWidget {
     }
   }
 
-  Future<void> _printDocument() async {
+  Future<void> _printDocument(BuildContext context) async {
     try {
       final file = File(filePath);
       if (await file.exists()) {
         final bytes = await file.readAsBytes();
-        await Printing.layoutPdf(
-          onLayout: (_) => bytes,
-          name: p.basenameWithoutExtension(filePath),
-        );
+        if (context.mounted) {
+          await SafappPrintPreview.showBytes(
+            context,
+            title: title,
+            subtitle: subtitle ?? (casNumber != null ? 'CAS: $casNumber' : null),
+            formCode: 'เอกสารสารเคมี SDS',
+            fileName: p.basename(filePath),
+            pdfBytes: bytes,
+          );
+        }
       }
     } catch (e) {
       debugPrint('Error printing document: $e');
@@ -144,7 +150,7 @@ class ChemicalDocViewerDialog extends StatelessWidget {
                       IconButton(
                         icon: const Icon(Icons.print_rounded, color: Colors.white),
                         tooltip: 'พิมพ์เอกสาร',
-                        onPressed: _printDocument,
+                        onPressed: () => _printDocument(context),
                       ),
                   ],
                   IconButton(

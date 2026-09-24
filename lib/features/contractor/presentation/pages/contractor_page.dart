@@ -8,6 +8,7 @@ import '../widgets/contractor_company_dialog.dart';
 import '../widgets/contractor_worker_dialog.dart';
 import '../widgets/contractor_violation_dialog.dart';
 import '../widgets/safety_pass_dialog.dart';
+import '../../services/safety_pass_pdf_service.dart';
 import '../../services/safety_violation_pdf_service.dart';
 import '../../../risk_assessment/domain/models/contractor_jsa_models.dart';
 import '../../../risk_assessment/presentation/providers/risk_assessment_providers.dart';
@@ -57,11 +58,18 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
     );
   }
 
-  void _showSafetyPass(ContractorWorker worker) {
-    showDialog(
+  Future<void> _printSafetyPassDirect(ContractorWorker worker) async {
+    await SafetyPassPdfService.printSafetyPass(context, worker);
+  }
+
+  void _showSafetyPass(ContractorWorker worker) async {
+    final result = await showDialog<String>(
       context: context,
       builder: (ctx) => SafetyPassDialog(worker: worker),
     );
+    if (result == 'print' && mounted) {
+      await _printSafetyPassDirect(worker);
+    }
   }
 
   Future<void> _deleteCompany(ContractorCompany company) async {
@@ -764,8 +772,8 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
                       spacing: 8,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: () => _showSafetyPass(w),
-                          icon: const Icon(Icons.badge_rounded, size: 16),
+                          onPressed: () => _printSafetyPassDirect(w),
+                          icon: const Icon(Icons.print_rounded, size: 16),
                           label: const Text('Safety Pass'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF1E3A8A),
@@ -776,15 +784,58 @@ class _ContractorPageState extends ConsumerState<ContractorPage> {
                         PopupMenuButton<String>(
                           icon: const Icon(Icons.more_vert),
                           onSelected: (val) {
-                            if (val == 'edit') {
+                            if (val == 'view_pass') {
+                              _showSafetyPass(w);
+                            } else if (val == 'print_pass') {
+                              _printSafetyPassDirect(w);
+                            } else if (val == 'edit') {
                               _openWorkerDialog(worker: w);
                             } else if (val == 'delete') {
                               _deleteWorker(w);
                             }
                           },
                           itemBuilder: (ctx) => [
-                            const PopupMenuItem(value: 'edit', child: Text('แก้ไขข้อมูลคนงาน')),
-                            const PopupMenuItem(value: 'delete', child: Text('ลบคนงานนี้', style: TextStyle(color: Colors.red))),
+                            const PopupMenuItem(
+                              value: 'print_pass',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.print_rounded, size: 18, color: Color(0xFF1E3A8A)),
+                                  SizedBox(width: 8),
+                                  Text('พิมพ์บัตร Safety Pass'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'view_pass',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.badge_rounded, size: 18, color: Color(0xFF475569)),
+                                  SizedBox(width: 8),
+                                  Text('ดูหน้าบัตรดิจิทัล'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuDivider(),
+                            const PopupMenuItem(
+                              value: 'edit',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.edit_rounded, size: 18, color: Color(0xFF475569)),
+                                  SizedBox(width: 8),
+                                  Text('แก้ไขข้อมูลคนงาน'),
+                                ],
+                              ),
+                            ),
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
+                                  SizedBox(width: 8),
+                                  Text('ลบคนงานนี้', style: TextStyle(color: Colors.red)),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ],

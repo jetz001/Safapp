@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/chemical_measurement_sor3_model.dart';
 
 /// Official Statutory PDF Generator for Form สอ.๓ (พ.ศ. ๒๕๖๕)
@@ -293,9 +294,14 @@ class ChemicalSor3PdfService {
       companyAddress: companyAddress,
       companyTaxId: companyTaxId,
     );
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => bytes,
-      name: 'Form_SorOr3_${item.documentNo.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
+    if (!context.mounted) return;
+    await SafappPrintPreview.showBytes(
+      context,
+      title: 'รายงานผลการตรวจวัดสารเคมีอันตราย (สอ.๓)',
+      subtitle: 'สารเคมี: ${item.chemicalName} • เลขที่เอกสาร: ${item.documentNo}',
+      formCode: 'แบบ สอ.๓',
+      fileName: 'Form_SorOr3_${item.documentNo.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_')}.pdf',
+      pdfBytes: bytes,
     );
   }
 

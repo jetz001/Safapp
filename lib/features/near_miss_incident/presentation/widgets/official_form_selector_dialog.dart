@@ -171,10 +171,7 @@ class OfficialFormSelectorDialog extends ConsumerWidget {
           ),
           const SizedBox(width: 10),
           ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop();
-              onPrint();
-            },
+            onPressed: onPrint,
             icon: const Icon(Icons.print_rounded, size: 16),
             label: const Text('พิมพ์', style: TextStyle(fontSize: 12)),
             style: ElevatedButton.styleFrom(

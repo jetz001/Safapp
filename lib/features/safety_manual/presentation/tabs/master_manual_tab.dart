@@ -61,7 +61,14 @@ class MasterManualTab extends ConsumerWidget {
                     onPressed: () async {
                       try {
                         final bytes = await SafetyManualPdfExporter.generateMasterManualBytes(chapters: chapters);
-                        await SafetyManualPdfExporter.printOrPreviewPdf(bytes, 'Master_Safety_Manual');
+                        if (!context.mounted) return;
+                        await SafetyManualPdfExporter.printOrPreviewPdf(
+                          bytes,
+                          'Master_Safety_Manual',
+                          context: context,
+                          subtitle: 'คู่มือความปลอดภัย อาชีวอนามัย และสภาพแวดล้อมในการทำงาน (ฉบับหลัก)',
+                          formCode: 'Master Manual',
+                        );
                       } catch (e) {
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(

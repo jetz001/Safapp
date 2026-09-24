@@ -83,9 +83,13 @@ class _AuditPageState extends ConsumerState<AuditPage> with SingleTickerProvider
         safetyOfficerName: profile?.safetyOfficerName,
       );
 
+      if (!mounted) return;
       await SafetyAuditPdfExporter.printOrPreviewPdf(
         bytes,
         'Audit_Report_${session.auditNo}',
+        context: context,
+        subtitle: 'การตรวจประเมิน: ${session.auditTitle}',
+        formCode: 'Audit Report',
       );
     } catch (e) {
       if (mounted) {

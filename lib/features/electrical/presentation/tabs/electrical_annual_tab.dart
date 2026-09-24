@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:path/path.dart' as p;
 import 'package:safety_superapp/features/electrical/data/models/electrical_inspection_model.dart';
 import 'package:safety_superapp/features/electrical/presentation/notifiers/electrical_providers.dart';
+import '../../../../core/widgets/safapp_print_preview.dart';
 
 class ElectricalInspectionTab extends ConsumerStatefulWidget {
   const ElectricalInspectionTab({super.key});
@@ -26,6 +27,17 @@ class _ElectricalInspectionTabState extends ConsumerState<ElectricalInspectionTa
           ),
         );
       }
+      return;
+    }
+
+    if (filePath.toLowerCase().endsWith('.pdf')) {
+      await SafappPrintPreview.showFile(
+        context,
+        title: 'เอกสารแนบผลการตรวจสอบระบบไฟฟ้า (แบบ ๕๖๒๘๙)',
+        subtitle: p.basename(filePath),
+        formCode: 'เอกสารหลักฐาน ม.๑๒',
+        filePath: filePath,
+      );
       return;
     }
 
@@ -818,12 +830,115 @@ class _ElectricalInspectionFormDialogState extends State<_ElectricalInspectionFo
     }
   }
 
+  Widget _buildSectionCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    required List<Widget> children,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: iconColor, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDeco({
+    required String labelText,
+    String? hintText,
+    String? helperText,
+    Widget? prefixIcon,
+    String? suffixText,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      hintText: hintText,
+      helperText: helperText,
+      prefixIcon: prefixIcon,
+      suffixText: suffixText,
+      suffixIcon: suffixIcon,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: Color(0xFFD97706), width: 1.5),
+      ),
+      filled: true,
+      fillColor: const Color(0xFFFAFAFA),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      backgroundColor: const Color(0xFFF8FAFC),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 800, maxHeight: 750),
+        constraints: const BoxConstraints(maxWidth: 820, maxHeight: 820),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Form(
@@ -831,16 +946,17 @@ class _ElectricalInspectionFormDialogState extends State<_ElectricalInspectionFo
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Dialog Title
+                // Dialog Title Bar
                 Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF3C7),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.3)),
                       ),
-                      child: const Icon(Icons.bolt, color: Color(0xFFD97706)),
+                      child: const Icon(Icons.bolt_rounded, color: Color(0xFFD97706), size: 24),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -851,280 +967,375 @@ class _ElectricalInspectionFormDialogState extends State<_ElectricalInspectionFo
                             widget.existingRecord == null
                                 ? 'บันทึกผลการตรวจสอบและรับรองระบบไฟฟ้า (แบบ ๕๖๒๘๙)'
                                 : 'แก้ไขผลการตรวจสอบและรับรองระบบไฟฟ้า',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
                           ),
+                          const SizedBox(height: 2),
                           const Text(
-                            'กฎกระทรวงกำหนดมาตรฐานฯ พ.ศ. ๒๕๕๘ ข้อ ๑๒ (ตรวจสอบโดยวิศวกร กว. / ผู้รับเหมาขึ้นทะเบียน ม.๑๑)',
-                            style: TextStyle(fontSize: 11, color: Colors.grey),
+                            'กฎกระทรวงกำหนดมาตรฐานฯ ไฟฟ้า พ.ศ. ๒๕๕๘ ข้อ ๑๒ • SLA รอบการตรวจ ๓๖๕ วัน',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
                           ),
                         ],
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B)),
+                      tooltip: 'ปิดหน้าต่าง',
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
                 ),
-                const Divider(height: 24),
+                const SizedBox(height: 14),
+                const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 12),
 
                 // Scrollable Form Fields
                 Expanded(
                   child: ListView(
                     children: [
-                      // Dates & Expiry
-                      Row(
+                      // Section 1: ข้อมูลการตรวจและผู้รับรอง
+                      _buildSectionCard(
+                        icon: Icons.assignment_ind_outlined,
+                        iconColor: const Color(0xFF2563EB),
+                        title: 'ข้อมูลการตรวจสอบและผู้รับรองตามกฎหมาย',
+                        subtitle: 'แบบบันทึกผลการตรวจสอบ ๕๖๒๘๙ และระยะเวลา SLA',
                         children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _inspectionDateController,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'วันที่ตรวจสอบ *',
-                                border: OutlineInputBorder(),
-                                suffixIcon: Icon(Icons.calendar_month),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _inspectionDateController,
+                                  readOnly: true,
+                                  decoration: _inputDeco(
+                                    labelText: 'วันที่ตรวจสอบ *',
+                                    hintText: 'เลือกวันที่ตรวจสอบ',
+                                    prefixIcon: const Icon(Icons.calendar_month, size: 20, color: Color(0xFF2563EB)),
+                                  ),
+                                  onTap: () => _pickDate(_inspectionDateController, updateExpiry: true),
+                                ),
                               ),
-                              onTap: () => _pickDate(_inspectionDateController, updateExpiry: true),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _expiryDateController,
+                                  readOnly: true,
+                                  decoration: _inputDeco(
+                                    labelText: 'วันครบกำหนดรอบปี (SLA 365 วัน) *',
+                                    helperText: 'คำนวณอัตโนมัติ ๑ ปีนับจากวันตรวจ',
+                                    prefixIcon: const Icon(Icons.event_available, size: 20, color: Color(0xFF059669)),
+                                  ),
+                                  onTap: () => _pickDate(_expiryDateController),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: TextFormField(
+                                  controller: _contractorCompanyController,
+                                  decoration: _inputDeco(
+                                    labelText: 'ชื่อบริษัทผู้รับเหมา / หน่วยงานที่ขึ้นทะเบียน ม.๑๑',
+                                    hintText: 'เช่น บริษัท วิศวกรรมไฟฟ้าบริการ จำกัด',
+                                    prefixIcon: const Icon(Icons.business_outlined, size: 20, color: Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: DropdownButtonFormField<String>(
+                                  isExpanded: true,
+                                  initialValue: _inspectorType,
+                                  decoration: _inputDeco(
+                                    labelText: 'ประเภทผู้ตรวจสอบ',
+                                    prefixIcon: const Icon(Icons.admin_panel_settings_outlined, size: 20, color: Color(0xFF64748B)),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'EXTERNAL_CONTRACTOR',
+                                      child: Text('ผู้รับเหมาขึ้นทะเบียน ม.๑๑', overflow: TextOverflow.ellipsis),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'INTERNAL_ENGINEER',
+                                      child: Text('วิศวกรไฟฟ้าประจำโรงงาน', overflow: TextOverflow.ellipsis),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'GOVERNMENT',
+                                      child: Text('เจ้าหน้าที่ กฟน./กฟภ.', overflow: TextOverflow.ellipsis),
+                                    ),
+                                  ],
+                                  onChanged: (v) {
+                                    if (v != null) setState(() => _inspectorType = v);
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _inspectorNameController,
+                                  decoration: _inputDeco(
+                                    labelText: 'ชื่อ-นามสกุล ผู้ตรวจสอบ / รับรอง *',
+                                    hintText: 'เช่น นายวิศวะ ช่างไฟ',
+                                    prefixIcon: const Icon(Icons.person_outline, size: 20, color: Color(0xFF64748B)),
+                                  ),
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'กรุณาระบุชื่อผู้ตรวจสอบ' : null,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _inspectorLicenseNoController,
+                                  decoration: _inputDeco(
+                                    labelText: 'เลขที่ใบอนุญาต กว. หรือ เลขทะเบียน ม.๑๑ *',
+                                    hintText: 'เช่น ภฟก. 12345 หรือ ทบ. 0123-58',
+                                    prefixIcon: const Icon(Icons.badge_outlined, size: 20, color: Color(0xFF64748B)),
+                                  ),
+                                  validator: (v) => v == null || v.trim().isEmpty ? 'กรุณาระบุเลขที่ใบอนุญาต' : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // Section 2: ข้อมูลทางเทคนิคและการวัดค่า
+                      _buildSectionCard(
+                        icon: Icons.electric_meter_outlined,
+                        iconColor: const Color(0xFFD97706),
+                        title: 'ข้อมูลทางเทคนิคและการวัดค่า',
+                        subtitle: 'ระบบแรงดันไฟฟ้าและผลวัดค่าความต้านทานดินตามเกณฑ์มาตรฐาน (≤ 5 Ω)',
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  isExpanded: true,
+                                  initialValue: _voltageSystem,
+                                  decoration: _inputDeco(
+                                    labelText: 'ระบบแรงดันไฟฟ้า',
+                                    prefixIcon: const Icon(Icons.electrical_services_outlined, size: 20, color: Color(0xFFD97706)),
+                                  ),
+                                  items: const [
+                                    DropdownMenuItem(
+                                      value: 'HIGH_AND_LOW_VOLTAGE',
+                                      child: Text('แรงดันสูงและต่ำ (High & Low)', overflow: TextOverflow.ellipsis),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'HIGH_VOLTAGE',
+                                      child: Text('แรงดันสูง (High Voltage)', overflow: TextOverflow.ellipsis),
+                                    ),
+                                    DropdownMenuItem(
+                                      value: 'LOW_VOLTAGE',
+                                      child: Text('แรงดันต่ำ (Low Voltage)', overflow: TextOverflow.ellipsis),
+                                    ),
+                                  ],
+                                  onChanged: (v) {
+                                    if (v != null) setState(() => _voltageSystem = v);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _groundingResistanceController,
+                                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                                  decoration: _inputDeco(
+                                    labelText: 'ความต้านทานดิน (Grounding)',
+                                    hintText: '<= 5 Ω ตามมาตรฐาน',
+                                    helperText: 'เกณฑ์มาตรฐาน ม.๑๒ ไม่เกิน ๕.๐ โอห์ม',
+                                    suffixText: 'Ω',
+                                    prefixIcon: const Icon(Icons.speed_outlined, size: 20, color: Color(0xFFD97706)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _transformerCountController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: _inputDeco(
+                                    labelText: 'จำนวนหม้อแปลงไฟฟ้า',
+                                    suffixText: 'ลูก',
+                                    prefixIcon: const Icon(Icons.developer_board_outlined, size: 20, color: Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: TextFormField(
+                                  controller: _mdbPanelCountController,
+                                  keyboardType: TextInputType.number,
+                                  decoration: _inputDeco(
+                                    labelText: 'จำนวนตู้ MDB / DB',
+                                    suffixText: 'ตู้',
+                                    prefixIcon: const Icon(Icons.view_quilt_outlined, size: 20, color: Color(0xFF64748B)),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+
+                      // Section 3: สรุปผลการตรวจสอบและการแก้ไข
+                      _buildSectionCard(
+                        icon: Icons.fact_check_outlined,
+                        iconColor: const Color(0xFF059669),
+                        title: 'สรุปผลการตรวจสอบและการแก้ไข',
+                        subtitle: 'ผลการวินิจฉัยความปลอดภัยโดยวิศวกรผู้รับรอง',
+                        children: [
+                          DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            initialValue: _overallResult,
+                            decoration: _inputDeco(
+                              labelText: 'สรุปผลการตรวจสอบรวม *',
+                              prefixIcon: Icon(
+                                _overallResult == 'PASS'
+                                    ? Icons.check_circle_outline
+                                    : _overallResult == 'CONDITIONAL_PASS'
+                                        ? Icons.warning_amber_rounded
+                                        : Icons.cancel_outlined,
+                                size: 20,
+                                color: _overallResult == 'PASS'
+                                    ? const Color(0xFF16A34A)
+                                    : _overallResult == 'CONDITIONAL_PASS'
+                                        ? const Color(0xFFD97706)
+                                        : const Color(0xFFDC2626),
+                              ),
+                            ),
+                            items: const [
+                              DropdownMenuItem(
+                                value: 'PASS',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.check_circle_rounded, color: Color(0xFF16A34A), size: 18),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'ปลอดภัยใช้งานได้ (ผ่านเกณฑ์มาตรฐาน)',
+                                      style: TextStyle(color: Color(0xFF16A34A), fontWeight: FontWeight.w600),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 'CONDITIONAL_PASS',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 18),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'ปลอดภัยแบบมีเงื่อนไข (ต้องแก้ไขตามกำหนด)',
+                                      style: TextStyle(color: Color(0xFFD97706), fontWeight: FontWeight.w600),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              DropdownMenuItem(
+                                value: 'FAIL',
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.cancel_rounded, color: Color(0xFFDC2626), size: 18),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'ไม่ปลอดภัย (ต้องแก้ไขด่วน / ห้ามใช้งาน)',
+                                      style: TextStyle(color: Color(0xFFDC2626), fontWeight: FontWeight.w600),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                            onChanged: (v) {
+                              if (v != null) setState(() => _overallResult = v);
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _defectsFoundController,
+                            maxLines: 2,
+                            decoration: _inputDeco(
+                              labelText: 'ข้อบกพร่องที่ตรวจพบ (ถ้ามี)',
+                              hintText: 'เช่น จุดต่อสาย MDB-1 มีอุณหภูมิสูงผิดปกติ, ค่าความต้านทานดินหลักที่ 2 สูงเกินเกณฑ์',
+                              prefixIcon: const Icon(Icons.report_problem_outlined, size: 20, color: Color(0xFF64748B)),
                             ),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _expiryDateController,
-                              readOnly: true,
-                              decoration: const InputDecoration(
-                                labelText: 'วันครบกำหนดรอบปี (SLA 365 วัน) *',
-                                border: OutlineInputBorder(),
-                                suffixIcon: Icon(Icons.event_available),
-                              ),
-                              onTap: () => _pickDate(_expiryDateController),
+                          const SizedBox(height: 12),
+                          TextFormField(
+                            controller: _correctiveActionsController,
+                            maxLines: 2,
+                            decoration: _inputDeco(
+                              labelText: 'มาตรการแก้ไขและคำแนะนำ',
+                              hintText: 'เช่น ขันแน่นจุดต่อและเปลี่ยนหางปลาใหม่, ปรับปรุงระบบกราวด์เพิ่มหลักดิน',
+                              prefixIcon: const Icon(Icons.build_circle_outlined, size: 20, color: Color(0xFF64748B)),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
 
-                      // Contractor & Inspector
-                      Row(
+                      // Section 4: แนบไฟล์เอกสารหลักฐาน
+                      _buildSectionCard(
+                        icon: Icons.attach_file_rounded,
+                        iconColor: const Color(0xFF6366F1),
+                        title: 'แนบไฟล์เอกสารหลักฐาน (Vendor Report / Thermo-scan / License)',
+                        subtitle: 'รองรับไฟล์เอกสาร PDF, Word, Excel หรือรูปภาพผลการตรวจ',
                         children: [
-                          Expanded(
-                            flex: 3,
-                            child: TextFormField(
-                              controller: _contractorCompanyController,
-                              decoration: const InputDecoration(
-                                labelText: 'ชื่อบริษัทผู้รับเหมา / หน่วยงานที่ขึ้นทะเบียน ม.๑๑',
-                                hintText: 'เช่น บริษัท วิศวกรรมไฟฟ้าบริการ จำกัด',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
+                          _buildFilePickerField(
+                            label: 'เล่มรายงานผลการตรวจสอบและรับรองระบบไฟฟ้า (PDF ของ ผรม.)',
+                            currentPath: _vendorReportPdfPath,
+                            icon: Icons.picture_as_pdf,
+                            color: Colors.red,
+                            onPicked: (p) => _vendorReportPdfPath = p,
+                            onClear: () => setState(() => _vendorReportPdfPath = null),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            flex: 2,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _inspectorType,
-                              decoration: const InputDecoration(
-                                labelText: 'ประเภทผู้ตรวจสอบ',
-                                border: OutlineInputBorder(),
-                              ),
-                              items: const [
-                                DropdownMenuItem(value: 'EXTERNAL_CONTRACTOR', child: Text('ผู้รับเหมาขึ้นทะเบียน ม.๑๑')),
-                                DropdownMenuItem(value: 'INTERNAL_ENGINEER', child: Text('วิศวกรไฟฟ้าประจำโรงงาน')),
-                                DropdownMenuItem(value: 'GOVERNMENT', child: Text('เจ้าหน้าที่ กฟน./กฟภ.')),
-                              ],
-                              onChanged: (v) {
-                                if (v != null) setState(() => _inspectorType = v);
-                              },
-                            ),
+                          const SizedBox(height: 10),
+                          _buildFilePickerField(
+                            label: 'รายงานภาพถ่ายความร้อนอินฟราเรด (Thermo-scan Report)',
+                            currentPath: _thermoscanReportPath,
+                            icon: Icons.thermostat_auto,
+                            color: Colors.orange,
+                            onPicked: (p) => _thermoscanReportPath = p,
+                            onClear: () => setState(() => _thermoscanReportPath = null),
+                          ),
+                          const SizedBox(height: 10),
+                          _buildFilePickerField(
+                            label: 'สำเนาใบ กว. วิศวกร / ใบรับรองการขึ้นทะเบียน ม.๑๑',
+                            currentPath: _engineerLicenseDocPath,
+                            icon: Icons.badge_outlined,
+                            color: Colors.blue,
+                            onPicked: (p) => _engineerLicenseDocPath = p,
+                            onClear: () => setState(() => _engineerLicenseDocPath = null),
                           ),
                         ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              controller: _inspectorNameController,
-                              decoration: const InputDecoration(
-                                labelText: 'ชื่อ-นามสกุล ผู้ตรวจสอบ / รับรอง *',
-                                hintText: 'เช่น นายวิศวะ ช่างไฟ',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'กรุณาระบุชื่อผู้ตรวจสอบ' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _inspectorLicenseNoController,
-                              decoration: const InputDecoration(
-                                labelText: 'เลขที่ใบอนุญาต กว. หรือ เลขทะเบียน ม.๑๑ *',
-                                hintText: 'เช่น ภฟก. 12345 หรือ ทบ. 0123-58',
-                                border: OutlineInputBorder(),
-                              ),
-                              validator: (v) => v == null || v.trim().isEmpty ? 'กรุณาระบุเลขที่ใบอนุญาต' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Technical Electrical Specs
-                      const Text(
-                        'ข้อมูลทางเทคนิคและการวัดค่า',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                      ),
-                      const SizedBox(height: 8),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _voltageSystem,
-                              decoration: const InputDecoration(
-                                labelText: 'ระบบแรงดันไฟฟ้า',
-                                border: OutlineInputBorder(),
-                              ),
-                              items: const [
-                                DropdownMenuItem(value: 'HIGH_AND_LOW_VOLTAGE', child: Text('แรงดันสูงและต่ำ')),
-                                DropdownMenuItem(value: 'HIGH_VOLTAGE', child: Text('แรงดันสูง (High Voltage)')),
-                                DropdownMenuItem(value: 'LOW_VOLTAGE', child: Text('แรงดันต่ำ (Low Voltage)')),
-                              ],
-                              onChanged: (v) {
-                                if (v != null) setState(() => _voltageSystem = v);
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _transformerCountController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'จำนวนหม้อแปลง (ลูก)',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _mdbPanelCountController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'จำนวนตู้ MDB/DB (ตู้)',
-                                border: OutlineInputBorder(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _groundingResistanceController,
-                              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                              decoration: const InputDecoration(
-                                labelText: 'ความต้านทานดิน (โอห์ม)',
-                                hintText: '<= 5 Ω ตามมาตรฐาน',
-                                border: OutlineInputBorder(),
-                                suffixText: 'Ω',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _overallResult,
-                              decoration: const InputDecoration(
-                                labelText: 'สรุปผลการตรวจสอบรวม',
-                                border: OutlineInputBorder(),
-                              ),
-                              items: const [
-                                DropdownMenuItem(value: 'PASS', child: Text('ปลอดภัยใช้งานได้ (ผ่าน)')),
-                                DropdownMenuItem(value: 'CONDITIONAL_PASS', child: Text('ปลอดภัยแบบมีเงื่อนไข (ต้องแก้ไข)')),
-                                DropdownMenuItem(value: 'FAIL', child: Text('ไม่ปลอดภัย (ต้องแก้ไขด่วน)')),
-                              ],
-                              onChanged: (v) {
-                                if (v != null) setState(() => _overallResult = v);
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-
-                      TextFormField(
-                        controller: _defectsFoundController,
-                        maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'ข้อบกพร่องที่ตรวจพบ (ถ้ามี)',
-                          hintText: 'เช่น จุดต่อสาย MDB-1 มีอุณหภูมิสูงผิดปกติ, ค่าความต้านทานดินหลักที่ 2 สูงเกินเกณฑ์',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      TextFormField(
-                        controller: _correctiveActionsController,
-                        maxLines: 2,
-                        decoration: const InputDecoration(
-                          labelText: 'มาตรการแก้ไขและคำแนะนำ',
-                          hintText: 'เช่น ขันแน่นจุดต่อและเปลี่ยนหางปลาใหม่, ปรับปรุงระบบกราวด์เพิ่มหลักดิน',
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Attachments Section
-                      const Text(
-                        'แนบไฟล์เอกสารจากผู้รับเหมา (Vendor Report / Thermo-scan / License)',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                      ),
-                      const SizedBox(height: 8),
-
-                      _buildFilePickerField(
-                        label: 'เล่มรายงานผลการตรวจสอบและรับรองระบบไฟฟ้า (PDF ของ ผรม.)',
-                        currentPath: _vendorReportPdfPath,
-                        icon: Icons.picture_as_pdf,
-                        color: Colors.red,
-                        onPicked: (p) => _vendorReportPdfPath = p,
-                        onClear: () => setState(() => _vendorReportPdfPath = null),
-                      ),
-                      const SizedBox(height: 10),
-
-                      _buildFilePickerField(
-                        label: 'รายงานภาพถ่ายความร้อนอินฟราเรด (Thermo-scan Report)',
-                        currentPath: _thermoscanReportPath,
-                        icon: Icons.thermostat_auto,
-                        color: Colors.orange,
-                        onPicked: (p) => _thermoscanReportPath = p,
-                        onClear: () => setState(() => _thermoscanReportPath = null),
-                      ),
-                      const SizedBox(height: 10),
-
-                      _buildFilePickerField(
-                        label: 'สำเนาใบ กว. วิศวกร / ใบรับรองการขึ้นทะเบียน ม.๑๑',
-                        currentPath: _engineerLicenseDocPath,
-                        icon: Icons.badge_outlined,
-                        color: Colors.blue,
-                        onPicked: (p) => _engineerLicenseDocPath = p,
-                        onClear: () => setState(() => _engineerLicenseDocPath = null),
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 24),
+                const SizedBox(height: 12),
+                const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                const SizedBox(height: 12),
 
                 // Dialog Actions
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
                       onPressed: _isSaving ? null : () => Navigator.pop(context),
                       child: const Text('ยกเลิก'),
                     ),
@@ -1133,9 +1344,13 @@ class _ElectricalInspectionFormDialogState extends State<_ElectricalInspectionFo
                       onPressed: _isSaving ? null : _save,
                       icon: _isSaving
                           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                          : const Icon(Icons.save),
-                      label: const Text('บันทึกข้อมูล'),
-                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFFD97706)),
+                          : const Icon(Icons.save_rounded, size: 18),
+                      label: const Text('บันทึกข้อมูล', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFFD97706),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
                     ),
                   ],
                 ),
@@ -1159,27 +1374,39 @@ class _ElectricalInspectionFormDialogState extends State<_ElectricalInspectionFo
     final fileName = hasFile ? p.basename(currentPath) : 'ยังไม่ได้เลือกไฟล์';
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: hasFile ? color.withValues(alpha: 0.04) : Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: hasFile ? color.withValues(alpha: 0.4) : Colors.grey.shade300),
+        color: hasFile ? color.withValues(alpha: 0.05) : const Color(0xFFFAFAFA),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: hasFile ? color.withValues(alpha: 0.4) : const Color(0xFFCBD5E1)),
       ),
       child: Row(
         children: [
-          Icon(icon, color: hasFile ? color : Colors.grey, size: 22),
-          const SizedBox(width: 10),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: hasFile ? color.withValues(alpha: 0.12) : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: hasFile ? color : Colors.grey.shade600, size: 20),
+          ),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(
+                  label,
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                ),
+                const SizedBox(height: 2),
                 Text(
                   fileName,
                   style: TextStyle(
                     fontSize: 11,
-                    color: hasFile ? color : Colors.grey.shade600,
+                    color: hasFile ? color : const Color(0xFF94A3B8),
                     fontWeight: hasFile ? FontWeight.w600 : FontWeight.normal,
+                    fontStyle: hasFile ? FontStyle.normal : FontStyle.italic,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1192,12 +1419,16 @@ class _ElectricalInspectionFormDialogState extends State<_ElectricalInspectionFo
               tooltip: 'ลบไฟล์แนบ',
               onPressed: onClear,
             ),
+            const SizedBox(width: 4),
           ],
           FilledButton.tonalIcon(
             onPressed: () => _pickFile(onPicked),
-            icon: const Icon(Icons.attach_file, size: 16),
+            icon: Icon(hasFile ? Icons.sync_rounded : Icons.attach_file, size: 16),
             label: Text(hasFile ? 'เปลี่ยนไฟล์' : 'เลือกไฟล์'),
-            style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6)),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/legal_master_item_model.dart';
 import '../domain/models/legal_compliance_assessment_model.dart';
 import '../domain/models/legal_capa_model.dart';
@@ -747,9 +748,14 @@ class LegalCompliancePdfService {
     );
 
     final filename = 'SAFAPP_Legal_Compliance_Report_${DateTime.now().millisecondsSinceEpoch}.pdf';
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => bytes,
-      name: filename,
+    if (!context.mounted) return;
+    await SafappPrintPreview.showBytes(
+      context,
+      title: 'รายงานผลการประเมินความสอดคล้องตามกฎหมาย',
+      subtitle: 'รอบการประเมิน: ${assessmentPeriod ?? "-"}',
+      formCode: 'Legal Compliance',
+      fileName: filename,
+      pdfBytes: bytes,
     );
   }
 

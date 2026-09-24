@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../domain/models/contractor_models.dart';
-import '../../services/safety_pass_pdf_service.dart';
 
 class SafetyPassDialog extends StatelessWidget {
   final ContractorWorker worker;
@@ -225,9 +224,8 @@ class SafetyPassDialog extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            await SafetyPassPdfService.printSafetyPass(context, worker);
+                          onPressed: () {
+                            Navigator.of(context).pop('print');
                           },
                           icon: const Icon(Icons.print_rounded, size: 16),
                           label: const Text('พิมพ์บัตร'),

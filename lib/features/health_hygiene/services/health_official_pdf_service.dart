@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../core/widgets/safapp_print_preview.dart';
 import '../domain/models/health_models.dart';
 import '../../risk_assessment/domain/models/risk_assessment_models.dart';
 import '../../employee/domain/models/employee_models.dart';
@@ -783,10 +784,16 @@ class HealthOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'แบบ_จผส_๑_$reportYear',
-        format: PdfPageFormat.a4.landscape,
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'แบบรายงานผลการตรวจสุขภาพของลูกจ้างที่ผิดปกติฯ (แบบ จผส. ๑)',
+        subtitle: 'ประจำปี พ.ศ. $reportYear',
+        formCode: 'แบบ จผส. ๑',
+        fileName: 'แบบ_จผส_๑_$reportYear.pdf',
+        pdfBytes: bytes,
+        initialPageFormat: PdfPageFormat.a4.landscape,
       );
     } catch (e) {
       if (context.mounted) {
@@ -1126,10 +1133,15 @@ class HealthOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'HealthBook_${employee.employeeCode}',
-        format: PdfPageFormat.a4,
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'สมุดสุขภาพประจำตัวลูกจ้าง (แบบ สมอ. ๑)',
+        subtitle: 'พนักงาน: ${employee.fullName} (${employee.employeeCode})',
+        formCode: 'แบบ สมอ. ๑',
+        fileName: 'HealthBook_${employee.employeeCode}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {
@@ -1495,10 +1507,15 @@ class HealthOfficialPdfService {
         ),
       );
 
-      await Printing.layoutPdf(
-        onLayout: (_) => doc.save(),
-        name: 'HealthSummary_${record.employeeCode}_${record.checkupDate}',
-        format: PdfPageFormat.a4,
+      final bytes = await doc.save();
+      if (!context.mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'ใบแจ้งผลการตรวจสุขภาพ (แบบ สมอ. ๒)',
+        subtitle: 'รหัสพนักงาน: ${record.employeeCode} • วันที่ตรวจ: ${record.checkupDate}',
+        formCode: 'แบบ สมอ. ๒',
+        fileName: 'HealthSummary_${record.employeeCode}_${record.checkupDate}.pdf',
+        pdfBytes: bytes,
       );
     } catch (e) {
       if (context.mounted) {

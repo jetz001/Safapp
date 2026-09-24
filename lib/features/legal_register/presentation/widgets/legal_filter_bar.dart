@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:path/path.dart' as p;
+import '../../../../core/widgets/safapp_print_preview.dart';
 import '../../domain/models/legal_master_item_model.dart';
 import '../../domain/models/legal_compliance_assessment_model.dart';
 import '../../domain/models/legal_capa_model.dart';
@@ -267,9 +268,14 @@ class _LegalFilterBarState extends ConsumerState<LegalFilterBar> {
       );
 
       final pdfBytes = await pdfDoc.save();
-      await Printing.layoutPdf(
-        onLayout: (_) => pdfBytes,
-        name: 'SAFAPP_Legal_Register_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      if (!mounted) return;
+      await SafappPrintPreview.showBytes(
+        context,
+        title: 'รายงานทะเบียนกฎหมายและความสอดคล้อง',
+        subtitle: 'Legal Register & Statutory Compliance Report',
+        formCode: 'Legal Register',
+        fileName: 'SAFAPP_Legal_Register_${DateTime.now().millisecondsSinceEpoch}.pdf',
+        pdfBytes: pdfBytes,
       );
 
       if (mounted) {
