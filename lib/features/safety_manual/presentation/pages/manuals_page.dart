@@ -128,9 +128,12 @@ class _ManualsPageState extends ConsumerState<ManualsPage> {
             children: [
               Icon(Icons.menu_book_rounded, color: Color(0xFF0284C7)),
               SizedBox(width: 10),
-              Text(
-                'คู่มือและมาตรฐานความปลอดภัย (Safety Manual & SOPs Hub)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              Expanded(
+                child: Text(
+                  'คู่มือและมาตรฐานความปลอดภัย (Safety Manual & SOPs Hub)',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

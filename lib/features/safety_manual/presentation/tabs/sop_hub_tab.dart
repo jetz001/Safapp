@@ -78,19 +78,23 @@ class _SopHubTabState extends ConsumerState<SopHubTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'คลังขั้นตอนปฏิบัติงานความปลอดภัย (SOPs Hub)',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
-                ),
-                Text(
-                  'Standard Operating Procedures จัดการ แก้ไข ค้นหา และทบทวนตามรอบเวลา',
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'คลังขั้นตอนปฏิบัติงานความปลอดภัย (SOPs Hub)',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
+                  ),
+                  Text(
+                    'Standard Operating Procedures จัดการ แก้ไข ค้นหา และทบทวนตามรอบเวลา',
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
+            const SizedBox(width: 12),
             ElevatedButton.icon(
               onPressed: _showAddSopDialog,
               icon: const Icon(Icons.add_task, size: 18),
