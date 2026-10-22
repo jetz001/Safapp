@@ -8,7 +8,6 @@ import '../domain/models/environment_session_model.dart';
 import '../domain/models/environment_point_model.dart';
 import '../domain/models/environment_capa_model.dart';
 import '../domain/models/environment_kpi_summary.dart';
-import '../domain/models/subcontractor_model.dart';
 
 /// Multi-Sheet Excel (.xlsx) Export Service for Environmental Monitoring Report.
 /// Generates authoritative statutory workbooks containing:

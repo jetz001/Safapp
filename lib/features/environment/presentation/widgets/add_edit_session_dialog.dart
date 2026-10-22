@@ -46,6 +46,9 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
   String? _pdfReportPath;
   String? _licenseDocPath;
 
+  bool _copyPointsFromPrevious = true;
+  String? _selectedSourceSessionId;
+
   @override
   void initState() {
     super.initState();
@@ -55,23 +58,53 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
     final currentYearBe = now.year + 543;
     final defaultId = 'ENV-SESS-${now.year}-${(now.millisecondsSinceEpoch % 1000).toString().padLeft(3, '0')}';
 
+    // Pick first available session as clone source & default template
+    final existingSessions = ref.read(envSessionListProvider).asData?.value ?? [];
+    EnvironmentSessionModel? latest;
+    if (existingSessions.isNotEmpty) {
+      latest = existingSessions.first;
+      _selectedSourceSessionId = latest.sessionId;
+    }
+
     _sessionIdCtrl = TextEditingController(text: s?.sessionId ?? defaultId);
     _titleCtrl = TextEditingController(text: s?.sessionTitle ?? 'ตรวจวัดสภาพแวดล้อมประจำปี $currentYearBe');
     _yearBeCtrl = TextEditingController(text: (s?.sessionYearBe ?? currentYearBe).toString());
     _measDateCtrl = TextEditingController(text: s?.measurementDate ?? now.toIso8601String().substring(0, 10));
-    _locationPlantCtrl = TextEditingController(text: s?.locationPlant ?? 'โรงงานหลัก (Main Plant)');
-    _workplaceNameCtrl = TextEditingController(text: s?.workplaceName ?? 'บริษัท โรงงานอุตสาหกรรมตัวอย่าง จำกัด (มหาชน)');
-    _workplaceAddressCtrl = TextEditingController(text: s?.workplaceAddress ?? '123/45 นิคมอุตสาหกรรม ตำบลคลองหนึ่ง อำเภอคลองหลวง จังหวัดปทุมธานี 12120');
-    _objectiveCtrl = TextEditingController(text: s?.objective ?? 'ตรวจวัดและวิเคราะห์สภาวะการทำงานประจำปีตามกฎหมายความปลอดภัยฯ');
-    _subcontractorCompanyCtrl = TextEditingController(text: s?.subcontractorCompanyName ?? 'บริษัท สิ่งแวดล้อมปลอดภัยตรวจวัด จำกัด');
-    _subcontractorRegCtrl = TextEditingController(text: s?.subcontractorRegNumber ?? 'บ. 0045-12/2565');
-    _surveyorNameCtrl = TextEditingController(text: s?.surveyorName ?? 'นายตรวจวัด ชำนาญการ');
-    _surveyorLicenseCtrl = TextEditingController(text: s?.surveyorLicenseNo ?? 'ENV-TECH-2565-019');
-    _certifierNameCtrl = TextEditingController(text: s?.certifierName ?? 'นายวิศวกร สิ่งแวดล้อม (วศ.บ.)');
-    _certifierRegCtrl = TextEditingController(text: s?.certifierRegNo ?? 'บ. 0045-12/2565');
+    _locationPlantCtrl = TextEditingController(text: s?.locationPlant ?? latest?.locationPlant ?? 'โรงงาน 2 (ลาดหลุมแก้ว)');
+    _workplaceNameCtrl = TextEditingController(text: s?.workplaceName ?? latest?.workplaceName ?? 'บริษัท บอส คาร์ตัน จำกัด');
+    _workplaceAddressCtrl = TextEditingController(
+      text: s?.workplaceAddress ??
+          latest?.workplaceAddress ??
+          '178 หมู่ 4 ถนน ปทุมธานี-ลาดหลุมแก้ว แขวง/ตำบล ระแหง เขต/อำเภอ ลาดหลุมแก้ว จังหวัด ปทุมธานี 12140',
+    );
+    _objectiveCtrl = TextEditingController(
+      text: s?.objective ??
+          latest?.objective ??
+          'ตรวจวัดและวิเคราะห์สภาวะการทำงานเกี่ยวกับความร้อน แสงสว่าง และเสียง ตามกฎกระทรวงฯ พ.ศ. ๒๕๕๙',
+    );
+    _subcontractorCompanyCtrl = TextEditingController(
+      text: s?.subcontractorCompanyName ?? latest?.subcontractorCompanyName ?? 'บริษัท เอ็นพีเอสเอส แมเนจเม้นท์ จำกัด',
+    );
+    _subcontractorRegCtrl = TextEditingController(
+      text: s?.subcontractorRegNumber ?? latest?.subcontractorRegNumber ?? '0105563117641',
+    );
+    _surveyorNameCtrl = TextEditingController(
+      text: s?.surveyorName ?? latest?.surveyorName ?? 'นางสาวสวลักษณ์ หงำกระโทก / นางสาวอรนุช ล้อมวงษ์',
+    );
+    _surveyorLicenseCtrl = TextEditingController(
+      text: s?.surveyorLicenseNo ??
+          latest?.surveyorLicenseNo ??
+          'ความร้อน: 0401-03-2565-0039 / แสง: 0402-03-2565-0040 / เสียง: 0403-03-2565-0039',
+    );
+    _certifierNameCtrl = TextEditingController(
+      text: s?.certifierName ?? latest?.certifierName ?? 'นายวงศธร พิชัยสวัสดิ์ (นายจ้าง/ผู้มีอำนาจกระทำการแทน)',
+    );
+    _certifierRegCtrl = TextEditingController(
+      text: s?.certifierRegNo ?? latest?.certifierRegNo ?? '0125542004155',
+    );
     _notesCtrl = TextEditingController(text: s?.notes ?? '');
 
-    _selectedSubcontractorType = s?.subcontractorType ?? SubcontractorType.section11Juristic;
+    _selectedSubcontractorType = s?.subcontractorType ?? latest?.subcontractorType ?? SubcontractorType.section11Juristic;
     _selectedStatus = s?.status ?? EnvironmentSessionStatus.planned;
     _calibrationCerts = List.from(s?.calibrationCertPaths ?? []);
     _sitePhotos = List.from(s?.sitePhotoPaths ?? []);
@@ -99,7 +132,7 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
     super.dispose();
   }
 
-  void _save() {
+  void _save() async {
     if (!_formKey.currentState!.validate()) return;
 
     final yearBe = int.tryParse(_yearBeCtrl.text.trim()) ?? (DateTime.now().year + 543);
@@ -134,11 +167,57 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
       sitePhotoPaths: _sitePhotos,
     );
 
-    ref.read(envSessionListProvider.notifier).saveSession(session);
+    await ref.read(envSessionListProvider.notifier).saveSession(session);
+
+    // If new session and user opted to clone points from previous year
+    if (widget.session == null && _copyPointsFromPrevious && _selectedSourceSessionId != null) {
+      await ref.read(envSessionListProvider.notifier).copyPointsToSession(
+        sourceSessionId: _selectedSourceSessionId!,
+        targetSessionId: session.sessionId,
+        targetYearBe: yearBe,
+      );
+      ref.read(envSelectedSessionIdProvider.notifier).state = session.sessionId;
+    }
+
     if (widget.onSaved != null) {
       widget.onSaved!(session);
     }
-    Navigator.of(context).pop();
+    if (mounted) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  void _clearSubcontractorFields() {
+    setState(() {
+      _subcontractorCompanyCtrl.clear();
+      _subcontractorRegCtrl.clear();
+      _surveyorNameCtrl.clear();
+      _surveyorLicenseCtrl.clear();
+      _licenseDocPath = null;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('ล้างข้อมูลเรียบร้อยแล้ว ท่านสามารถกรอกบริษัทผู้รับจ้างเจ้าใหม่ได้ทันที')),
+    );
+  }
+
+  void _fillLatestSubcontractor() {
+    final existingSessions = ref.read(envSessionListProvider).asData?.value ?? [];
+    if (existingSessions.isNotEmpty) {
+      final latest = existingSessions.first;
+      setState(() {
+        _selectedSubcontractorType = latest.subcontractorType;
+        _subcontractorCompanyCtrl.text = latest.subcontractorCompanyName;
+        _subcontractorRegCtrl.text = latest.subcontractorRegNumber;
+        _surveyorNameCtrl.text = latest.surveyorName;
+        _surveyorLicenseCtrl.text = latest.surveyorLicenseNo ?? '';
+        _certifierNameCtrl.text = latest.certifierName;
+        _certifierRegCtrl.text = latest.certifierRegNo ?? '';
+        _licenseDocPath = latest.subcontractorLicensePath;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('ดึงข้อมูลล่าสุดจาก "${latest.subcontractorCompanyName}" เรียบร้อยแล้ว')),
+      );
+    }
   }
 
   @override
@@ -313,9 +392,31 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
                             children: [
                               const Icon(Icons.verified_user_rounded, color: Color(0xFF1E3A8A), size: 20),
                               const SizedBox(width: 8),
-                              const Text(
-                                'ข้อมูลผู้รับจ้างตรวจวัด (Subcontractor ม.๙ / ม.๑๑)',
-                                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                              const Expanded(
+                                child: Text(
+                                  'ข้อมูลผู้รับจ้างตรวจวัด (Subcontractor ม.๙ / ม.๑๑)',
+                                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: _fillLatestSubcontractor,
+                                icon: const Icon(Icons.autorenew_rounded, size: 15),
+                                label: const Text('ดึงเจ้าเดิมล่าสุด', style: TextStyle(fontSize: 12)),
+                                style: TextButton.styleFrom(
+                                  foregroundColor: const Color(0xFF1E3A8A),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              OutlinedButton.icon(
+                                onPressed: _clearSubcontractorFields,
+                                icon: const Icon(Icons.edit_note_rounded, size: 15),
+                                label: const Text('เปลี่ยนเจ้าใหม่', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFFD97706),
+                                  side: const BorderSide(color: Color(0xFFD97706)),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                ),
                               ),
                             ],
                           ),
@@ -323,6 +424,7 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
 
                           DropdownButtonFormField<SubcontractorType>(
                             value: _selectedSubcontractorType,
+                            isExpanded: true,
                             decoration: const InputDecoration(
                               labelText: 'ประเภทผู้ให้บริการตาม พ.ร.บ. ความปลอดภัยฯ ๒๕๕๔ *',
                               border: OutlineInputBorder(),
@@ -331,7 +433,7 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
                             items: SubcontractorType.values.map((t) {
                               return DropdownMenuItem(
                                 value: t,
-                                child: Text(t.labelTh),
+                                child: Text(t.labelTh, overflow: TextOverflow.ellipsis),
                               );
                             }).toList(),
                             onChanged: (v) {
@@ -455,6 +557,95 @@ class _AddEditSessionDialogState extends ConsumerState<AddEditSessionDialog> {
                         ),
                       ],
                     ),
+                    if (!isEdit) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEFF6FF),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFBFDBFE)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Checkbox(
+                                  value: _copyPointsFromPrevious,
+                                  activeColor: const Color(0xFF1E3A8A),
+                                  onChanged: (val) {
+                                    setState(() => _copyPointsFromPrevious = val ?? false);
+                                  },
+                                ),
+                                const Expanded(
+                                  child: Text(
+                                    'คัดลอกจุดตรวจวัดจากรอบก่อนหน้าอัตโนมัติ (แนะนำสำหรับการขึ้นปีใหม่)',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E3A8A)),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (_copyPointsFromPrevious) ...[
+                              const SizedBox(height: 6),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 40, right: 8),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'ระบบจะจำลองจุดตรวจวัดทั้งหมด (แผนก, พื้นที่, เครื่องจักร/งาน, ค่าเกณฑ์มาตรฐาน) เข้าสู่รอบปีใหม่นี้โดยอัตโนมัติ และรีเซ็ตค่าที่วัดได้เพื่อให้พร้อมลงบันทึกผลประจำปีใหม่ โดยไม่ต้องกรอก ๑๙ จุดซ้ำ',
+                                      style: TextStyle(fontSize: 11.5, color: Color(0xFF334155), height: 1.4),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Consumer(
+                                      builder: (ctx, ref, _) {
+                                        final sessions = ref.watch(envSessionListProvider).asData?.value ?? [];
+                                        if (sessions.isEmpty) return const SizedBox.shrink();
+                                        final sourceVal = (_selectedSourceSessionId != null && sessions.any((s) => s.sessionId == _selectedSourceSessionId))
+                                            ? _selectedSourceSessionId
+                                            : sessions.first.sessionId;
+                                        return Row(
+                                          children: [
+                                            const Text('คัดลอกจากรอบ: ', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: DropdownButtonFormField<String>(
+                                                value: sourceVal,
+                                                isDense: true,
+                                                decoration: InputDecoration(
+                                                  contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                ),
+                                                items: sessions.map((s) {
+                                                  return DropdownMenuItem<String>(
+                                                    value: s.sessionId,
+                                                    child: Text(
+                                                      'พ.ศ. ${s.sessionYearBe} - ${s.sessionTitle} (${s.sessionId})',
+                                                      style: const TextStyle(fontSize: 12),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (val) {
+                                                  setState(() => _selectedSourceSessionId = val);
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
 
                     TextFormField(

@@ -252,6 +252,34 @@ class EnvironmentPointModel {
     }
   }
 
+  String get measuredValueOnly {
+    switch (factorType) {
+      case EnvironmentFactorType.light:
+        return lightMeasuredLux != null ? '${lightMeasuredLux!.toStringAsFixed(1)} Lux' : '-';
+      case EnvironmentFactorType.noise:
+        if (noiseMeasurementType == NoiseMeasurementType.peakSoundLevel) {
+          return noisePeakDb != null ? '${noisePeakDb!.toStringAsFixed(1)} dB Peak' : '-';
+        }
+        return noiseMeasuredDba != null ? '${noiseMeasuredDba!.toStringAsFixed(1)} dBA' : '-';
+      case EnvironmentFactorType.heat:
+        return heatCalculatedWbgt != null ? '${heatCalculatedWbgt!.toStringAsFixed(2)} °C' : '-';
+    }
+  }
+
+  String get standardLimitDisplay {
+    switch (factorType) {
+      case EnvironmentFactorType.light:
+        return lightStandardMinLux != null ? '>= ${lightStandardMinLux!.toStringAsFixed(0)} Lux' : '-';
+      case EnvironmentFactorType.noise:
+        if (noiseMeasurementType == NoiseMeasurementType.peakSoundLevel) {
+          return '<= ${noisePeakLimit.toStringAsFixed(0)} dB';
+        }
+        return '<= ${noiseStandardTwaLimit.toStringAsFixed(0)} dBA';
+      case EnvironmentFactorType.heat:
+        return heatStandardLimitWbgt != null ? '<= ${heatStandardLimitWbgt!.toStringAsFixed(1)} °C' : '-';
+    }
+  }
+
   EnvironmentPointModel copyWith({
     int? id,
     String? pointId,

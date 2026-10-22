@@ -63,6 +63,17 @@ class EnvSelectedTabNotifier extends Notifier<int> {
 final envSelectedTabProvider =
     NotifierProvider<EnvSelectedTabNotifier, int>(EnvSelectedTabNotifier.new);
 
+/// View mode for points tab ('TABLE' or 'CARD')
+class EnvPointsViewModeNotifier extends Notifier<String> {
+  @override
+  String build() => 'TABLE'; // Default to Table view!
+  @override
+  set state(String val) => super.state = val;
+}
+
+final envPointsViewModeProvider =
+    NotifierProvider<EnvPointsViewModeNotifier, String>(EnvPointsViewModeNotifier.new);
+
 /// Currently selected session ID for filtering points ('ALL' or session_id)
 class EnvSelectedSessionIdNotifier extends Notifier<String> {
   @override
@@ -165,6 +176,22 @@ class EnvironmentSessionListNotifier extends AsyncNotifier<List<EnvironmentSessi
     } catch (e, st) {
       state = AsyncValue.error(e, st);
     }
+  }
+
+  Future<int> copyPointsToSession({
+    required String sourceSessionId,
+    required String targetSessionId,
+    required int targetYearBe,
+  }) async {
+    final repo = ref.read(environmentRepoProvider);
+    final count = await repo.copyPointsFromSession(
+      sourceSessionId: sourceSessionId,
+      targetSessionId: targetSessionId,
+      targetYearBe: targetYearBe,
+    );
+    ref.invalidate(envPointListProvider);
+    ref.invalidate(envKpiSummaryProvider);
+    return count;
   }
 }
 

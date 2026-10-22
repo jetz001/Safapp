@@ -230,6 +230,85 @@ class EnvironmentRepository {
     return await db.delete('environment_sessions', where: 'session_id = ?', whereArgs: [sessionId]);
   }
 
+  /// Clones all measurement points from a source session into a new target session.
+  /// Preserves factory departments, locations, task descriptions, and standards,
+  /// while resetting measured values ready for new annual sampling.
+  Future<int> copyPointsFromSession({
+    required String sourceSessionId,
+    required String targetSessionId,
+    required int targetYearBe,
+  }) async {
+    final db = await _dbHelper.database;
+    final sourcePoints = await getPoints(sessionId: sourceSessionId);
+    if (sourcePoints.isEmpty) return 0;
+
+    final batch = db.batch();
+    int count = 0;
+
+    for (final pt in sourcePoints) {
+      count++;
+      // Formulate a new pointId for the new year
+      String newPointId = pt.pointId;
+      final yearRegex = RegExp(r'\b(25\d{2}|20\d{2})\b');
+      if (yearRegex.hasMatch(newPointId)) {
+        newPointId = newPointId.replaceFirst(yearRegex, targetYearBe.toString());
+      } else {
+        newPointId = '${pt.pointId}-$targetYearBe';
+      }
+
+      final newPoint = EnvironmentPointModel(
+        pointId: newPointId,
+        sessionId: targetSessionId,
+        factorType: pt.factorType,
+        department: pt.department,
+        locationName: pt.locationName,
+        taskOrMachineName: pt.taskOrMachineName,
+        evaluationStatus: EnvironmentEvaluationStatus.pass,
+        notes: pt.notes,
+        createdAt: DateTime.now().toIso8601String(),
+        updatedAt: DateTime.now().toIso8601String(),
+        // Light standards
+        lightCategoryCode: pt.lightCategoryCode,
+        lightTaskDescription: pt.lightTaskDescription,
+        lightStandardMinLux: pt.lightStandardMinLux,
+        lightMeasuredLux: null,
+        lightSurroundingLux: null,
+        lightIsCompliant: null,
+        // Noise standards
+        noiseMeasurementType: pt.noiseMeasurementType,
+        noiseStandardTwaLimit: pt.noiseStandardTwaLimit,
+        noiseActionLevelThreshold: pt.noiseActionLevelThreshold,
+        noiseContinuousCeilingLimit: pt.noiseContinuousCeilingLimit,
+        noisePeakLimit: pt.noisePeakLimit,
+        noiseMeasuredDba: null,
+        noisePeakDb: null,
+        noiseExposureDurationHours: 8.0,
+        noiseDosePercent: null,
+        noiseIsHcpRequired: false,
+        noiseEvaluationTier: 'NORMAL',
+        // Heat standards
+        heatSolarExposure: pt.heatSolarExposure,
+        heatWorkloadType: pt.heatWorkloadType,
+        heatMetabolicRateKcalHr: pt.heatMetabolicRateKcalHr,
+        heatStandardLimitWbgt: pt.heatStandardLimitWbgt,
+        heatNwbCelsius: null,
+        heatGtCelsius: null,
+        heatDbCelsius: null,
+        heatCalculatedWbgt: null,
+        heatIsCompliant: null,
+      );
+
+      batch.insert(
+        'environment_measurement_points',
+        newPoint.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+
+    await batch.commit(noResult: true);
+    return count;
+  }
+
   // --------------------------------------------------------------------------
   // 4. Environmental Sampling Points (ผลตรวจวัดรายจุด แสง เสียง ความร้อน)
   // --------------------------------------------------------------------------
@@ -497,5 +576,19 @@ class EnvironmentRepository {
     final points = await getPoints();
     final capas = await getCapas();
     return EnvironmentalEvaluator.calculateKpi(points, capas: capas);
+  }
+
+  /// Retrieves chemical atmospheric measurements (แบบ สอ.๓)
+  Future<List<Map<String, dynamic>>> getChemicalSor3Measurements({String? date}) async {
+    try {
+      final db = await _dbHelper.database;
+      if (date != null) {
+        return await db.query('chemical_measurement_sor3', where: 'assessment_date = ?', whereArgs: [date], orderBy: 'id ASC');
+      }
+      return await db.query('chemical_measurement_sor3', orderBy: 'id ASC');
+    } catch (e) {
+      debugPrint('Error fetching chemical Sor3 measurements: $e');
+      return [];
+    }
   }
 }

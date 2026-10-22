@@ -147,14 +147,15 @@ class _CommitteeMemberDialogState extends ConsumerState<CommitteeMemberDialog> {
                 _buildSectionHeader('๑. พนักงานและตำแหน่งในคณะกรรมการ'),
                 employeesAsync.when(
                   data: (employees) {
-                    if (_selectedEmployeeId == null && employees.isNotEmpty) {
-                      _selectedEmployeeId = employees.first.id;
+                    final eligibleEmployees = employees.where((e) => !e.isResigned || e.id == _selectedEmployeeId).toList();
+                    if (_selectedEmployeeId == null && eligibleEmployees.isNotEmpty) {
+                      _selectedEmployeeId = eligibleEmployees.first.id;
                     }
                     return DropdownButtonFormField<int>(
                       isExpanded: true,
                       value: _selectedEmployeeId,
                       decoration: _inputDecoration('เลือกพนักงาน *', icon: Icons.person),
-                      items: employees.map((e) {
+                      items: eligibleEmployees.map((e) {
                         return DropdownMenuItem(
                           value: e.id,
                           child: Text('${e.employeeCode} - ${e.fullName} (${e.department})', overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),

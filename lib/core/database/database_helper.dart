@@ -5,7 +5,9 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import '../../features/legal_register/data/safety_legal_8_categories_data.dart';
 import '../../features/environment/data/environmental_standards_data.dart';
+import '../../features/environment/data/environmental_default_seeds.dart';
 import '../../features/ppe_asl/data/datasources/ppe_statutory_master_data.dart';
+import '../../features/chemicals/data/datasources/chemical_default_seeds.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -807,6 +809,9 @@ class DatabaseHelper {
         updated_at TEXT DEFAULT CURRENT_TIMESTAMP
       )
     ''');
+
+    // Auto-seed factory chemical inventory and Form สอ.๑ records
+    await ChemicalDefaultSeeds.seedIfEmpty(db);
   }
 
   static Future<void> _seedDefaultTrainingCourses(Database db) async {
@@ -1197,6 +1202,8 @@ class DatabaseHelper {
         await db.insert('environment_standards_master', item.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
       }
     }
+    // Auto-seed annual statutory monitoring session & points (2569 / 2026)
+    await EnvironmentalDefaultSeeds.seedIfEmpty(db);
   }
 
   // ====================================================

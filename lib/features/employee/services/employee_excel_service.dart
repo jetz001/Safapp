@@ -150,7 +150,10 @@ class EmployeeExcelService {
   }
 
   /// ส่งออกทะเบียนพนักงานเป็นไฟล์ Excel (.xlsx)
-  static Future<String?> exportEmployeesToExcel(List<Employee> employees) async {
+  static Future<String?> exportEmployeesToExcel(
+    List<Employee> employees, {
+    String fileNamePrefix = 'SAFAPP_Employee_Directory',
+  }) async {
     final excel = Excel.createExcel();
     final sheetName = 'Employees';
     excel.rename('Sheet1', sheetName);
@@ -181,7 +184,7 @@ class EmployeeExcelService {
         IntCellValue(e.validTrainingCount),
         TextCellValue(e.phone ?? '-'),
         TextCellValue(e.email ?? '-'),
-        TextCellValue(e.status == 'ACTIVE' ? 'ปฏิบัติงาน' : 'พ้นสภาพ'),
+        TextCellValue(e.status == 'ACTIVE' ? 'ปฏิบัติงาน' : (e.status == 'RESIGNED' ? 'พ้นสภาพ / ลาออก' : 'พักงาน')),
       ]);
     }
 
@@ -194,7 +197,7 @@ class EmployeeExcelService {
       await exportDir.create(recursive: true);
     }
 
-    final filename = 'SAFAPP_Employee_Directory_${DateTime.now().millisecondsSinceEpoch}.xlsx';
+    final filename = '${fileNamePrefix}_${DateTime.now().millisecondsSinceEpoch}.xlsx';
     final targetPath = p.join(exportDir.path, filename);
     final file = File(targetPath);
     await file.writeAsBytes(fileBytes);

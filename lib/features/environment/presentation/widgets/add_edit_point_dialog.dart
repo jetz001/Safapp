@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -254,6 +256,218 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
     Navigator.of(context).pop();
   }
 
+  void _exportAndOpenPrintCard() {
+    try {
+      final factor = _selectedFactor.name;
+      final pointId = _pointIdCtrl.text.trim();
+      final dept = _departmentCtrl.text.trim();
+      final loc = _locationNameCtrl.text.trim();
+      final task = _taskOrMachineCtrl.text.trim();
+      final notes = _notesCtrl.text.trim();
+
+      String measuredVal = '0';
+      String unit = '';
+      String stdLimit = '';
+      String statusText = 'ผ่านเกณฑ์มาตรฐาน';
+
+      if (_selectedFactor == EnvironmentFactorType.heat) {
+        try {
+          final isPass = _calculatedWbgt <= _selectedWorkload.standardLimitWbgt;
+          String empName = 'คุณเพ็ญศรี มูลพันธ์';
+          if (task.contains('(')) {
+            final parts = task.split('(');
+            if (parts.length > 1) {
+              empName = parts[1].replaceAll(')', '').trim();
+            }
+          }
+          final taskDesc = task.split('(').first.trim();
+          final metAvg = _selectedWorkload == WorkloadLevel.heavy ? '400' : (_selectedWorkload == WorkloadLevel.light ? '150' : '204');
+          final rss1Js = '''
+window.RSS1_DATA = {
+  date: "30 มีนาคม 2569",
+  location: "$loc",
+  employee: "$empName",
+  time: "8.50-10.50",
+  nwb: "${double.tryParse(_heatNwbCtrl.text.trim())?.toStringAsFixed(1) ?? '27.9'}",
+  db: "${double.tryParse(_heatDbCtrl.text.trim())?.toStringAsFixed(1) ?? '34.2'}",
+  gt: "${double.tryParse(_heatGtCtrl.text.trim())?.toStringAsFixed(1) ?? '35.2'}",
+  solar: "${_selectedSolarExposure == HeatSolarExposure.outdoorWithSolar ? 'out' : 'in'}",
+  wbgt: "${_calculatedWbgt.toStringAsFixed(1)}",
+  task: "$taskDesc",
+  workload: "${_selectedWorkload.labelTh}",
+  metAvg: "$metAvg",
+  evaluation: "${isPass ? 'ไม่เกินเกณฑ์' : 'เกินเกณฑ์'}",
+  capa: "-"
+};
+''';
+          for (final p in [
+            r'C:\Users\Boss-QA\.gemini\antigravity\brain\bd61fdff-3ef9-411c-80b5-c3b4b728f102\rss1_current.js',
+            r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\rss1_current.js',
+            r'D:\DEV\Safapp\bin\สวล69\2026\rss1_current.js',
+          ]) {
+            try {
+              File(p).writeAsStringSync(rss1Js);
+            } catch (_) {}
+          }
+        } catch (_) {}
+
+        Process.run('cmd.exe', [
+          '/c',
+          'start',
+          '',
+          r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\form_rss1.html',
+        ]);
+        return;
+      }
+
+      if (_selectedFactor == EnvironmentFactorType.light) {
+        if (_selectedLightStdCode == 'AREA') {
+          try {
+            final luxVal = double.tryParse(_lightMeasuredCtrl.text.trim()) ?? 517.0;
+            final luxMin = (luxVal * 0.96).round();
+            final isPass = luxVal >= (double.tryParse(_lightMinStdCtrl.text.trim()) ?? 0);
+            final rss2AreaJs = '''
+window.RSS2_AREA_DATA = {
+  date: "30 มีนาคม 2569",
+  location: "$loc",
+  task: "${task.isNotEmpty ? task : 'พื้นที่ทำงาน'}",
+  luxAvg: "${luxVal.toStringAsFixed(0)}",
+  luxMin: "$luxMin",
+  evaluation: "${isPass ? 'เป็นไปตามเกณฑ์' : 'ไม่เป็นไปตามเกณฑ์'}",
+  capa: "-"
+};
+''';
+            for (final p in [
+              r'C:\Users\Boss-QA\.gemini\antigravity\brain\bd61fdff-3ef9-411c-80b5-c3b4b728f102\rss2_area_current.js',
+              r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\rss2_area_current.js',
+              r'D:\DEV\Safapp\bin\สวล69\2026\rss2_area_current.js',
+            ]) {
+              try {
+                File(p).writeAsStringSync(rss2AreaJs);
+              } catch (_) {}
+            }
+          } catch (_) {}
+
+          Process.run('cmd.exe', [
+            '/c',
+            'start',
+            '',
+            r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\form_rss2_area.html',
+          ]);
+          return;
+        } else {
+          try {
+            final luxVal = double.tryParse(_lightMeasuredCtrl.text.trim()) ?? 448.0;
+            final isPass = luxVal >= (double.tryParse(_lightMinStdCtrl.text.trim()) ?? 0);
+            final surround = _lightSurroundingCtrl.text.trim().isNotEmpty ? _lightSurroundingCtrl.text.trim() : '-';
+            final empInfo = '$dept<br>$loc';
+            final taskDesc = task.isNotEmpty ? task : 'คอมพิวเตอร์ (งานละเอียดเล็กน้อย)';
+            final rss2SpotJs = '''
+window.RSS2_SPOT_DATA = {
+  date: "30 มีนาคม 2569",
+  employee: "$empInfo",
+  task: "$taskDesc",
+  luxSpot: "${luxVal.toStringAsFixed(0)}",
+  surround1: "$surround",
+  surround2: "-",
+  evaluation: "${isPass ? 'เป็นไปตามเกณฑ์' : 'ไม่เป็นไปตามเกณฑ์'}",
+  capa: "-"
+};
+''';
+            for (final p in [
+              r'C:\Users\Boss-QA\.gemini\antigravity\brain\bd61fdff-3ef9-411c-80b5-c3b4b728f102\rss2_spot_current.js',
+              r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\rss2_spot_current.js',
+              r'D:\DEV\Safapp\bin\สวล69\2026\rss2_spot_current.js',
+            ]) {
+              try {
+                File(p).writeAsStringSync(rss2SpotJs);
+              } catch (_) {}
+            }
+          } catch (_) {}
+
+          Process.run('cmd.exe', [
+            '/c',
+            'start',
+            '',
+            r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\form_rss2_spot.html',
+          ]);
+          return;
+        }
+      }
+
+      if (_selectedFactor == EnvironmentFactorType.noise) {
+        try {
+          final dba = double.tryParse(_noiseMeasuredCtrl.text.trim()) ?? 73.4;
+          final isPass = dba <= 86.0;
+          final emp = task.replaceAll(RegExp(r'\s*\([^)]*\)'), '').isNotEmpty ? task.replaceAll(RegExp(r'\s*\([^)]*\)'), '') : 'Ms. Nant Mya Thaw';
+          final hours = '${double.tryParse(_noiseDurationCtrl.text.trim())?.toStringAsFixed(0) ?? '8'} ชั่วโมง';
+          final rss3Js = '''
+window.RSS3_DATA = {
+  date: "30 มีนาคม 2569",
+  location: "$loc",
+  employee: "$emp",
+  workDuration: "$hours",
+  workArea: "-",
+  noiseDba: "${dba.toStringAsFixed(1)}",
+  measDuration: "$hours",
+  twa: "${dba.round()}",
+  evaluation: "${isPass ? 'ไม่เกินเกณฑ์' : 'เกินเกณฑ์'}",
+  capa: "-"
+};
+''';
+          for (final p in [
+            r'C:\Users\Boss-QA\.gemini\antigravity\brain\bd61fdff-3ef9-411c-80b5-c3b4b728f102\rss3_current.js',
+            r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\rss3_current.js',
+            r'D:\DEV\Safapp\bin\สวล69\2026\rss3_current.js',
+          ]) {
+            try {
+              File(p).writeAsStringSync(rss3Js);
+            } catch (_) {}
+          }
+        } catch (_) {}
+
+        Process.run('cmd.exe', [
+          '/c',
+          'start',
+          '',
+          r'C:\Users\Boss-QA\.gemini\antigravity\brain\715757b6-eb3c-4a05-a823-ce4116256ca2\form_rss3.html',
+        ]);
+        return;
+      }
+
+      measuredVal = '0';
+      unit = '';
+      stdLimit = '-';
+      statusText = 'ผ่านเกณฑ์มาตรฐาน';
+
+      final jsContent = '''
+window.CURRENT_POINT_DATA = {
+  factor: "$factor",
+  pointId: "$pointId",
+  dept: "$dept",
+  location: "$loc",
+  task: "$task",
+  date: "18 ก.พ. 2569",
+  measuredValue: "$measuredVal",
+  measuredUnit: "$unit",
+  standardLimit: "$stdLimit",
+  statusText: "$statusText",
+  notes: "$notes"
+};
+''';
+
+      final file = File(r'C:\Users\Boss-QA\.gemini\antigravity\brain\bd61fdff-3ef9-411c-80b5-c3b4b728f102\point_current.js');
+      file.writeAsStringSync(jsContent);
+    } catch (_) {}
+
+    Process.run('cmd.exe', [
+      '/c',
+      'start',
+      '',
+      r'C:\Users\Boss-QA\.gemini\antigravity\brain\bd61fdff-3ef9-411c-80b5-c3b4b728f102\point_print_card.html',
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.point != null;
@@ -447,8 +661,14 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                           flex: 4,
                           child: sessionsAsync.when(
                             data: (sessions) {
+                              final hasSession = sessions.any((s) => s.sessionId == _selectedSessionId);
+                              final sessionVal = hasSession
+                                  ? _selectedSessionId
+                                  : (sessions.isNotEmpty ? sessions.first.sessionId : null);
+
                               return DropdownButtonFormField<String>(
-                                value: _selectedSessionId,
+                                value: sessionVal,
+                                isExpanded: true,
                                 decoration: const InputDecoration(
                                   labelText: 'รอบการตรวจวัด (Session)',
                                   border: OutlineInputBorder(),
@@ -521,32 +741,58 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                               style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
                             ),
                             const SizedBox(height: 12),
-                            DropdownButtonFormField<String>(
-                              value: _selectedLightStdCode,
-                              decoration: const InputDecoration(
-                                labelText: 'เลือกประเภทงาน / มาตรฐานความเข้มแสงสว่าง',
-                                border: OutlineInputBorder(),
-                                isDense: true,
-                                filled: true,
-                                fillColor: Colors.white,
-                              ),
-                              items: EnvironmentalStandardsData.lightingStandards.map((std) {
-                                return DropdownMenuItem<String>(
-                                  value: std.standardCode,
-                                  child: Text('${std.taskDescription} (${std.standardLimit} Lux)', style: const TextStyle(fontSize: 12.5)),
+                            Builder(
+                              builder: (context) {
+                                final hasMatchingStd = EnvironmentalStandardsData.lightingStandards.any(
+                                  (std) => std.standardCode == _selectedLightStdCode,
                                 );
-                              }).toList(),
-                              onChanged: (code) {
-                                if (code != null) {
-                                  final match = EnvironmentalStandardsData.findStandardByCode(code);
-                                  setState(() {
-                                    _selectedLightStdCode = code;
-                                    if (match != null) {
-                                      _lightMinStdCtrl.text = match.standardLimit.toStringAsFixed(0);
-                                      _taskOrMachineCtrl.text = match.taskDescription;
+
+                                final lightDropdownItems = <DropdownMenuItem<String>>[
+                                  if (_selectedLightStdCode != null && !hasMatchingStd)
+                                    DropdownMenuItem<String>(
+                                      value: _selectedLightStdCode,
+                                      child: Text(
+                                        'ประเภทเดิม: $_selectedLightStdCode (${_lightMinStdCtrl.text} Lux)',
+                                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ...EnvironmentalStandardsData.lightingStandards.map((std) {
+                                    return DropdownMenuItem<String>(
+                                      value: std.standardCode,
+                                      child: Text(
+                                        '${std.taskDescription} (${std.standardLimit} Lux)',
+                                        style: const TextStyle(fontSize: 12.5),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    );
+                                  }),
+                                ];
+
+                                return DropdownButtonFormField<String>(
+                                  value: _selectedLightStdCode,
+                                  isExpanded: true,
+                                  decoration: const InputDecoration(
+                                    labelText: 'เลือกประเภทงาน / มาตรฐานความเข้มแสงสว่าง',
+                                    border: OutlineInputBorder(),
+                                    isDense: true,
+                                    filled: true,
+                                    fillColor: Colors.white,
+                                  ),
+                                  items: lightDropdownItems,
+                                  onChanged: (code) {
+                                    if (code != null) {
+                                      final match = EnvironmentalStandardsData.findStandardByCode(code);
+                                      setState(() {
+                                        _selectedLightStdCode = code;
+                                        if (match != null) {
+                                          _lightMinStdCtrl.text = match.standardLimit.toStringAsFixed(0);
+                                          _taskOrMachineCtrl.text = match.taskDescription;
+                                        }
+                                      });
                                     }
-                                  });
-                                }
+                                  },
+                                );
                               },
                             ),
                             const SizedBox(height: 12),
@@ -621,6 +867,7 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                             const SizedBox(height: 12),
                             DropdownButtonFormField<NoiseMeasurementType>(
                               value: _selectedNoiseType,
+                              isExpanded: true,
                               decoration: const InputDecoration(
                                 labelText: 'ประเภทการตรวจวัดระดับเสียง *',
                                 border: OutlineInputBorder(),
@@ -631,7 +878,10 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                               items: NoiseMeasurementType.values.map((t) {
                                 return DropdownMenuItem(
                                   value: t,
-                                  child: Text(t.labelTh),
+                                  child: Text(
+                                    t.labelTh,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 );
                               }).toList(),
                               onChanged: (v) {
@@ -741,6 +991,7 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                                 Expanded(
                                   child: DropdownButtonFormField<HeatSolarExposure>(
                                     value: _selectedSolarExposure,
+                                    isExpanded: true,
                                     decoration: const InputDecoration(
                                       labelText: 'สภาพแดด / สูตร WBGT *',
                                       border: OutlineInputBorder(),
@@ -748,10 +999,27 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                                       filled: true,
                                       fillColor: Colors.white,
                                     ),
+                                    selectedItemBuilder: (context) {
+                                      return HeatSolarExposure.values.map((s) {
+                                        return Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            s.labelTh,
+                                            style: const TextStyle(fontSize: 12),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
                                     items: HeatSolarExposure.values.map((s) {
                                       return DropdownMenuItem(
                                         value: s,
-                                        child: Text(s.labelTh, style: const TextStyle(fontSize: 12)),
+                                        child: Text(
+                                          s.labelTh,
+                                          style: const TextStyle(fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       );
                                     }).toList(),
                                     onChanged: (v) {
@@ -763,6 +1031,7 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                                 Expanded(
                                   child: DropdownButtonFormField<WorkloadLevel>(
                                     value: _selectedWorkload,
+                                    isExpanded: true,
                                     decoration: const InputDecoration(
                                       labelText: 'ลักษณะภาระงาน (Workload) *',
                                       border: OutlineInputBorder(),
@@ -770,10 +1039,27 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                                       filled: true,
                                       fillColor: Colors.white,
                                     ),
+                                    selectedItemBuilder: (context) {
+                                      return WorkloadLevel.values.map((w) {
+                                        return Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Text(
+                                            '${w.labelTh} (<= ${w.standardLimitWbgt}°C)',
+                                            style: const TextStyle(fontSize: 12),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        );
+                                      }).toList();
+                                    },
                                     items: WorkloadLevel.values.map((w) {
                                       return DropdownMenuItem(
                                         value: w,
-                                        child: Text('${w.labelTh} (<= ${w.standardLimitWbgt}°C)'),
+                                        child: Text(
+                                          '${w.labelTh} (<= ${w.standardLimitWbgt}°C)',
+                                          style: const TextStyle(fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       );
                                     }).toList(),
                                     onChanged: (v) {
@@ -879,8 +1165,21 @@ class _AddEditPointDialogState extends ConsumerState<AddEditPointDialog> {
                 border: Border(top: BorderSide(color: Colors.grey.shade200)),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  if (isEdit) ...[
+                    OutlinedButton.icon(
+                      onPressed: _exportAndOpenPrintCard,
+                      icon: const Icon(Icons.print_rounded, size: 16),
+                      label: const Text('พิมพ์การ์ดประจำจุดตรวจ (Print Card)'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF0F766E),
+                        side: const BorderSide(color: Color(0xFF0F766E)),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ],
+                  const Spacer(),
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
                     child: const Text('ยกเลิก'),

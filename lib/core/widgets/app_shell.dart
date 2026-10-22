@@ -72,7 +72,13 @@ class _AppShellState extends State<AppShell> {
       const NearMissFormPage(), // 6: AppRoutes.nearMiss
 
       // ── กลุ่มที่ ๓: บุคลากร สุขอนามัย & ผู้รับเหมา ──────────────────────────
-      const EmployeePage(), // 7: AppRoutes.employee
+      EmployeePage(
+        onNavigate: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ), // 7: AppRoutes.employee
       const CpoMainPage(), // 8: AppRoutes.cpo
       const ContractorPage(), // 9: AppRoutes.contractor
       const HealthPage(), // 10: AppRoutes.health

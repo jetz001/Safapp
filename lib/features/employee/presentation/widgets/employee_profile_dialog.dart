@@ -126,6 +126,49 @@ class _EmployeeProfileDialogState extends ConsumerState<EmployeeProfileDialog> {
                             ),
                             const SizedBox(width: 8),
                             _buildRoleBadge(employee.safetyRole),
+                            if (employee.isResigned) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.shade900.withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.red.shade300, width: 1),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.person_off_rounded, size: 12, color: Colors.white),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'พ้นสภาพ / ลาออก',
+                                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ] else if (employee.isSuspended) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2.5),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade900.withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: Colors.amber.shade300, width: 1),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.pause_circle_outline_rounded, size: 12, color: Colors.white),
+                                    SizedBox(width: 4),
+                                    Text(
+                                      'พักงาน',
+                                      style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                         const SizedBox(height: 4),

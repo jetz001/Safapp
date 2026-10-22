@@ -39,6 +39,22 @@ class Employee {
     this.expiredTrainingCount = 0,
   });
 
+  bool get isResigned => status == 'RESIGNED';
+  bool get isActive => status == 'ACTIVE';
+  bool get isSuspended => status == 'SUSPENDED';
+
+  String get statusLabel {
+    switch (status) {
+      case 'RESIGNED':
+        return 'พ้นสภาพ / ลาออก';
+      case 'SUSPENDED':
+        return 'พักงาน';
+      case 'ACTIVE':
+      default:
+        return 'ปฏิบัติงานอยู่';
+    }
+  }
+
   String get safetyRoleLabel {
     switch (safetyRole) {
       case 'SUPERVISOR_SAFETY':

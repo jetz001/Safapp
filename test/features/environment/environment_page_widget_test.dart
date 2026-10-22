@@ -24,6 +24,18 @@ import 'package:safety_superapp/features/environment/presentation/widgets/gazett
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  setUp(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.views.first.physicalSize = const Size(1400, 1000);
+    binding.platformDispatcher.views.first.devicePixelRatio = 1.0;
+  });
+
+  tearDown(() {
+    final binding = TestWidgetsFlutterBinding.ensureInitialized();
+    binding.platformDispatcher.views.first.resetPhysicalSize();
+    binding.platformDispatcher.views.first.resetDevicePixelRatio();
+  });
+
   final sampleSession = const EnvironmentSessionModel(
     id: 1,
     sessionId: 'ENV-SESS-2026-001',
@@ -322,7 +334,7 @@ void main() {
 
     testWidgets('AttachmentPreviewDialog renders file preview modal', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
+        MaterialApp(
           home: Scaffold(
             body: AttachmentPreviewDialog(
               title: 'เล่มรายงานผลการตรวจวัดฉบับเต็ม',
@@ -382,9 +394,9 @@ void main() {
 
       // Tab 0 active: Dashboard
       expect(find.textContaining('ระบบตรวจวัดสภาพแวดล้อมในการทำงาน'), findsOneWidget);
-      expect(find.text('ส่งออก PDF (สสค.)'), findsOneWidget);
-      expect(find.text('ส่งออก Excel'), findsOneWidget);
       expect(find.textContaining('ดัชนีสรุปผลการตรวจวัดสภาพแวดล้อม'), findsOneWidget);
+      expect(find.text('ส่งออก PDF (สสค.)', skipOffstage: false), findsOneWidget);
+      expect(find.text('ส่งออก Excel', skipOffstage: false), findsOneWidget);
 
       // Tap Tab 1: Measurements Points
       await tester.tap(find.textContaining('ผลตรวจวัดรายจุด'));
@@ -417,6 +429,13 @@ class _MockSessionListNotifier extends AsyncNotifier<List<EnvironmentSessionMode
 
   @override
   Future<void> deleteSession(String sessionId) async {}
+
+  @override
+  Future<int> copyPointsToSession({
+    required String sourceSessionId,
+    required String targetSessionId,
+    required int targetYearBe,
+  }) async => 0;
 }
 
 class _MockPointListNotifier extends AsyncNotifier<List<EnvironmentPointModel>>

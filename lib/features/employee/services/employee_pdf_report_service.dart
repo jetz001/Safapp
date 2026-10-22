@@ -31,14 +31,19 @@ class EmployeePdfReportService {
   static Future<Uint8List> generateEmployeeSummaryReportPdf({
     required List<Employee> employees,
     String companyName = 'สถานประกอบกิจการ',
+    String? reportTitle,
+    String? formCode,
   }) async {
     final pdf = pw.Document(theme: await _buildTheme());
 
     final activeEmployees = employees.where((e) => e.status == 'ACTIVE').toList();
+    final resignedCount = employees.where((e) => e.status == 'RESIGNED').length;
     final totalHours = employees.fold<double>(0.0, (sum, e) => sum + e.totalTrainingHours);
     final jorporCount = employees.where((e) => e.safetyRole.contains('SAFETY') || e.safetyRole == 'COMMITTEE_MEMBER').length;
     final now = DateTime.now();
     final dateStr = '${now.day.toString().padLeft(2, '0')}/${now.month.toString().padLeft(2, '0')}/${now.year + 543}';
+    final actualTitle = reportTitle ?? 'รายงานสรุปทะเบียนพนักงานและประวัติการฝึกอบรมความปลอดภัยในการทำงาน';
+    final actualFormCode = formCode ?? 'แบบรายงานทะเบียนพนักงาน & OSH Training';
 
     pdf.addPage(
       pw.MultiPage(
@@ -59,7 +64,7 @@ class EmployeePdfReportService {
                     ),
                     pw.SizedBox(height: 2),
                     pw.Text(
-                      'รายงานสรุปทะเบียนพนักงานและประวัติการฝึกอบรมความปลอดภัยในการทำงาน',
+                      actualTitle,
                       style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold, color: PdfColors.grey900),
                     ),
                     pw.Text(
@@ -79,7 +84,7 @@ class EmployeePdfReportService {
                         border: pw.Border.all(color: PdfColors.blue300),
                       ),
                       child: pw.Text(
-                        'แบบรายงานทะเบียนพนักงาน & OSH Training',
+                        actualFormCode,
                         style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900),
                       ),
                     ),
@@ -111,13 +116,15 @@ class EmployeePdfReportService {
           // KPI Summary Cards
           pw.Row(
             children: [
-              _buildKpiCard('พนักงานทั้งหมด', '${employees.length} คน', PdfColors.blue50, PdfColors.blue800),
+              _buildKpiCard('พนักงานในรายงาน', '${employees.length} คน', PdfColors.blue50, PdfColors.blue800),
               pw.SizedBox(width: 8),
-              _buildKpiCard('สถานะปฏิบัติงาน (Active)', '${activeEmployees.length} คน', PdfColors.green50, PdfColors.green800),
+              _buildKpiCard('ปฏิบัติงาน (Active)', '${activeEmployees.length} คน', PdfColors.green50, PdfColors.green800),
               pw.SizedBox(width: 8),
-              _buildKpiCard('ชั่วโมงอบรมสะสมรวม', '${totalHours.toStringAsFixed(1)} ชม.', PdfColors.amber50, PdfColors.amber800),
+              _buildKpiCard('พ้นสภาพ / ลาออก', '$resignedCount คน', PdfColors.grey100, PdfColors.grey800),
               pw.SizedBox(width: 8),
-              _buildKpiCard('จนท.ความปลอดภัย / คปอ.', '$jorporCount คน', PdfColors.purple50, PdfColors.purple800),
+              _buildKpiCard('ชั่วโมงอบรมรวม', '${totalHours.toStringAsFixed(1)} ชม.', PdfColors.amber50, PdfColors.amber800),
+              pw.SizedBox(width: 8),
+              _buildKpiCard('จป. / คปอ.', '$jorporCount คน', PdfColors.purple50, PdfColors.purple800),
             ],
           ),
           pw.SizedBox(height: 14),

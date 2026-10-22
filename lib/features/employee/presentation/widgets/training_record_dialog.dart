@@ -211,17 +211,26 @@ class _TrainingRecordDialogState extends ConsumerState<TrainingRecordDialog> {
                 // Employee selector
                 employeesAsync.when(
                   data: (employees) {
-                    if (_selectedEmployeeId == null && employees.isNotEmpty) {
-                      _selectedEmployeeId = employees.first.id;
+                    final sortedEmployees = [
+                      ...employees.where((e) => !e.isResigned),
+                      ...employees.where((e) => e.isResigned),
+                    ];
+                    if (_selectedEmployeeId == null && sortedEmployees.isNotEmpty) {
+                      _selectedEmployeeId = sortedEmployees.first.id;
                     }
                     return DropdownButtonFormField<int>(
                       isExpanded: true,
                       value: _selectedEmployeeId,
                       decoration: _inputDecoration('เลือกพนักงานที่เข้ารับการอบรม *', icon: Icons.person),
-                      items: employees.map((e) {
+                      items: sortedEmployees.map((e) {
+                        final tag = e.isResigned ? ' [พ้นสภาพ/ลาออก]' : '';
                         return DropdownMenuItem(
                           value: e.id,
-                          child: Text('${e.employeeCode} - ${e.fullName} (${e.department})', overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13)),
+                          child: Text(
+                            '${e.employeeCode} - ${e.fullName} (${e.department})$tag',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13, color: e.isResigned ? Colors.grey.shade600 : null),
+                          ),
                         );
                       }).toList(),
                       onChanged: (v) => setState(() => _selectedEmployeeId = v),

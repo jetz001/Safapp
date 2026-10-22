@@ -1,9 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 
 import '../../domain/models/environment_session_model.dart';
 import '../../domain/models/environment_kpi_summary.dart';
-import '../../domain/models/subcontractor_model.dart';
 import '../../services/environment_pdf_exporter.dart';
 import '../../services/environment_excel_exporter.dart';
 import '../providers/environment_providers.dart';
@@ -77,12 +78,70 @@ class EnvironmentDashboardTab extends ConsumerWidget {
     );
   }
 
-  void _previewAttachment(BuildContext context, String title, String path, String category) {
+  Future<void> _exportPdfForSession(BuildContext context, WidgetRef ref, EnvironmentSessionModel session) async {
+    final repo = ref.read(environmentRepoProvider);
+    final points = await repo.getPoints(sessionId: session.sessionId);
+    final capas = await repo.getCapas(sessionId: session.sessionId);
+    final kpi = await repo.getSessionKpi(session.sessionId);
+    final chemMeasurements = await repo.getChemicalSor3Measurements();
+
+    if (context.mounted) {
+      await EnvironmentPdfExporter.printOrShare(
+        context,
+        session: session,
+        points: points,
+        capas: capas,
+        kpi: kpi,
+        chemicalMeasurements: chemMeasurements,
+      );
+    }
+  }
+
+  Future<void> _exportExcelForSession(BuildContext context, WidgetRef ref, EnvironmentSessionModel session) async {
+    final repo = ref.read(environmentRepoProvider);
+    final points = await repo.getPoints(sessionId: session.sessionId);
+    final capas = await repo.getCapas(sessionId: session.sessionId);
+    final kpi = await repo.getSessionKpi(session.sessionId);
+
+    final exportedPath = await EnvironmentExcelExporter.exportToExcelFile(
+      session: session,
+      points: points,
+      capas: capas,
+      kpi: kpi,
+    );
+
+    if (context.mounted) {
+      if (exportedPath != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('ส่งออกไฟล์ Excel รอบ พ.ศ. ${session.sessionYearBe} เรียบร้อยแล้ว:\n$exportedPath'),
+            backgroundColor: const Color(0xFF16A34A),
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('ไม่สามารถส่งออกไฟล์ Excel ได้'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _previewAttachments(BuildContext context, String title, List<String> paths, String category) {
+    if (paths.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ไม่มีไฟล์เอกสารในหมวดหมู่นี้'), backgroundColor: Colors.orange),
+      );
+      return;
+    }
     showDialog(
       context: context,
       builder: (ctx) => AttachmentPreviewDialog(
         title: title,
-        filePath: path,
+        filePaths: paths,
         category: category,
       ),
     );
@@ -149,11 +208,14 @@ class EnvironmentDashboardTab extends ConsumerWidget {
           children: [
             const Icon(Icons.analytics_rounded, color: Color(0xFF1E3A8A), size: 22),
             const SizedBox(width: 8),
-            const Text(
-              'ดัชนีสรุปผลการตรวจวัดสภาพแวดล้อม (Environmental KPI Summary)',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            const Expanded(
+              child: Text(
+                'ดัชนีสรุปผลการตรวจวัดสภาพแวดล้อม (Environmental KPI Summary)',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            const Spacer(),
+            const SizedBox(width: 8),
             Text(
               'คำนวณล่าสุด: ${kpi.calculatedAt.substring(0, 10)}',
               style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600),
@@ -162,62 +224,74 @@ class EnvironmentDashboardTab extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
 
-        // 4 Main Metric Cards
-        Row(
-          children: [
-            // Overall Compliance Gauge
-            Expanded(
-              flex: 3,
-              child: _buildMetricCard(
-                title: 'ดัชนีความสอดคล้องรวม',
-                value: '${kpi.compliancePercentage.toStringAsFixed(1)}%',
-                subtitle: 'ผ่าน ${kpi.passedPoints} จากทั้งหมด ${kpi.totalPoints} จุด',
-                color: kpi.compliancePercentage >= 90
-                    ? const Color(0xFF10B981)
-                    : (kpi.compliancePercentage >= 75 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444)),
-                icon: Icons.verified_rounded,
-              ),
-            ),
-            const SizedBox(width: 12),
+        // 4 Main Metric Cards (Responsive LayoutBuilder)
+        LayoutBuilder(
+          builder: (ctx, constraints) {
+            final card1 = _buildMetricCard(
+              title: 'ดัชนีความสอดคล้องรวม',
+              value: '${kpi.compliancePercentage.toStringAsFixed(1)}%',
+              subtitle: 'ผ่าน ${kpi.passedPoints} จากทั้งหมด ${kpi.totalPoints} จุด',
+              color: kpi.compliancePercentage >= 90
+                  ? const Color(0xFF10B981)
+                  : (kpi.compliancePercentage >= 75 ? const Color(0xFFF59E0B) : const Color(0xFFEF4444)),
+              icon: Icons.verified_rounded,
+            );
+            final card2 = _buildMetricCard(
+              title: 'ผ่านเกณฑ์มาตรฐาน',
+              value: '${kpi.passedPoints}',
+              subtitle: 'ผลการตรวจวัดปกติ',
+              color: const Color(0xFF10B981),
+              icon: Icons.check_circle_rounded,
+            );
+            final card3 = _buildMetricCard(
+              title: 'เฝ้าระวัง Action Level',
+              value: '${kpi.actionLevelPoints}',
+              subtitle: 'เข้าโครงการ HCP: ${kpi.hcpRequiredCount} จุด',
+              color: const Color(0xFFF59E0B),
+              icon: Icons.warning_amber_rounded,
+            );
+            final card4 = _buildMetricCard(
+              title: 'เกินเกณฑ์มาตรฐาน',
+              value: '${kpi.failedPoints}',
+              subtitle: 'แผน CAPA ค้าง: ${kpi.capaPendingCount + kpi.capaOverdueCount}',
+              color: const Color(0xFFEF4444),
+              icon: Icons.cancel_rounded,
+            );
 
-            // Pass Count
-            Expanded(
-              flex: 2,
-              child: _buildMetricCard(
-                title: 'ผ่านเกณฑ์มาตรฐาน',
-                value: '${kpi.passedPoints}',
-                subtitle: 'ผลการตรวจวัดปกติ',
-                color: const Color(0xFF10B981),
-                icon: Icons.check_circle_rounded,
-              ),
-            ),
-            const SizedBox(width: 12),
+            if (constraints.maxWidth < 900) {
+              return Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(child: card1),
+                      const SizedBox(width: 12),
+                      Expanded(child: card2),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: card3),
+                      const SizedBox(width: 12),
+                      Expanded(child: card4),
+                    ],
+                  ),
+                ],
+              );
+            }
 
-            // Action Level (HCP)
-            Expanded(
-              flex: 2,
-              child: _buildMetricCard(
-                title: 'เฝ้าระวัง Action Level',
-                value: '${kpi.actionLevelPoints}',
-                subtitle: 'เข้าโครงการ HCP: ${kpi.hcpRequiredCount} จุด',
-                color: const Color(0xFFF59E0B),
-                icon: Icons.warning_amber_rounded,
-              ),
-            ),
-            const SizedBox(width: 12),
-
-            // Exceed Standard (Fail)
-            Expanded(
-              flex: 2,
-              child: _buildMetricCard(
-                title: 'เกินเกณฑ์มาตรฐาน',
-                value: '${kpi.failedPoints}',
-                subtitle: 'แผน CAPA ค้าง: ${kpi.capaPendingCount + kpi.capaOverdueCount}',
-                color: const Color(0xFFEF4444),
-                icon: Icons.cancel_rounded,
-              ),
-            ),
-          ],
+            return Row(
+              children: [
+                Expanded(flex: 3, child: card1),
+                const SizedBox(width: 12),
+                Expanded(flex: 2, child: card2),
+                const SizedBox(width: 12),
+                Expanded(flex: 2, child: card3),
+                const SizedBox(width: 12),
+                Expanded(flex: 2, child: card4),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 12),
 
@@ -232,38 +306,52 @@ class EnvironmentDashboardTab extends ConsumerWidget {
               BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
-          child: Row(
-            children: [
-              Expanded(
-                child: _buildParamProgress(
-                  label: 'แสงสว่าง (Lighting)',
-                  icon: Icons.lightbulb_outline_rounded,
-                  color: const Color(0xFFD97706),
-                  percentage: kpi.lightCompliancePercentage,
-                  detail: 'ผ่าน ${kpi.lightPassed} / ${kpi.lightPoints} จุด',
-                ),
-              ),
-              Container(height: 40, width: 1, color: Colors.grey.shade200, margin: const EdgeInsets.symmetric(horizontal: 16)),
-              Expanded(
-                child: _buildParamProgress(
-                  label: 'เสียง (Noise)',
-                  icon: Icons.volume_up_rounded,
-                  color: const Color(0xFF2563EB),
-                  percentage: kpi.noiseCompliancePercentage,
-                  detail: 'ปกติ ${kpi.noiseNormal} | เฝ้าระวัง ${kpi.noiseActionLevel} | เกิน ${kpi.noiseExceeded}',
-                ),
-              ),
-              Container(height: 40, width: 1, color: Colors.grey.shade200, margin: const EdgeInsets.symmetric(horizontal: 16)),
-              Expanded(
-                child: _buildParamProgress(
-                  label: 'ความร้อน (Heat WBGT)',
-                  icon: Icons.thermostat_rounded,
-                  color: const Color(0xFFDC2626),
-                  percentage: kpi.heatCompliancePercentage,
-                  detail: 'ผ่าน ${kpi.heatPassed} / ${kpi.heatPoints} จุด',
-                ),
-              ),
-            ],
+          child: LayoutBuilder(
+            builder: (ctx, constraints) {
+              final p1 = _buildParamProgress(
+                label: 'แสงสว่าง (Lighting)',
+                icon: Icons.lightbulb_outline_rounded,
+                color: const Color(0xFFD97706),
+                percentage: kpi.lightCompliancePercentage,
+                detail: 'ผ่าน ${kpi.lightPassed} / ${kpi.lightPoints} จุด',
+              );
+              final p2 = _buildParamProgress(
+                label: 'เสียง (Noise)',
+                icon: Icons.volume_up_rounded,
+                color: const Color(0xFF2563EB),
+                percentage: kpi.noiseCompliancePercentage,
+                detail: 'ปกติ ${kpi.noiseNormal} | เฝ้าระวัง ${kpi.noiseActionLevel} | เกิน ${kpi.noiseExceeded}',
+              );
+              final p3 = _buildParamProgress(
+                label: 'ความร้อน (Heat WBGT)',
+                icon: Icons.thermostat_rounded,
+                color: const Color(0xFFDC2626),
+                percentage: kpi.heatCompliancePercentage,
+                detail: 'ผ่าน ${kpi.heatPassed} / ${kpi.heatPoints} จุด',
+              );
+
+              if (constraints.maxWidth < 750) {
+                return Column(
+                  children: [
+                    p1,
+                    const Divider(height: 20),
+                    p2,
+                    const Divider(height: 20),
+                    p3,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: p1),
+                  Container(height: 40, width: 1, color: Colors.grey.shade200, margin: const EdgeInsets.symmetric(horizontal: 16)),
+                  Expanded(child: p2),
+                  Container(height: 40, width: 1, color: Colors.grey.shade200, margin: const EdgeInsets.symmetric(horizontal: 16)),
+                  Expanded(child: p3),
+                ],
+              );
+            },
           ),
         ),
       ],
@@ -330,9 +418,15 @@ class EnvironmentDashboardTab extends ConsumerWidget {
           children: [
             Icon(icon, size: 16, color: color),
             const SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-            const Spacer(),
-            Text('${percentage.toStringAsFixed(1)}%', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: color)),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Text('${percentage.toStringAsFixed(1)}%', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold, color: color)),
           ],
         ),
         const SizedBox(height: 6),
@@ -487,139 +581,162 @@ class EnvironmentDashboardTab extends ConsumerWidget {
     final isPostOverdue = session.isPostingOverdue;
     final isSubOverdue = session.isSubmissionOverdue;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Subcontractor Credentials Card
-        Expanded(
-          flex: 5,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.verified_user_rounded, color: Color(0xFF1E3A8A), size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'การรับรองผู้ให้บริการตรวจวัด (Subcontractor ม.๙ / ม.๑๑)',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFDCFCE7),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        session.subcontractorType.labelTh,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF166534)),
-                      ),
-                    ),
-                  ],
+    final subCard = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.verified_user_rounded, color: Color(0xFF1E3A8A), size: 20),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'การรับรองผู้ให้บริการตรวจวัด (ม.๙ / ม.๑๑)',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
-                _buildSubDetailRow('บริษัทผู้ให้บริการ:', session.subcontractorCompanyName),
-                _buildSubDetailRow('เลขทะเบียน/ใบอนุญาต:', session.subcontractorRegNumber),
-                _buildSubDetailRow('ผู้ทำการตรวจวัด:', '${session.surveyorName} (${session.surveyorLicenseNo ?? "-"})'),
-                _buildSubDetailRow('ผู้รับรองรายงาน:', '${session.certifierName} (เลขทะเบียน ${session.certifierRegNo ?? session.subcontractorRegNumber})'),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  session.subcontractorType.labelTh,
+                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF166534)),
+                ),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF1E3A8A)),
+                tooltip: 'แก้ไขข้อมูลผู้ให้บริการ / เปลี่ยนเจ้า',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                onPressed: () => _openEditSessionDialog(context, ref, session),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(width: 16),
+          const SizedBox(height: 12),
+          _buildSubDetailRow('บริษัทผู้ให้บริการ:', session.subcontractorCompanyName),
+          _buildSubDetailRow('เลขทะเบียน/ใบอนุญาต:', session.subcontractorRegNumber),
+          _buildSubDetailRow('ผู้ทำการตรวจวัด:', '${session.surveyorName} (${session.surveyorLicenseNo ?? "-"})'),
+          _buildSubDetailRow('ผู้รับรองรายงาน:', '${session.certifierName} (เลขทะเบียน ${session.certifierRegNo ?? session.subcontractorRegNumber})'),
+        ],
+      ),
+    );
 
-        // Statutory Deadlines Card (Section 15 OSH Act)
-        Expanded(
-          flex: 4,
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'กำหนดเวลาตามกฎหมาย (Section 15)',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
-                    ),
-                  ],
+    final deadlinesCard = Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 20),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'กำหนดเวลาตามกฎหมาย (Section 15)',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
-
-                // 15-day Posting
-                Row(
-                  children: [
-                    Icon(
-                      isPostOverdue ? Icons.error_rounded : Icons.check_circle_outline_rounded,
-                      size: 18,
-                      color: isPostOverdue ? Colors.red : const Color(0xFF10B981),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('ปิดประกาศผล ณ สถานประกอบการ (๑๕ วัน)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                          Text('กำหนดภายใน: $postingDl', style: TextStyle(fontSize: 11, color: isPostOverdue ? Colors.red : Colors.grey.shade600)),
-                        ],
-                      ),
-                    ),
-                    if (isPostOverdue)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(4)),
-                        child: const Text('เกินกำหนด', style: TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // 30-day DLPW Submission
-                Row(
-                  children: [
-                    Icon(
-                      isSubOverdue ? Icons.error_rounded : Icons.check_circle_outline_rounded,
-                      size: 18,
-                      color: isSubOverdue ? Colors.red : const Color(0xFF10B981),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('จัดส่งรายงานให้อธิบดีกรมฯ (๓๐ วัน)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                          Text('กำหนดภายใน: $submissionDl', style: TextStyle(fontSize: 11, color: isSubOverdue ? Colors.red : Colors.grey.shade600)),
-                        ],
-                      ),
-                    ),
-                    if (isSubOverdue)
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(4)),
-                        child: const Text('เกินกำหนด', style: TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
-                      ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+
+          // 15-day Posting
+          Row(
+            children: [
+              Icon(
+                isPostOverdue ? Icons.error_rounded : Icons.check_circle_outline_rounded,
+                size: 18,
+                color: isPostOverdue ? Colors.red : const Color(0xFF10B981),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('ปิดประกาศผล ณ สถานประกอบการ (๑๕ วัน)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                    Text('กำหนดภายใน: $postingDl', style: TextStyle(fontSize: 11, color: isPostOverdue ? Colors.red : Colors.grey.shade600)),
+                  ],
+                ),
+              ),
+              if (isPostOverdue)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(4)),
+                  child: const Text('เกินกำหนด', style: TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+          // 30-day DLPW Submission
+          Row(
+            children: [
+              Icon(
+                isSubOverdue ? Icons.error_rounded : Icons.check_circle_outline_rounded,
+                size: 18,
+                color: isSubOverdue ? Colors.red : const Color(0xFF10B981),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('จัดส่งรายงานให้อธิบดีกรมฯ (๓๐ วัน)', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600)),
+                    Text('กำหนดภายใน: $submissionDl', style: TextStyle(fontSize: 11, color: isSubOverdue ? Colors.red : Colors.grey.shade600)),
+                  ],
+                ),
+              ),
+              if (isSubOverdue)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(color: Colors.red.shade100, borderRadius: BorderRadius.circular(4)),
+                  child: const Text('เกินกำหนด', style: TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold)),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 900) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              subCard,
+              const SizedBox(height: 16),
+              deadlinesCard,
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 5, child: subCard),
+            const SizedBox(width: 16),
+            Expanded(flex: 4, child: deadlinesCard),
+          ],
+        );
+      },
     );
   }
 
@@ -642,10 +759,59 @@ class EnvironmentDashboardTab extends ConsumerWidget {
   }
 
   Widget _buildMultiCategoryAttachmentsCard(BuildContext context, WidgetRef ref, EnvironmentSessionModel session) {
-    final pdfReport = session.pdfReportPath ?? 'รายงานผลตรวจวัดฉบับเต็ม.pdf';
-    final calCerts = session.calibrationCertPaths.isNotEmpty ? session.calibrationCertPaths : ['ใบสอบเทียบ Sound Level Meter.pdf', 'ใบสอบเทียบ Lux Meter.pdf'];
-    final subLicense = session.subcontractorLicensePath ?? 'ใบสำคัญรับรองขึ้นทะเบียน ม.๑๑.pdf';
-    final photos = session.sitePhotoPaths.isNotEmpty ? session.sitePhotoPaths : ['ภาพถ่ายจุดตรวจวัด แผนกผลิต 1.jpg', 'ภาพถ่ายจุดตรวจวัด แผนก QC.jpg'];
+    final List<String> reportFiles = [];
+    final List<String> calibFiles = [];
+    final List<String> licenseFiles = [];
+    final List<String> allFiles = [];
+
+    // Scan folder of pdfReportPath or known directory
+    Directory? targetDir;
+    if (session.pdfReportPath != null && session.pdfReportPath!.isNotEmpty) {
+      final file = File(session.pdfReportPath!);
+      if (file.existsSync()) {
+        targetDir = file.parent;
+      }
+    }
+    targetDir ??= Directory(r'D:\DEV\Safapp\bin\สวล69\2026');
+
+    if (targetDir.existsSync()) {
+      try {
+        final entries = targetDir
+            .listSync()
+            .whereType<File>()
+            .where((f) => f.path.toLowerCase().endsWith('.pdf') || f.path.toLowerCase().endsWith('.jpg') || f.path.toLowerCase().endsWith('.png'))
+            .toList();
+        entries.sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+
+        for (final f in entries) {
+          final name = p.basename(f.path);
+          allFiles.add(f.path);
+          if (name.startsWith('01') || name.startsWith('Scan')) {
+            reportFiles.add(f.path);
+          } else if (name.contains('เครื่องมือ')) {
+            calibFiles.add(f.path);
+          } else if (name.contains('ใบอนุญาติ') || name.contains('รายชื่อ') || name.contains('นิติบุคคล') || name.contains('PO')) {
+            licenseFiles.add(f.path);
+          }
+        }
+      } catch (e) {
+        debugPrint('Error scanning attachment directory: $e');
+      }
+    }
+
+    // Fallbacks if directory wasn't found or was empty
+    if (reportFiles.isEmpty && session.pdfReportPath != null && session.pdfReportPath!.isNotEmpty) {
+      reportFiles.add(session.pdfReportPath!);
+    }
+    if (calibFiles.isEmpty) {
+      calibFiles.addAll(session.calibrationCertPaths);
+    }
+    if (licenseFiles.isEmpty && session.subcontractorLicensePath != null && session.subcontractorLicensePath!.isNotEmpty) {
+      licenseFiles.add(session.subcontractorLicensePath!);
+    }
+    if (allFiles.isEmpty) {
+      allFiles.addAll([...reportFiles, ...calibFiles, ...licenseFiles]);
+    }
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -657,67 +823,121 @@ class EnvironmentDashboardTab extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.folder_shared_rounded, color: Color(0xFF1E3A8A), size: 20),
-              SizedBox(width: 8),
-              Text(
-                'เอกสารอ้างอิงและหลักฐานประกอบการตรวจวัด (Multi-Category Attachments)',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              const Icon(Icons.folder_shared_rounded, color: Color(0xFF1E3A8A), size: 20),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'เอกสารอ้างอิงและหลักฐานประกอบการตรวจวัด (Multi-Category Attachments)',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
+              if (allFiles.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEFF6FF),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                  ),
+                  child: Text(
+                    'พบเอกสารรวม ${allFiles.length} ไฟล์ในแฟ้ม ๒๕๖๙',
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF1E40AF)),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 14),
 
-          Row(
-            children: [
-              // 1. PDF Report
-              Expanded(
-                child: _buildAttachmentCategoryCard(
-                  title: 'เล่มรายงานผลฉบับเต็ม',
-                  count: '1 ไฟล์',
-                  icon: Icons.picture_as_pdf_rounded,
-                  color: const Color(0xFFDC2626),
-                  onPreview: () => _previewAttachment(context, 'เล่มรายงานผลฉบับเต็ม (PDF Report)', pdfReport, 'เล่มรายงานผล'),
+          LayoutBuilder(
+            builder: (ctx, constraints) {
+              final cat1 = _buildAttachmentCategoryCard(
+                title: 'เล่มรายงานผลและแบบฟอร์ม',
+                count: '${reportFiles.length} ไฟล์',
+                icon: Icons.picture_as_pdf_rounded,
+                color: const Color(0xFFDC2626),
+                onPreview: () => _previewAttachments(
+                  context,
+                  'เล่มรายงานผลและแบบฟอร์มตรวจวัด (สสค. ๑)',
+                  reportFiles,
+                  'รายงานผลตรวจวัด',
                 ),
-              ),
-              const SizedBox(width: 12),
+              );
+              final cat2 = _buildAttachmentCategoryCard(
+                title: 'ใบรับรองการสอบเทียบ',
+                count: '${calibFiles.length} ฉบับ',
+                icon: Icons.speed_rounded,
+                color: const Color(0xFF2563EB),
+                onPreview: () => _previewAttachments(
+                  context,
+                  'ใบรับรองการสอบเทียบเครื่องมือวัด (ISO/IEC 17025)',
+                  calibFiles,
+                  'ใบสอบเทียบเครื่องมือวัด',
+                ),
+              );
+              final cat3 = _buildAttachmentCategoryCard(
+                title: 'ใบอนุญาต ม.๙/๑๑ และรายชื่อ',
+                count: '${licenseFiles.length} ฉบับ',
+                icon: Icons.badge_rounded,
+                color: const Color(0xFF16A34A),
+                onPreview: () => _previewAttachments(
+                  context,
+                  'ใบสำคัญ/ใบอนุญาตขึ้นทะเบียนและรายชื่อผู้ตรวจวัด (ม.๑๑)',
+                  licenseFiles,
+                  'ใบอนุญาตและขึ้นทะเบียน',
+                ),
+              );
+              final cat4 = _buildAttachmentCategoryCard(
+                title: 'แฟ้มเอกสารทั้งหมด ๒๕๖๙',
+                count: '${allFiles.length} ไฟล์',
+                icon: Icons.folder_copy_rounded,
+                color: const Color(0xFF9333EA),
+                onPreview: () => _previewAttachments(
+                  context,
+                  'แฟ้มเอกสารการตรวจวัดสภาพแวดล้อมทั้งหมด (ปี ๒๕๖๙)',
+                  allFiles,
+                  'เอกสารทั้งหมดในแฟ้ม',
+                ),
+              );
 
-              // 2. Calibration Certs
-              Expanded(
-                child: _buildAttachmentCategoryCard(
-                  title: 'ใบรับรองการสอบเทียบ',
-                  count: '${calCerts.length} ฉบับ',
-                  icon: Icons.speed_rounded,
-                  color: const Color(0xFF2563EB),
-                  onPreview: () => _previewAttachment(context, 'ใบรับรองการสอบเทียบเครื่องมือวัด (ISO/IEC 17025)', calCerts.first, 'ใบสอบเทียบ'),
-                ),
-              ),
-              const SizedBox(width: 12),
+              if (constraints.maxWidth < 950) {
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(child: cat1),
+                        const SizedBox(width: 12),
+                        Expanded(child: cat2),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(child: cat3),
+                        const SizedBox(width: 12),
+                        Expanded(child: cat4),
+                      ],
+                    ),
+                  ],
+                );
+              }
 
-              // 3. Subcontractor License
-              Expanded(
-                child: _buildAttachmentCategoryCard(
-                  title: 'ใบอนุญาต ม.๙/๑๑',
-                  count: '1 ฉบับ',
-                  icon: Icons.badge_rounded,
-                  color: const Color(0xFF16A34A),
-                  onPreview: () => _previewAttachment(context, 'ใบสำคัญ/ใบอนุญาตขึ้นทะเบียนผู้ให้บริการ', subLicense, 'ใบอนุญาต ม.๙/๑๑'),
-                ),
-              ),
-              const SizedBox(width: 12),
-
-              // 4. Site Photos
-              Expanded(
-                child: _buildAttachmentCategoryCard(
-                  title: 'รูปถ่ายจุดตรวจวัด',
-                  count: '${photos.length} รูป',
-                  icon: Icons.photo_library_rounded,
-                  color: const Color(0xFF9333EA),
-                  onPreview: () => _previewAttachment(context, 'รูปถ่ายจุดตรวจวัดและสภาพแวดล้อมจริง', photos.first, 'รูปถ่ายจุดตรวจวัด'),
-                ),
-              ),
-            ],
+              return Row(
+                children: [
+                  Expanded(child: cat1),
+                  const SizedBox(width: 12),
+                  Expanded(child: cat2),
+                  const SizedBox(width: 12),
+                  Expanded(child: cat3),
+                  const SizedBox(width: 12),
+                  Expanded(child: cat4),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -775,6 +995,8 @@ class EnvironmentDashboardTab extends ConsumerWidget {
   }
 
   Widget _buildAnnualSessionsTable(BuildContext context, WidgetRef ref, List<EnvironmentSessionModel> sessions) {
+    final selectedSessionId = ref.watch(envSelectedSessionIdProvider);
+
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -789,11 +1011,14 @@ class EnvironmentDashboardTab extends ConsumerWidget {
             children: [
               const Icon(Icons.history_rounded, color: Color(0xFF1E3A8A), size: 20),
               const SizedBox(width: 8),
-              const Text(
-                'รายการรอบการตรวจวัดประจำปี (Annual Measurement Sessions)',
-                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              const Expanded(
+                child: Text(
+                  'รายการรอบการตรวจวัดประจำปี (Annual Measurement Sessions)',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
-              const Spacer(),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () => _openCreateSessionDialog(context, ref),
                 icon: const Icon(Icons.add_rounded, size: 16),
@@ -816,36 +1041,93 @@ class EnvironmentDashboardTab extends ConsumerWidget {
             separatorBuilder: (_, __) => const SizedBox(height: 10),
             itemBuilder: (ctx, i) {
               final s = sessions[i];
-              return Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E3A8A).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'พ.ศ.\n${s.sessionYearBe}',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A)),
-                      ),
+              final isCurrentSelected = s.sessionId == selectedSessionId;
+
+              final actionButtons = Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  FilledButton.tonalIcon(
+                    onPressed: () => _exportPdfForSession(context, ref, s),
+                    icon: const Icon(Icons.picture_as_pdf_rounded, size: 15, color: Color(0xFFDC2626)),
+                    label: const Text('ส่งออก PDF (สสค.)', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFDC2626))),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFFEE2E2),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      visualDensity: VisualDensity.compact,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
+                  ),
+                  FilledButton.tonalIcon(
+                    onPressed: () => _exportExcelForSession(context, ref, s),
+                    icon: const Icon(Icons.table_view_rounded, size: 15, color: Color(0xFF16A34A)),
+                    label: const Text('ส่งออก Excel', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFF16A34A))),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFDCFCE7),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      visualDensity: VisualDensity.compact,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit_outlined, size: 18),
+                    tooltip: 'แก้ไขรอบตรวจวัด',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _openEditSessionDialog(context, ref, s),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
+                    tooltip: 'ลบรอบตรวจวัด',
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _confirmDeleteSession(context, ref, s),
+                  ),
+                ],
+              );
+
+              return InkWell(
+                onTap: () {
+                  ref.read(envSelectedSessionIdProvider.notifier).state = s.sessionId;
+                },
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isCurrentSelected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isCurrentSelected ? const Color(0xFF3B82F6) : Colors.grey.shade200,
+                      width: isCurrentSelected ? 1.5 : 1,
+                    ),
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final yearBadge = Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: isCurrentSelected ? const Color(0xFF1E3A8A) : const Color(0xFF1E3A8A).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'พ.ศ.\n${s.sessionYearBe}',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: isCurrentSelected ? Colors.white : const Color(0xFF1E3A8A),
+                          ),
+                        ),
+                      );
+
+                      final sessionDetails = Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Text(s.sessionId, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
-                              const SizedBox(width: 8),
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
@@ -854,25 +1136,59 @@ class EnvironmentDashboardTab extends ConsumerWidget {
                                 ),
                                 child: Text(s.status.labelTh, style: const TextStyle(fontSize: 10, color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
                               ),
+                              if (isCurrentSelected)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDCFCE7),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: const Color(0xFF86EFAC)),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.check_circle_rounded, size: 11, color: Color(0xFF166534)),
+                                      SizedBox(width: 3),
+                                      Text('กำลังเลือกดูรอบนี้', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF166534))),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 3),
                           Text(s.sessionTitle, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                           Text('ตรวจวัด: ${s.measurementDate}  |  ผู้รับจ้าง: ${s.subcontractorCompanyName}', style: TextStyle(fontSize: 11.5, color: Colors.grey.shade600)),
                         ],
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      tooltip: 'แก้ไข',
-                      onPressed: () => _openEditSessionDialog(context, ref, s),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red),
-                      tooltip: 'ลบ',
-                      onPressed: () => _confirmDeleteSession(context, ref, s),
-                    ),
-                  ],
+                      );
+
+                      if (constraints.maxWidth < 750) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                yearBadge,
+                                const SizedBox(width: 12),
+                                Expanded(child: sessionDetails),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            actionButtons,
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          yearBadge,
+                          const SizedBox(width: 12),
+                          Expanded(child: sessionDetails),
+                          const SizedBox(width: 10),
+                          actionButtons,
+                        ],
+                      );
+                    },
+                  ),
                 ),
               );
             },

@@ -881,32 +881,31 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Row(
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 8,
+                                    runSpacing: 4,
                                     children: [
                                       Text(
                                         '${r.employeeCode ?? "-"} - ${r.employeeName ?? "พนักงาน"}',
                                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14.5, color: Color(0xFF0F172A)),
                                       ),
-                                      const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(6)),
                                         child: Text(r.department ?? '-', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.blue.shade900)),
                                       ),
-                                      const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(color: Colors.indigo.shade50, borderRadius: BorderRadius.circular(6)),
                                         child: Text(r.checkupTypeLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Colors.indigo.shade900)),
                                       ),
-                                      const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(color: resultBg, borderRadius: BorderRadius.circular(6)),
                                         child: Text(r.overallResultLabel, style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: resultFg)),
                                       ),
-                                      if (_recordYearBe(r).isNotEmpty) ...[
-                                        const SizedBox(width: 8),
+                                      if (_recordYearBe(r).isNotEmpty)
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                           decoration: BoxDecoration(
@@ -916,7 +915,6 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                                           ),
                                           child: Text(_recordYearBe(r), style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
                                         ),
-                                      ],
                                     ],
                                   ),
                                   const SizedBox(height: 4),
@@ -925,33 +923,32 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                                     style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
                                   ),
                                   const SizedBox(height: 4),
-                                  Row(
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
+                                    spacing: 6,
+                                    runSpacing: 4,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
                                         child: Text('BP: ${r.bpReading}', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
                                       ),
-                                      const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(4)),
                                         child: Text('BMI: ${r.bmi?.toStringAsFixed(1) ?? "-"}', style: const TextStyle(fontSize: 10, color: Color(0xFF334155))),
                                       ),
-                                      const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                         decoration: BoxDecoration(color: Colors.teal.shade50, borderRadius: BorderRadius.circular(4)),
                                         child: Text('ความพร้อม: ${r.fitnessLabel}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.teal.shade900)),
                                       ),
-                                      if (hasPdf) ...[
-                                        const SizedBox(width: 6),
+                                      if (hasPdf)
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(color: Colors.red.shade50, borderRadius: BorderRadius.circular(4)),
                                           child: const Text('📄 แนบเล่มเดี่ยวแล้ว', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)),
                                         ),
-                                      ],
                                     ],
                                   ),
                                 ],
@@ -961,6 +958,7 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                             // Actions
                             Wrap(
                               spacing: 6,
+                              runSpacing: 6,
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: () {
@@ -1143,14 +1141,13 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                           style: TextStyle(fontSize: 11.5, color: Colors.grey.shade700),
                         ),
                         const SizedBox(height: 6),
-                        Row(
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 4,
                           children: [
                             Text('ตรวจทั้งหมด: ${b.totalEmployeesTested} คน', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 10),
                             Text('ปกติ: ${b.normalCount} (${b.normalPercentage.toStringAsFixed(1)}%)', style: TextStyle(fontSize: 11, color: Colors.green.shade700, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 10),
                             Text('เฝ้าระวัง: ${b.watchCount}', style: TextStyle(fontSize: 11, color: Colors.amber.shade900, fontWeight: FontWeight.bold)),
-                            const SizedBox(width: 10),
                             Text('ผิดปกติ: ${b.abnormalCount}', style: TextStyle(fontSize: 11, color: Colors.red.shade700, fontWeight: FontWeight.bold)),
                           ],
                         ),
@@ -1289,13 +1286,15 @@ class _HealthPageState extends ConsumerState<HealthPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Row(
+                                Wrap(
+                                  crossAxisAlignment: WrapCrossAlignment.center,
+                                  spacing: 8,
+                                  runSpacing: 4,
                                   children: [
                                     Text(
                                       '${f.employeeCode ?? "-"} - ${f.employeeName ?? "พนักงาน"} (${f.department ?? "-"})',
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5, color: Color(0xFF0F172A)),
                                     ),
-                                    const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(color: const Color(0xFF1E3A8A).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),

@@ -133,16 +133,15 @@ class _EnvironmentGazetteTabState extends ConsumerState<EnvironmentGazetteTab> {
               ),
               const SizedBox(height: 12),
 
-              Row(
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   const Text('หมวดหมู่กฎหมาย:', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
                   _buildCategoryChip('ทั้งหมด (${EnvironmentalGazetteData.gazetteList.length})', 'ALL'),
-                  const SizedBox(width: 6),
                   _buildCategoryChip('พระราชบัญญัติ (Acts)', 'PRIMARY_ACT'),
-                  const SizedBox(width: 6),
                   _buildCategoryChip('กฎกระทรวง (Regulations)', 'MINISTERIAL_REGULATION'),
-                  const SizedBox(width: 6),
                   _buildCategoryChip('ประกาศกรมฯ (DLPW Notifications)', 'DLPW_NOTIFICATION'),
                 ],
               ),
@@ -307,12 +306,16 @@ class _EnvironmentGazetteTabState extends ConsumerState<EnvironmentGazetteTab> {
                 const SizedBox(height: 8),
 
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'บทกำหนดโทษ: ${item.penaltySummary}',
-                      style: const TextStyle(fontSize: 11.5, color: Color(0xFF991B1B), fontWeight: FontWeight.w500),
+                    Expanded(
+                      child: Text(
+                        'บทกำหนดโทษ: ${item.penaltySummary}',
+                        style: const TextStyle(fontSize: 11.5, color: Color(0xFF991B1B), fontWeight: FontWeight.w500),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () => _openDetailDialog(item),
                       icon: const Icon(Icons.menu_book_rounded, size: 16),

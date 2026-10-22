@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../domain/models/environment_session_model.dart';
 import '../../services/environment_pdf_exporter.dart';
 import '../../services/environment_excel_exporter.dart';
 import '../providers/environment_providers.dart';
@@ -62,9 +61,11 @@ class _EnvironmentPageState extends ConsumerState<EnvironmentPage> with SingleTi
       orElse: () => sessions.first,
     );
 
-    final points = await ref.read(envPointListProvider.future);
-    final capas = await ref.read(envCapaListProvider.future);
-    final kpi = await ref.read(envKpiSummaryProvider.future);
+    final repo = ref.read(environmentRepoProvider);
+    final points = await repo.getPoints(sessionId: activeSession.sessionId);
+    final capas = await repo.getCapas(sessionId: activeSession.sessionId);
+    final kpi = await repo.getSessionKpi(activeSession.sessionId);
+    final chemMeasurements = await repo.getChemicalSor3Measurements();
 
     if (mounted) {
       await EnvironmentPdfExporter.printOrShare(
@@ -73,6 +74,7 @@ class _EnvironmentPageState extends ConsumerState<EnvironmentPage> with SingleTi
         points: points,
         capas: capas,
         kpi: kpi,
+        chemicalMeasurements: chemMeasurements,
       );
     }
   }
@@ -94,9 +96,10 @@ class _EnvironmentPageState extends ConsumerState<EnvironmentPage> with SingleTi
       orElse: () => sessions.first,
     );
 
-    final points = await ref.read(envPointListProvider.future);
-    final capas = await ref.read(envCapaListProvider.future);
-    final kpi = await ref.read(envKpiSummaryProvider.future);
+    final repo = ref.read(environmentRepoProvider);
+    final points = await repo.getPoints(sessionId: activeSession.sessionId);
+    final capas = await repo.getCapas(sessionId: activeSession.sessionId);
+    final kpi = await repo.getSessionKpi(activeSession.sessionId);
 
     final exportedPath = await EnvironmentExcelExporter.exportToExcelFile(
       session: activeSession,
@@ -143,101 +146,45 @@ class _EnvironmentPageState extends ConsumerState<EnvironmentPage> with SingleTi
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
       appBar: AppBar(
+        toolbarHeight: 70,
+        titleSpacing: 20,
         title: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
                 color: const Color(0xFF1E3A8A).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.thermostat_rounded, color: Color(0xFF1E3A8A), size: 22),
+              child: const Icon(Icons.thermostat_rounded, color: Color(0xFF1E3A8A), size: 24),
             ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ระบบตรวจวัดสภาพแวดล้อมในการทำงาน (Environmental Monitoring)',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: -0.2),
-                ),
-                Text(
-                  'แสงสว่าง • เสียง • ความร้อน WBGT (กฎกระทรวงฯ ๒๕๕๙ & แบบ สสค. ๒๕๖๓)',
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                ),
-              ],
+            const SizedBox(width: 14),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'ระบบตรวจวัดสภาพแวดล้อมในการทำงาน (Environmental Monitoring)',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 16.5, fontWeight: FontWeight.bold, letterSpacing: -0.2),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'แสงสว่าง • เสียง • ความร้อน WBGT • สารเคมี (กฎกระทรวงฯ ๒๕๕๙ & ประกาศกรมฯ)',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
         backgroundColor: isDark ? const Color(0xFF1E293B) : Colors.white,
         foregroundColor: isDark ? Colors.white : const Color(0xFF0F172A),
         elevation: 0.5,
-        actions: [
-          // Session Selector Dropdown in AppBar
-          sessionsAsync.when(
-            data: (sessions) {
-              if (sessions.isEmpty) return const SizedBox();
-              return Container(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: selectedSessionId,
-                    icon: const Icon(Icons.arrow_drop_down_rounded, color: Color(0xFF1E3A8A)),
-                    items: [
-                      const DropdownMenuItem(value: 'ALL', child: Text('ทุกรอบตรวจวัด (All Sessions)', style: TextStyle(fontSize: 12.5))),
-                      ...sessions.map((s) => DropdownMenuItem(
-                            value: s.sessionId,
-                            child: Text('${s.sessionId} (${s.sessionYearBe})', style: const TextStyle(fontSize: 12.5)),
-                          )),
-                    ],
-                    onChanged: (v) {
-                      if (v != null) ref.read(envSelectedSessionIdProvider.notifier).state = v;
-                    },
-                  ),
-                ),
-              );
-            },
-            loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
-          ),
-          const SizedBox(width: 8),
-
-          // Export PDF Button
-          OutlinedButton.icon(
-            onPressed: _exportPdf,
-            icon: const Icon(Icons.picture_as_pdf_rounded, size: 16, color: Color(0xFFDC2626)),
-            label: const Text('ส่งออก PDF (สสค.)', style: TextStyle(fontSize: 12, color: Color(0xFFDC2626), fontWeight: FontWeight.bold)),
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFFFCA5A5)),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Export Excel Button
-          ElevatedButton.icon(
-            onPressed: _exportExcel,
-            icon: const Icon(Icons.table_chart_rounded, size: 16),
-            label: const Text('ส่งออก Excel', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF16A34A),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
-          const SizedBox(width: 14),
-        ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(48),
+          preferredSize: const Size.fromHeight(50),
           child: Container(
             color: isDark ? const Color(0xFF1E293B) : Colors.white,
             child: TabBar(
