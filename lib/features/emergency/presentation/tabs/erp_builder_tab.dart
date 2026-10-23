@@ -600,16 +600,16 @@ class _ErpBuilderTabState extends ConsumerState<ErpBuilderTab> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: Colors.grey.shade200),
               ),
-              child: Row(
+              child: Wrap(
+                spacing: 16,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                alignment: WrapAlignment.spaceBetween,
                 children: [
                   _buildInfoMetric(Icons.people_outline, 'พนักงานทั้งหมด', '${plan.totalEmployees} คน (ช ${plan.maleCount} / ญ ${plan.femaleCount})'),
-                  const SizedBox(width: 20),
                   _buildInfoMetric(Icons.local_fire_department_outlined, 'ผู้อำนวยการสั่งการ', plan.fireCommanderName),
-                  const SizedBox(width: 20),
                   _buildInfoMetric(Icons.phone_in_talk_outlined, 'สายด่วน 24 ชม.', plan.commanderPhone),
-                  const SizedBox(width: 20),
                   _buildInfoMetric(Icons.business_outlined, 'ประเภทกิจการ', plan.businessType.label),
-                  const Spacer(),
                   Text(
                     'โครงสร้าง ๖ แผนย่อยตามกฎหมาย (กฎกระทรวงฯ ข้อ ๔):',
                     style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600),

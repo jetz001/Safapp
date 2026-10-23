@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 
 /// Interactive and Display Widget for NFPA 704 Standard "Fire Diamond".
@@ -17,7 +19,7 @@ class NfpaDiamondWidget extends StatelessWidget {
   final Function(int health, int flammability, int instability, String special)? onChanged;
 
   const NfpaDiamondWidget({
-    Key? key,
+    super.key,
     this.health = 0,
     this.flammability = 0,
     this.instability = 0,
@@ -26,7 +28,30 @@ class NfpaDiamondWidget extends StatelessWidget {
     this.isInteractive = false,
     this.editable = false,
     this.onChanged,
-  }) : super(key: key);
+  });
+
+  /// High-resolution PNG generator for printing and PDF generation.
+  static Future<Uint8List> renderToPng({
+    int health = 0,
+    int flammability = 0,
+    int instability = 0,
+    String? special,
+    double size = 200,
+  }) async {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder, Rect.fromLTWH(0, 0, size, size));
+    final painter = _NfpaDiamondPainter(
+      health: health,
+      flammability: flammability,
+      instability: instability,
+      special: special ?? '',
+    );
+    painter.paint(canvas, Size(size, size));
+    final picture = recorder.endRecording();
+    final img = await picture.toImage(size.toInt(), size.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
 
   void _showEditDialog(BuildContext context) {
     int h = health;
@@ -64,51 +89,60 @@ class NfpaDiamondWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // Health (Blue)
-                    _buildSlider(
-                      title: 'สุขภาพ (Health - สีน้ำเงิน): $h',
+                    const Divider(),
+                    const SizedBox(height: 8),
+
+                    // Health (0 - 4)
+                    _buildSliderRow(
+                      label: 'สุขภาพ (Health - สีน้ำเงิน)',
                       value: h,
-                      color: const Color(0xFF2563EB),
-                      descriptions: const ['0: ปลอดภัย', '1: ระคายเคืองเล็กน้อย', '2: อันตรายปานกลาง', '3: อันตรายสูง', '4: ถึงแก่ชีวิต'],
+                      activeColor: const Color(0xFF3B82F6),
+                      description: _getHealthDesc(h),
                       onChanged: (val) => setDlgState(() => h = val),
                     ),
-                    const SizedBox(height: 8),
-                    // Flammability (Red)
-                    _buildSlider(
-                      title: 'ความไวไฟ (Flammability - สีแดง): $f',
+
+                    // Flammability (0 - 4)
+                    _buildSliderRow(
+                      label: 'ความไวไฟ (Flammability - สีแดง)',
                       value: f,
-                      color: const Color(0xFFDC2626),
-                      descriptions: const ['0: ไม่ติดไฟ', '1: จุดวาบไฟ > 93°C', '2: จุดวาบไฟ 38-93°C', '3: จุดวาบไฟ < 38°C', '4: จุดวาบไฟ < 23°C ไวไฟสูงมาก'],
+                      activeColor: const Color(0xFFEF4444),
+                      description: _getFlammabilityDesc(f),
                       onChanged: (val) => setDlgState(() => f = val),
                     ),
-                    const SizedBox(height: 8),
-                    // Instability (Yellow)
-                    _buildSlider(
-                      title: 'ความไม่เสถียร (Instability - สีเหลือง): $i',
+
+                    // Instability (0 - 4)
+                    _buildSliderRow(
+                      label: 'ความไม่เสถียร (Instability - สีเหลือง)',
                       value: i,
-                      color: const Color(0xFFD97706),
-                      descriptions: const ['0: เสถียร', '1: ไม่เสถียรเมื่อร้อน', '2: ปฏิกิริยารุนแรง', '3: ระเบิดได้เมื่อกระแทก', '4: ระเบิดได้เอง'],
+                      activeColor: const Color(0xFFF59E0B),
+                      description: _getInstabilityDesc(i),
                       onChanged: (val) => setDlgState(() => i = val),
                     ),
+
                     const SizedBox(height: 8),
-                    // Special (White)
+                    // Special Hazard (Dropdown)
                     Row(
                       children: [
-                        const Text('สัญลักษณ์พิเศษ (Special - สีขาว):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                        const SizedBox(width: 10),
+                        const SizedBox(
+                          width: 150,
+                          child: Text('อันตรายพิเศษ (Special):', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                        ),
                         Expanded(
-                          child: DropdownButton<String>(
-                            value: ['W', 'OX', 'SA', 'COR', 'BIO', 'RAD', ''].contains(s) ? s : '',
-                            isExpanded: true,
-                            underline: Container(height: 1, color: Colors.grey.shade400),
+                          child: DropdownButtonFormField<String>(
+                            value: s.isEmpty ? '' : s,
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
                             items: const [
-                              DropdownMenuItem(value: '', child: Text('ไม่มี (None)')),
-                              DropdownMenuItem(value: 'W', child: Text('W̅ (ทำปฏิกิริยารุนแรงกับน้ำ)')),
-                              DropdownMenuItem(value: 'OX', child: Text('OX (สารออกซิไดเซอร์)')),
-                              DropdownMenuItem(value: 'SA', child: Text('SA (ก๊าซแทนที่ออกซิเจน)')),
-                              DropdownMenuItem(value: 'COR', child: Text('COR (สารกัดกร่อน)')),
-                              DropdownMenuItem(value: 'BIO', child: Text('BIO (สารอันตรายทางชีวภาพ)')),
-                              DropdownMenuItem(value: 'RAD', child: Text('RAD (สารกัมมันตรังสี)')),
+                              DropdownMenuItem(value: '', child: Text('ไม่มีระบุ (-)')),
+                              DropdownMenuItem(value: 'W', child: Text('W\u0336 - ทำปฏิกิริยารุนแรงกับน้ำ')),
+                              DropdownMenuItem(value: 'OX', child: Text('OX - สารออกซิไดเซอร์แรง')),
+                              DropdownMenuItem(value: 'SA', child: Text('SA - ก๊าซที่ทำให้ขาดอากาศหายใจอย่างง่าย')),
+                              DropdownMenuItem(value: 'COR', child: Text('COR - สารกัดกร่อน (Corrosive)')),
+                              DropdownMenuItem(value: 'BIO', child: Text('BIO - อันตรายทางชีวภาพ (Biohazard)')),
+                              DropdownMenuItem(value: 'RAD', child: Text('RAD - สารกัมมันตรังสี (Radiation)')),
                             ],
                             onChanged: (val) => setDlgState(() => s = val ?? ''),
                           ),
@@ -121,7 +155,7 @@ class NfpaDiamondWidget extends StatelessWidget {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('ยกเลิก'),
+                  child: const Text('ยกเลิก', style: TextStyle(color: Colors.grey)),
                 ),
                 ElevatedButton(
                   onPressed: () {
@@ -130,7 +164,12 @@ class NfpaDiamondWidget extends StatelessWidget {
                     }
                     Navigator.pop(ctx);
                   },
-                  child: const Text('บันทึกค่า'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1E3A8A),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  child: const Text('บันทึกระดับ NFPA'),
                 ),
               ],
             );
@@ -140,63 +179,120 @@ class NfpaDiamondWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildSlider({
-    required String title,
+  Widget _buildSliderRow({
+    required String label,
     required int value,
-    required Color color,
-    required List<String> descriptions,
+    required Color activeColor,
+    required String description,
     required ValueChanged<int> onChanged,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
-        Row(
-          children: [
-            Expanded(
-              child: Slider(
-                value: value.toDouble(),
-                min: 0,
-                max: 4,
-                divisions: 4,
-                activeColor: color,
-                onChanged: (v) => onChanged(v.round()),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(color: activeColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
+                child: Text('ระดับ $value', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: activeColor)),
               ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: activeColor,
+              thumbColor: activeColor,
+              inactiveTrackColor: Colors.grey.shade200,
+              trackHeight: 4,
             ),
-            SizedBox(
-              width: 140,
-              child: Text(
-                descriptions[value.clamp(0, 4)],
-                style: const TextStyle(fontSize: 11, color: Color(0xFF475569)),
-              ),
+            child: Slider(
+              value: value.toDouble(),
+              min: 0,
+              max: 4,
+              divisions: 4,
+              onChanged: (val) => onChanged(val.toInt()),
             ),
-          ],
-        ),
-      ],
+          ),
+          Text(description, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+        ],
+      ),
     );
+  }
+
+  String _getHealthDesc(int val) {
+    switch (val) {
+      case 4:
+        return 'ระดับ 4: อันตรายถึงชีวิต (Fatal) สัมผัสเพียงเล็กน้อยทำให้เสียชีวิตได้';
+      case 3:
+        return 'ระดับ 3: อันตรายร้ายแรงมาก อาจทำให้เกิดความเสียหายถาวรหรือเรื้อรัง';
+      case 2:
+        return 'ระดับ 2: อันตรายปานกลาง อาจทำให้ไร้ความสามารถชั่วคราว';
+      case 1:
+        return 'ระดับ 1: อันตรายเล็กน้อย อาจทำให้ระคายเคืองแต่ไม่มีผลถาวร';
+      default:
+        return 'ระดับ 0: ปลอดภัย ไม่เป็นอันตรายต่อสุขภาพแม้ในสภาวะไฟไหม้';
+    }
+  }
+
+  String _getFlammabilityDesc(int val) {
+    switch (val) {
+      case 4:
+        return 'ระดับ 4: ไวไฟสูงยิ่งยวด จุดวาบไฟต่ำกว่า 23°C และจุดเดือดต่ำกว่า 38°C';
+      case 3:
+        return 'ระดับ 3: ไวไฟ ติดไฟได้ง่ายในอุณหภูมิปกติ จุดวาบไฟต่ำกว่า 38°C';
+      case 2:
+        return 'ระดับ 2: ต้องได้รับความร้อนปานกลางจึงติดไฟ จุดวาบไฟ 38°C - 93°C';
+      case 1:
+        return 'ระดับ 1: ต้องได้รับความร้อนสูงมากจึงติดไฟ จุดวาบไฟสูงกว่า 93°C';
+      default:
+        return 'ระดับ 0: ไม่ติดไฟ ทนความร้อนสูง';
+    }
+  }
+
+  String _getInstabilityDesc(int val) {
+    switch (val) {
+      case 4:
+        return 'ระดับ 4: ระเบิดได้เองในอุณหภูมิและความดันปกติ';
+      case 3:
+        return 'ระดับ 3: ระเบิดได้เมื่อได้รับความร้อนสูงหรือแรงกระแทกรุนแรง';
+      case 2:
+        return 'ระดับ 2: เกิดปฏิกิริยารุนแรงเมื่อสัมผัสน้ำหรือความร้อนสูง';
+      case 1:
+        return 'ระดับ 1: ไม่เสถียรเมื่อได้รับความร้อนสูง';
+      default:
+        return 'ระดับ 0: เสถียร คงที่ แม้ในสภาวะไฟไหม้';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final diamond = CustomPaint(
-      size: Size(size, size),
-      painter: _NfpaDiamondPainter(
-        health: health,
-        flammability: flammability,
-        instability: instability,
-        special: special ?? '',
+    final diamond = SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(
+        size: Size(size, size),
+        painter: _NfpaDiamondPainter(
+          health: health,
+          flammability: flammability,
+          instability: instability,
+          special: special ?? '',
+        ),
       ),
     );
 
-    if (isInteractive || editable) {
+    if (editable) {
       return InkWell(
         onTap: () => _showEditDialog(context),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(4),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: Column(

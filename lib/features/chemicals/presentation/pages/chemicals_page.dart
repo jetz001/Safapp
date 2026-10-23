@@ -17,6 +17,7 @@ import '../widgets/sds_sor1_editor_dialog.dart';
 import '../widgets/sds_sor3_measurement_dialog.dart';
 import '../../services/chemical_sor1_pdf_service.dart';
 import '../../services/chemical_sor3_pdf_service.dart';
+import '../../services/chemical_signboard_pdf_service.dart';
 
 /// Main screen for the Chemical & SDS Management module featuring 4 statutory tabs:
 /// - Tab 1: ทะเบียนสารเคมี & ติดตามสถานะ SDS (Chemical Register & SDS Tracking)
@@ -91,6 +92,112 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                 newLabelPath: newLabel,
               );
         },
+      ),
+    );
+  }
+
+  Future<void> _showPrintSignboardDialog(ChemicalInventoryItem item) async {
+    final repo = ref.read(chemicalRepoProvider);
+    ChemicalSdsSor1Model? sds;
+    if (item.id != null) {
+      sds = await repo.getSdsSor1ByInventoryId(item.id!);
+    }
+    sds ??= await repo.getSdsSor1ByCas(item.casNumber);
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F766E).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.print_rounded, color: Color(0xFF0F766E), size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('พิมพ์ป้ายชี้บ่งสารเคมีและจุดจัดเก็บ', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  Text(item.tradeName, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 440,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade300),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.location_on_rounded, color: Color(0xFFB45309), size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('จุดจัดเก็บ / ที่อยู่สารเคมี:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFB45309))),
+                          Text(item.storageLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF1E293B))),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('เลือกรูปแบบป้ายที่ต้องการพิมพ์:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 8),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade300)),
+                leading: const Icon(Icons.crop_landscape_rounded, color: Color(0xFF1E3A8A), size: 32),
+                title: const Text('แบบแนวนอน (A4 Landscape)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                subtitle: const Text('สำหรับติดผนัง, ป้ายแขวนทางเข้าคลัง, ตู้เก็บสารเคมี, หรือป้ายหัวแถวชั้นวาง', style: TextStyle(fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ChemicalSignboardPdfService.printOrShare(context, item, sdsModel: sds, isLandscape: true);
+                },
+              ),
+              const SizedBox(height: 10),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10), side: BorderSide(color: Colors.grey.shade300)),
+                leading: const Icon(Icons.crop_portrait_rounded, color: Color(0xFF0F766E), size: 32),
+                title: const Text('แบบแนวตั้ง (A4 / A5 Portrait)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                subtitle: const Text('สำหรับพิมพ์เป็นสติกเกอร์ฉลากติดภาชนะบรรจุ, ถัง 200 ลิตร, หรือถัง IBC Totes', style: TextStyle(fontSize: 11)),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  ChemicalSignboardPdfService.printOrShare(context, item, sdsModel: sds, isLandscape: false);
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('ปิด', style: TextStyle(color: Colors.grey)),
+          ),
+        ],
       ),
     );
   }
@@ -775,6 +882,8 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       subtitle: 'จัดทำเมื่อ: ${item.sdsIssueDate} (รอบทบทวน ${item.sdsExpiryYears} ปี)',
                       casNumber: item.casNumber,
                     );
+                  } else if (val == 'signboard') {
+                    _showPrintSignboardDialog(item);
                   } else if (val == 'label' && item.labelImagePath != null) {
                     _viewDocument(
                       item.labelImagePath!,
@@ -795,6 +904,10 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       value: 'label',
                       child: Row(children: [Icon(Icons.image_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Text('ดูรูปฉลากสารเคมี')]),
                     ),
+                  const PopupMenuItem(
+                    value: 'signboard',
+                    child: Row(children: [Icon(Icons.print_rounded, size: 18, color: Color(0xFF0F766E)), SizedBox(width: 8), Text('พิมพ์ป้ายชี้บ่งจุดจัดเก็บ')]),
+                  ),
                   const PopupMenuItem(
                     value: 'edit',
                     child: Row(children: [Icon(Icons.edit_rounded, size: 18, color: Colors.indigo), SizedBox(width: 8), Text('แก้ไขข้อมูล')]),
@@ -891,6 +1004,18 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
                 ),
+              const SizedBox(width: 8),
+              ElevatedButton.icon(
+                onPressed: () => _showPrintSignboardDialog(item),
+                icon: const Icon(Icons.print_rounded, size: 16),
+                label: const Text('พิมพ์ป้ายชี้บ่ง'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0F766E),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
             ],
           ),
         ],

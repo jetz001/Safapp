@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'ghs_diamond_widget.dart';
+
+export 'ghs_diamond_widget.dart';
 
 /// Metadata for the 9 standard UN / Thai GHS Pictograms.
 class GhsPictogramInfo {
@@ -63,7 +66,7 @@ class GhsPictograms {
     ),
     GhsPictogramInfo(
       code: 'GHS06',
-      nameTh: 'ความเป็นพิษเฉียบพลัน',
+      nameTh: 'ความเป็นพิษเฉียบพลันร้ายแรง',
       nameEn: 'Skull and Crossbones',
       icon: Icons.dangerous_rounded,
       primaryColor: Color(0xFF991B1B),
@@ -111,11 +114,11 @@ class GhsPictogramSelector extends StatelessWidget {
   final bool readOnly;
 
   const GhsPictogramSelector({
-    Key? key,
+    super.key,
     required this.selectedCodes,
     required this.onChanged,
     this.readOnly = false,
-  }) : super(key: key);
+  });
 
   void _toggle(String code) {
     if (readOnly) return;
@@ -135,10 +138,10 @@ class GhsPictogramSelector extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Icon(Icons.warning_amber_rounded, size: 18, color: Color(0xFF1E293B)),
+            const Icon(Icons.warning_amber_rounded, size: 18, color: Color(0xFFDC2626)),
             const SizedBox(width: 8),
             const Text(
-              'รูปสัญลักษณ์แสดงความเป็นอันตรายตามระบบ GHS (9 Pictograms)',
+              'รูปสัญลักษณ์แสดงความเป็นอันตรายตามระบบ GHS (UN Standard GHS Diamonds)',
               style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Color(0xFF1E293B)),
             ),
             const Spacer(),
@@ -171,16 +174,16 @@ class GhsPictogramSelector extends StatelessWidget {
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
-                    color: isSelected ? item.primaryColor.withValues(alpha: 0.12) : Colors.grey.shade50,
+                    color: isSelected ? const Color(0xFFFEF2F2) : Colors.white,
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: isSelected ? item.primaryColor : Colors.grey.shade300,
+                      color: isSelected ? const Color(0xFFDC2626) : Colors.grey.shade300,
                       width: isSelected ? 2 : 1,
                     ),
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: item.primaryColor.withValues(alpha: 0.2),
+                              color: const Color(0xFFDC2626).withValues(alpha: 0.18),
                               blurRadius: 4,
                               offset: const Offset(0, 2),
                             )
@@ -190,23 +193,11 @@ class GhsPictogramSelector extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: 28,
-                        height: 28,
-                        decoration: BoxDecoration(
-                          color: isSelected ? item.primaryColor : Colors.white,
-                          shape: BoxShape.rectangle,
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                            color: isSelected ? item.primaryColor : Colors.grey.shade400,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: Icon(
-                          item.icon,
-                          size: 18,
-                          color: isSelected ? Colors.white : item.primaryColor,
-                        ),
+                      // Official UN GHS Diamond (Rotated 45°, Red border, Jet-black silhouette)
+                      GhsDiamondWidget(
+                        code: item.code,
+                        size: 32,
+                        showTooltip: false,
                       ),
                       const SizedBox(width: 8),
                       Column(
@@ -217,21 +208,22 @@ class GhsPictogramSelector extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                              color: isSelected ? item.primaryColor : const Color(0xFF334155),
+                              color: isSelected ? const Color(0xFFDC2626) : const Color(0xFF334155),
                             ),
                           ),
                           Text(
                             item.code,
                             style: TextStyle(
                               fontSize: 10,
-                              color: isSelected ? item.primaryColor.withValues(alpha: 0.8) : Colors.grey.shade500,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected ? const Color(0xFFDC2626) : Colors.grey.shade500,
                             ),
                           ),
                         ],
                       ),
                       if (isSelected) ...[
                         const SizedBox(width: 6),
-                        Icon(Icons.check_circle_rounded, size: 16, color: item.primaryColor),
+                        const Icon(Icons.check_circle_rounded, size: 16, color: Color(0xFFDC2626)),
                       ]
                     ],
                   ),
@@ -251,10 +243,10 @@ class GhsPictogramsDisplayRow extends StatelessWidget {
   final double iconSize;
 
   const GhsPictogramsDisplayRow({
-    Key? key,
+    super.key,
     required this.codes,
-    this.iconSize = 22,
-  }) : super(key: key);
+    this.iconSize = 24,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -263,29 +255,13 @@ class GhsPictogramsDisplayRow extends StatelessWidget {
     }
 
     return Wrap(
-      spacing: 4,
-      runSpacing: 4,
+      spacing: 6,
+      runSpacing: 6,
       children: codes.map((c) {
-        final info = GhsPictograms.getByCode(c);
-        if (info == null) return const SizedBox.shrink();
-        return Tooltip(
-          message: '${info.code}: ${info.nameTh} (${info.nameEn})',
-          child: Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: const Color(0xFFDC2626), width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 2,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Icon(info.icon, size: iconSize, color: const Color(0xFFDC2626)),
-          ),
+        return GhsDiamondWidget(
+          code: c,
+          size: iconSize,
+          showTooltip: true,
         );
       }).toList(),
     );
