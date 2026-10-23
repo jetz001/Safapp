@@ -2265,11 +2265,11 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (law.externalUrl.isNotEmpty)
+              if (law.externalUrl != null && law.externalUrl!.isNotEmpty)
                 OutlinedButton.icon(
                   onPressed: () {
                     if (Platform.isWindows) {
-                      Process.run('cmd', ['/c', 'start', '""', law.externalUrl], runInShell: true);
+                      Process.run('cmd', ['/c', 'start', '""', law.externalUrl!], runInShell: true);
                     }
                   },
                   icon: const Icon(Icons.public_rounded, size: 16),
