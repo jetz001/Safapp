@@ -1,3 +1,5 @@
+import 'package:path/path.dart' as p;
+import '../../../environment/presentation/widgets/attachment_preview_dialog.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -368,6 +370,39 @@ class _GazetteDocumentPickerModal extends StatelessWidget {
                 children: [
                   _buildDocCard(
                     context,
+                    title: 'แฟ้มเอกสารการตรวจวัดสภาพแวดล้อมและสารเคมีทั้งหมด (สแกนต้นฉบับจริง ๓๒ ฉบับ)',
+                    subtitle: 'รายงานผลการตรวจวัดสารเคมีอันตราย สอ.๓ และสภาพแวดล้อมพร้อมตราประทับและลายมือชื่อจริง (Scan2569-05-19_101623.pdf)',
+                    badge: 'สแกนต้นฉบับจริง ๒๕๖๙',
+                    badgeColor: const Color(0xFF9333EA),
+                    icon: Icons.folder_shared_rounded,
+                    assetPath: '',
+                    onCustomTap: () {
+                      Navigator.pop(context);
+                      final dir = Directory(r'D:\DEV\Safapp\bin\สวล69\2026');
+                      List<String> files = [];
+                      if (dir.existsSync()) {
+                        files = dir.listSync()
+                            .whereType<File>()
+                            .where((f) => f.path.toLowerCase().endsWith('.pdf') || f.path.toLowerCase().endsWith('.jpg') || f.path.toLowerCase().endsWith('.png'))
+                            .map((f) => f.path)
+                            .toList();
+                        files.sort((a, b) => p.basename(a).compareTo(p.basename(b)));
+                      }
+                      final initialIndex = files.indexWhere((f) => f.contains('101623'));
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => AttachmentPreviewDialog(
+                          title: 'แฟ้มเอกสารการตรวจวัดสภาพแวดล้อมทั้งหมด (ปี ๒๕๖๙)',
+                          filePaths: files,
+                          initialIndex: initialIndex != -1 ? initialIndex : 0,
+                          category: 'เอกสารทั้งหมดในแฟ้ม',
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildDocCard(
+                    context,
                     title: 'แบบ สอ.๓: รายงานผลการตรวจวัดในบรรยากาศ (ฉบับที่ ๒ พ.ศ. ๒๕๖๕)',
                     subtitle: 'ประกาศกรมสวัสดิการและคุ้มครองแรงงาน • ตาราง ๑๒ คอลัมน์ แนวนอน พร้อมหมายเหตุ ๖ ข้อท้ายประกาศ',
                     badge: 'แบบ สอ.๓ ๒๕๖๕',
@@ -416,9 +451,14 @@ class _GazetteDocumentPickerModal extends StatelessWidget {
     required IconData icon,
     required String assetPath,
     String? externalUrl,
+    VoidCallback? onCustomTap,
   }) {
     return InkWell(
       onTap: () {
+        if (onCustomTap != null) {
+          onCustomTap();
+          return;
+        }
         Navigator.pop(context);
         ChemicalGazetteViewerDialog.show(
           context,
@@ -483,6 +523,10 @@ class _GazetteDocumentPickerModal extends StatelessWidget {
             const SizedBox(width: 12),
             ElevatedButton.icon(
               onPressed: () {
+                if (onCustomTap != null) {
+                  onCustomTap();
+                  return;
+                }
                 Navigator.pop(context);
                 ChemicalGazetteViewerDialog.show(
                   context,

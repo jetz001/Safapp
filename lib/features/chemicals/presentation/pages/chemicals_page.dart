@@ -16,6 +16,8 @@ import '../widgets/nfpa_diamond_widget.dart';
 import '../widgets/sds_sor1_editor_dialog.dart';
 import '../widgets/sds_sor3_measurement_dialog.dart';
 import '../widgets/chemical_gazette_viewer_dialog.dart';
+import 'package:path/path.dart' as p;
+import '../../../environment/presentation/widgets/attachment_preview_dialog.dart';
 import '../../services/chemical_sor1_pdf_service.dart';
 import '../../services/chemical_sor3_pdf_service.dart';
 import '../../services/chemical_signboard_pdf_service.dart';
@@ -1507,6 +1509,72 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
     );
   }
 
+
+  List<String> _getEnvironmentalAttachmentFiles() {
+    final List<String> files = [];
+    final dir = Directory(r'D:\DEV\Safapp\bin\สวล69\2026');
+    if (dir.existsSync()) {
+      try {
+        final entries = dir
+            .listSync()
+            .whereType<File>()
+            .where((f) =>
+                f.path.toLowerCase().endsWith('.pdf') ||
+                f.path.toLowerCase().endsWith('.jpg') ||
+                f.path.toLowerCase().endsWith('.png'))
+            .toList();
+        entries.sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+        for (final f in entries) {
+          files.add(f.path);
+        }
+      } catch (e) {
+        debugPrint('Error scanning attachment files: $e');
+      }
+    }
+    return files;
+  }
+
+  void _openScannedOriginalForSor3([ChemicalMeasurementSor3Model? item]) {
+    final allFiles = _getEnvironmentalAttachmentFiles();
+    int initialIndex = 0;
+
+    if (item?.certificatePdfPath != null && item!.certificatePdfPath!.isNotEmpty) {
+      final certName = p.basename(item.certificatePdfPath!);
+      final idx = allFiles.indexWhere((path) => p.basename(path).toLowerCase() == certName.toLowerCase());
+      if (idx != -1) {
+        initialIndex = idx;
+      } else if (File(item.certificatePdfPath!).existsSync()) {
+        allFiles.insert(0, item.certificatePdfPath!);
+        initialIndex = 0;
+      }
+    } else {
+      final idx = allFiles.indexWhere((path) => path.contains('101623'));
+      if (idx != -1) {
+        initialIndex = idx;
+      }
+    }
+
+    if (allFiles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('ไม่พบไฟล์เอกสารต้นฉบับสแกนในโฟลเดอร์ D:\\DEV\\Safapp\\bin\\สวล69\\2026'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AttachmentPreviewDialog(
+        title: 'แฟ้มเอกสารการตรวจวัดสภาพแวดล้อมทั้งหมด (ปี ๒๕๖๙)',
+        filePaths: allFiles,
+        initialIndex: initialIndex,
+        category: 'เอกสารทั้งหมดในแฟ้ม',
+      ),
+    );
+  }
+
   // ==========================================================================
   // TAB 3: แบบ สอ.๓ ๒๕๖๕ & TLV Evaluator
   // ==========================================================================
@@ -1560,16 +1628,9 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       OutlinedButton.icon(
-                        onPressed: () => ChemicalGazetteViewerDialog.show(
-                          context,
-                          assetPath: 'assets/laws/dlpw_form_sor3_measurement_2565.pdf',
-                          title: 'แบบฟอร์ม สอ.๓ ต้นฉบับราชกิจจานุเบกษา (พ.ศ. ๒๕๖๕)',
-                          subtitle: 'ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง กำหนดแบบรายงานผลการตรวจวัดและวิเคราะห์ฯ (ฉบับที่ ๒)',
-                          formCode: 'สอ.๓ ๒๕๖๕',
-                          externalUrl: 'https://ratchakitcha.soc.go.th/documents/2205781.pdf',
-                        ),
-                        icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 16),
-                        label: Text('ดูต้นฉบับราชการ (สอ.๓)', style: GoogleFonts.prompt(fontSize: 12, fontWeight: FontWeight.w600)),
+                        onPressed: () => _openScannedOriginalForSor3(),
+                        icon: const Icon(Icons.folder_copy_rounded, color: Colors.white, size: 16),
+                        label: Text('แฟ้มต้นฉบับสแกน (๓๒ ฉบับ)', style: GoogleFonts.prompt(fontSize: 12, fontWeight: FontWeight.w600)),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.white,
                           side: const BorderSide(color: Colors.white70),
@@ -1981,9 +2042,15 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       formCode: 'สอ.๓ ๒๕๖๕',
                       externalUrl: 'https://ratchakitcha.soc.go.th/documents/2205781.pdf',
                     );
+                  } else if (val == 'scanned_original') {
+                    _openScannedOriginalForSor3(item);
                   }
                 },
                 itemBuilder: (ctx) => const [
+                  PopupMenuItem(
+                    value: 'scanned_original',
+                    child: Row(children: [Icon(Icons.document_scanner_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Text('ดูต้นฉบับสแกน (ใบรับรอง/ผลตรวจจริง)')]),
+                  ),
                   PopupMenuItem(
                     value: 'pdf',
                     child: Row(children: [Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.blue), SizedBox(width: 8), Text('ส่งออก PDF (สอ.๓)')]),
@@ -2027,6 +2094,17 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
+              FilledButton.tonalIcon(
+                onPressed: () => _openScannedOriginalForSor3(item),
+                icon: const Icon(Icons.document_scanner_rounded, size: 16, color: Color(0xFF0D9488)),
+                label: const Text('ดูต้นฉบับสแกน', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF0D9488))),
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFFCCFBF1),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+              const SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () => ChemicalSor3PdfService.printOrShare(context, item),
                 icon: const Icon(Icons.picture_as_pdf_rounded, size: 16),
