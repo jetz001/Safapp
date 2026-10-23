@@ -935,9 +935,13 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       children: [
                         const Icon(Icons.location_on_rounded, size: 16, color: Color(0xFF0284C7)),
                         const SizedBox(width: 4),
-                        Text(
-                          item.storageLocation,
-                          style: GoogleFonts.prompt(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                        Expanded(
+                          child: Text(
+                            item.storageLocation,
+                            style: GoogleFonts.prompt(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFF1E293B)),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       ],
                     ),
@@ -945,10 +949,25 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                     Row(
                       children: [
                         Text('ปริมาณ: ', style: GoogleFonts.prompt(fontSize: 12, color: Colors.grey.shade600)),
-                        Text('${item.quantity} ${item.unit}', style: GoogleFonts.prompt(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A))),
-                        if (item.maxCapacity != null && item.maxCapacity! > 0) ...[
-                          Text(' / ความจุ ${item.maxCapacity} ${item.unit}', style: GoogleFonts.prompt(fontSize: 11, color: Colors.grey.shade500)),
-                        ]
+                        Expanded(
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: '${item.quantity} ${item.unit}',
+                                  style: GoogleFonts.prompt(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
+                                ),
+                                if (item.maxCapacity != null && item.maxCapacity! > 0)
+                                  TextSpan(
+                                    text: ' / ความจุ ${item.maxCapacity} ${item.unit}',
+                                    style: GoogleFonts.prompt(fontSize: 11, color: Colors.grey.shade500),
+                                  ),
+                              ],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
                       ],
                     ),
                   ],

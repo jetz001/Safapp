@@ -229,10 +229,6 @@ class ChemicalSignboardPdfService {
                     style: pw.TextStyle(color: PdfColors.blue900, fontSize: 13, fontWeight: pw.FontWeight.bold),
                   ),
                 ),
-                pw.Text(
-                  'ปริมาณ: ${item.quantity} ${item.unit} ${item.maxCapacity != null && item.maxCapacity! > 0 ? '(ความจุสูงสุด ${item.maxCapacity} ${item.unit})' : ''}',
-                  style: pw.TextStyle(color: PdfColors.grey900, fontSize: 9.5, fontWeight: pw.FontWeight.bold),
-                ),
               ],
             ),
           ),
@@ -498,11 +494,6 @@ class ChemicalSignboardPdfService {
                       child: pw.Text(item.storageLocation, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
                     ),
                   ],
-                ),
-                pw.SizedBox(height: 2),
-                pw.Text(
-                  'ปริมาณจัดเก็บ: ${item.quantity} ${item.unit} ${item.maxCapacity != null && item.maxCapacity! > 0 ? '| ความจุสูงสุด: ${item.maxCapacity} ${item.unit}' : ''}',
-                  style: const pw.TextStyle(fontSize: 8.5, color: PdfColors.grey800),
                 ),
               ],
             ),
