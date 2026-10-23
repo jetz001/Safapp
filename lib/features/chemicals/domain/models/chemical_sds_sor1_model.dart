@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
 
 /// Sub-model representing an individual chemical ingredient/component in Section 3 of SDS Form สอ.๑.
 class SdsIngredientItem {

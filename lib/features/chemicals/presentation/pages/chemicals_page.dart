@@ -15,6 +15,7 @@ import '../widgets/ghs_pictogram_selector.dart';
 import '../widgets/nfpa_diamond_widget.dart';
 import '../widgets/sds_sor1_editor_dialog.dart';
 import '../widgets/sds_sor3_measurement_dialog.dart';
+import '../widgets/chemical_gazette_viewer_dialog.dart';
 import '../../services/chemical_sor1_pdf_service.dart';
 import '../../services/chemical_sor3_pdf_service.dart';
 import '../../services/chemical_signboard_pdf_service.dart';
@@ -456,6 +457,22 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
           ),
         ],
       ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: OutlinedButton.icon(
+            onPressed: () => ChemicalGazetteViewerDialog.showSelectionMenu(context),
+            icon: const Icon(Icons.menu_book_rounded, size: 16),
+            label: Text('ดูต้นฉบับราชการ', style: GoogleFonts.prompt(fontSize: 12, fontWeight: FontWeight.w600)),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF1E3A8A),
+              side: const BorderSide(color: Color(0xFFCBD5E1)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+        ),
+      ],
       bottom: TabBar(
         controller: _tabController,
         labelColor: const Color(0xFF1E3A8A),
@@ -1126,16 +1143,40 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       ],
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _openAddSdsSor1Dialog,
-                    icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-                    label: const Text('จัดทำแบบ สอ.๑'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF1E3A8A),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => ChemicalGazetteViewerDialog.show(
+                          context,
+                          assetPath: 'assets/laws/dlpw_form_sor1_sds.pdf',
+                          title: 'แบบฟอร์ม สอ.๑ ต้นฉบับราชกิจจานุเบกษา (พ.ศ. ๒๕๕๖)',
+                          subtitle: 'ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง แบบบัญชีรายชื่อสารเคมีอันตรายและรายละเอียดข้อมูลความปลอดภัยฯ',
+                          formCode: 'สอ.๑ ๒๕๕๖',
+                          externalUrl: 'https://ratchakitcha.soc.go.th/documents/1991824.pdf',
+                        ),
+                        icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 16),
+                        label: Text('ดูต้นฉบับราชการ (สอ.๑)', style: GoogleFonts.prompt(fontSize: 12, fontWeight: FontWeight.w600)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white70),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _openAddSdsSor1Dialog,
+                        icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                        label: const Text('จัดทำแบบ สอ.๑'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF1E3A8A),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1318,12 +1359,25 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                     _confirmDeleteSdsSor1(item);
                   } else if (val == 'pdf') {
                     ChemicalSor1PdfService.printOrShare(context, item);
+                  } else if (val == 'original') {
+                    ChemicalGazetteViewerDialog.show(
+                      context,
+                      assetPath: 'assets/laws/dlpw_form_sor1_sds.pdf',
+                      title: 'แบบฟอร์ม สอ.๑ ต้นฉบับราชกิจจานุเบกษา',
+                      subtitle: 'ประกาศกรมสวัสดิการและคุ้มครองแรงงาน พ.ศ. ๒๕๕๖ (๑๖ หัวข้อ)',
+                      formCode: 'สอ.๑ ๒๕๕๖',
+                      externalUrl: 'https://ratchakitcha.soc.go.th/documents/1991824.pdf',
+                    );
                   }
                 },
                 itemBuilder: (ctx) => const [
                   PopupMenuItem(
                     value: 'pdf',
                     child: Row(children: [Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.blue), SizedBox(width: 8), Text('ส่งออก PDF (สอ.๑)')]),
+                  ),
+                  PopupMenuItem(
+                    value: 'original',
+                    child: Row(children: [Icon(Icons.menu_book_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Text('ดูแบบฟอร์มต้นฉบับราชการ')]),
                   ),
                   PopupMenuItem(
                     value: 'edit',
@@ -1459,7 +1513,6 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
   Widget _buildTab3SorOr3Measurement() {
     final sor3ListAsync = ref.watch(chemicalMeasurementSor3ListProvider);
     final kpiAsync = ref.watch(chemicalMeasurementKpiProvider);
-    final resultFilter = ref.watch(chemicalSor3ResultFilterProvider);
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -1503,16 +1556,40 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       ],
                     ),
                   ),
-                  ElevatedButton.icon(
-                    onPressed: _openAddMeasurementSor3Dialog,
-                    icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
-                    label: const Text('บันทึกรายงาน สอ.๓'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF065F46),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: () => ChemicalGazetteViewerDialog.show(
+                          context,
+                          assetPath: 'assets/laws/dlpw_form_sor3_measurement_2565.pdf',
+                          title: 'แบบฟอร์ม สอ.๓ ต้นฉบับราชกิจจานุเบกษา (พ.ศ. ๒๕๖๕)',
+                          subtitle: 'ประกาศกรมสวัสดิการและคุ้มครองแรงงาน เรื่อง กำหนดแบบรายงานผลการตรวจวัดและวิเคราะห์ฯ (ฉบับที่ ๒)',
+                          formCode: 'สอ.๓ ๒๕๖๕',
+                          externalUrl: 'https://ratchakitcha.soc.go.th/documents/2205781.pdf',
+                        ),
+                        icon: const Icon(Icons.menu_book_rounded, color: Colors.white, size: 16),
+                        label: Text('ดูต้นฉบับราชการ (สอ.๓)', style: GoogleFonts.prompt(fontSize: 12, fontWeight: FontWeight.w600)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          side: const BorderSide(color: Colors.white70),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      ElevatedButton.icon(
+                        onPressed: _openAddMeasurementSor3Dialog,
+                        icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                        label: const Text('บันทึกรายงาน สอ.๓'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: const Color(0xFF065F46),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -1895,12 +1972,25 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                     _confirmDeleteMeasurementSor3(item);
                   } else if (val == 'pdf') {
                     ChemicalSor3PdfService.printOrShare(context, item);
+                  } else if (val == 'original') {
+                    ChemicalGazetteViewerDialog.show(
+                      context,
+                      assetPath: 'assets/laws/dlpw_form_sor3_measurement_2565.pdf',
+                      title: 'แบบฟอร์ม สอ.๓ ต้นฉบับราชกิจจานุเบกษา',
+                      subtitle: 'ประกาศกรมสวัสดิการและคุ้มครองแรงงาน พ.ศ. ๒๕๖๕ (ฉบับที่ ๒)',
+                      formCode: 'สอ.๓ ๒๕๖๕',
+                      externalUrl: 'https://ratchakitcha.soc.go.th/documents/2205781.pdf',
+                    );
                   }
                 },
                 itemBuilder: (ctx) => const [
                   PopupMenuItem(
                     value: 'pdf',
                     child: Row(children: [Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.blue), SizedBox(width: 8), Text('ส่งออก PDF (สอ.๓)')]),
+                  ),
+                  PopupMenuItem(
+                    value: 'original',
+                    child: Row(children: [Icon(Icons.menu_book_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Text('ดูแบบฟอร์มต้นฉบับราชการ')]),
                   ),
                   PopupMenuItem(
                     value: 'edit',
@@ -2169,6 +2259,53 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
               ),
             ),
           ],
+          const SizedBox(height: 14),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              if (law.externalUrl.isNotEmpty)
+                OutlinedButton.icon(
+                  onPressed: () {
+                    if (Platform.isWindows) {
+                      Process.run('cmd', ['/c', 'start', '""', law.externalUrl], runInShell: true);
+                    }
+                  },
+                  icon: const Icon(Icons.public_rounded, size: 16),
+                  label: Text('เว็บไซต์ราชกิจจานุเบกษา', style: GoogleFonts.prompt(fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF4338CA),
+                    side: const BorderSide(color: Color(0xFFC7D2FE)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  ),
+                ),
+              if (law.pdfAssetPath != null) ...[
+                const SizedBox(width: 10),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ChemicalGazetteViewerDialog.show(
+                      context,
+                      assetPath: law.pdfAssetPath!,
+                      title: law.titleTh,
+                      subtitle: '${law.issuingAuthority} • ${law.gazetteCitation}',
+                      formCode: law.categoryLabelTh,
+                      externalUrl: law.externalUrl,
+                    );
+                  },
+                  icon: const Icon(Icons.visibility_rounded, size: 16),
+                  label: Text('เปิดดูเอกสารต้นฉบับ (PDF)', style: GoogleFonts.prompt(fontSize: 12, fontWeight: FontWeight.w600)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: law.categoryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
     );
