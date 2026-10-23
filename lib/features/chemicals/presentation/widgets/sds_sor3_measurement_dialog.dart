@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:path/path.dart' as p;
+import '../../../environment/presentation/widgets/attachment_preview_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/datasources/chemical_324_tlv_data.dart';
@@ -103,6 +107,7 @@ class _SdsSor3MeasurementDialogState extends State<SdsSor3MeasurementDialog> {
     );
 
     _samplingType = it?.samplingType ?? 'TWA_8HR';
+    _selectedCertFilePath = it?.certificatePdfPath;
     _unit = it?.unit ?? 'ppm';
     _samplingPoints = List.from(it?.samplingPoints ?? []);
 
@@ -607,6 +612,12 @@ class _SdsSor3MeasurementDialogState extends State<SdsSor3MeasurementDialog> {
                           border: OutlineInputBorder(),
                         ),
                       ),
+                      const SizedBox(height: 20),
+
+                      // Section 5: Scanned Original Attachment
+                      _buildSectionTitle('๕. แนบไฟล์เอกสารต้นฉบับสแกนและใบรับรองผลตรวจวัด (Certificate PDF)', Icons.attach_file_rounded),
+                      const SizedBox(height: 12),
+                      _buildCertificateAttachmentPicker(),
                     ],
                   ),
                 ),
@@ -666,6 +677,206 @@ class _SdsSor3MeasurementDialogState extends State<SdsSor3MeasurementDialog> {
           style: GoogleFonts.prompt(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFF0F172A)),
         ),
       ],
+    );
+  }
+
+
+  Future<void> _pickCertificateFile() async {
+    try {
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+      );
+      if (result != null && result.files.isNotEmpty && result.files.single.path != null) {
+        setState(() {
+          _selectedCertFilePath = result.files.single.path;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error picking certificate file: $e');
+    }
+  }
+
+  void _pickFromKnownFolder() {
+    final dir = Directory(r'D:\DEV\Safapp\bin\สวล69\2026');
+    if (!dir.existsSync()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ไม่พบโฟลเดอร์แฟ้มเอกสาร D:\\DEV\\Safapp\\bin\\สวล69\\2026')),
+      );
+      return;
+    }
+
+    final files = dir
+        .listSync()
+        .whereType<File>()
+        .where((f) =>
+            f.path.toLowerCase().endsWith('.pdf') ||
+            f.path.toLowerCase().endsWith('.jpg') ||
+            f.path.toLowerCase().endsWith('.png'))
+        .toList();
+    files.sort((a, b) => p.basename(a.path).compareTo(p.basename(b.path)));
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.folder_shared_rounded, color: Color(0xFF065F46)),
+            SizedBox(width: 8),
+            Text('เลือกไฟล์ต้นฉบับจากแฟ้ม ๒๕๖๙', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: SizedBox(
+          width: 500,
+          height: 400,
+          child: ListView.separated(
+            itemCount: files.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (context, i) {
+              final f = files[i];
+              final name = p.basename(f.path);
+              final isTarget = name.contains('101623') || name.contains('สอ');
+              return ListTile(
+                leading: Icon(
+                  Icons.picture_as_pdf_rounded,
+                  color: isTarget ? const Color(0xFF065F46) : Colors.red.shade400,
+                ),
+                title: Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: isTarget ? FontWeight.bold : FontWeight.normal,
+                    color: isTarget ? const Color(0xFF065F46) : Colors.black87,
+                  ),
+                ),
+                subtitle: Text(
+                  isTarget ? 'รายงานผล สอ.๓ ที่มีตราประทับจริง' : '${(f.lengthSync() / 1024).toStringAsFixed(1)} KB',
+                  style: const TextStyle(fontSize: 11),
+                ),
+                onTap: () {
+                  setState(() => _selectedCertFilePath = f.path);
+                  Navigator.pop(ctx);
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('ยกเลิก'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCertificateAttachmentPicker() {
+    final hasFile = _selectedCertFilePath != null && _selectedCertFilePath!.isNotEmpty;
+    final file = hasFile ? File(_selectedCertFilePath!) : null;
+    final fileExists = file?.existsSync() ?? false;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: _pickCertificateFile,
+                icon: const Icon(Icons.upload_file_rounded, size: 18),
+                label: const Text('เลือกไฟล์จากเครื่อง (PDF / รูปภาพ)'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF065F46),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                ),
+              ),
+              const SizedBox(width: 10),
+              OutlinedButton.icon(
+                onPressed: _pickFromKnownFolder,
+                icon: const Icon(Icons.folder_shared_rounded, size: 18),
+                label: const Text('เลือกจากแฟ้มเอกสาร ๒๕๖๙ (Scan2569...)'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF065F46),
+                  side: const BorderSide(color: Color(0xFF065F46)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                ),
+              ),
+            ],
+          ),
+          if (hasFile) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.5)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFDC2626), size: 24),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          p.basename(_selectedCertFilePath!),
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(
+                          _selectedCertFilePath!,
+                          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (fileExists)
+                    IconButton(
+                      icon: const Icon(Icons.visibility_rounded, color: Color(0xFF065F46)),
+                      tooltip: 'ดูพรีวิวเอกสาร',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AttachmentPreviewDialog(
+                            title: 'เอกสารต้นฉบับสแกน สอ.๓',
+                            filePath: _selectedCertFilePath,
+                            category: 'เอกสารต้นฉบับ',
+                          ),
+                        );
+                      },
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+                    tooltip: 'ลบการแนบไฟล์',
+                    onPressed: () => setState(() => _selectedCertFilePath = null),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            const SizedBox(height: 8),
+            Text(
+              'ยังไม่ได้แนบเอกสาร (สามารถแนบไฟล์รายงานผลตรวจวัด สอ.๓ ฉบับจริงที่มีตราประทับนิติบุคคล)',
+              style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
