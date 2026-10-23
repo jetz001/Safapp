@@ -42,6 +42,11 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
   final TextEditingController _measuredValController = TextEditingController(text: '10.0');
   String _selectedSamplingType = 'TWA_8HR';
   String _selectedUnit = 'ppm';
+
+  static String _normalizeUnit(String? u) {
+    if (u == 'mg/m3' || u == 'mg/m³') return 'mg/m³';
+    return 'ppm';
+  }
   TlvEvaluationResult? _tlvQuickResult;
 
   @override
@@ -1827,7 +1832,7 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                       Expanded(
                         flex: 2,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedUnit,
+                          value: _normalizeUnit(_selectedUnit),
                           isExpanded: true,
                           decoration: InputDecoration(
                             labelText: 'หน่วยวัด',
@@ -1839,10 +1844,10 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                           ),
                           items: const [
                             DropdownMenuItem(value: 'ppm', child: Text('ppm (ส่วนในล้านส่วน)', overflow: TextOverflow.ellipsis)),
-                            DropdownMenuItem(value: 'mg/m3', child: Text('mg/m³ (มก./ลบ.ม.)', overflow: TextOverflow.ellipsis)),
+                            DropdownMenuItem(value: 'mg/m³', child: Text('mg/m³ (มก./ลบ.ม.)', overflow: TextOverflow.ellipsis)),
                           ],
                           onChanged: (u) {
-                            setState(() => _selectedUnit = u ?? 'ppm');
+                            setState(() => _selectedUnit = _normalizeUnit(u));
                             _runTlvEvaluation();
                           },
                         ),
@@ -2049,23 +2054,23 @@ class _ChemicalsPageState extends ConsumerState<ChemicalsPage> with SingleTicker
                 itemBuilder: (ctx) => const [
                   PopupMenuItem(
                     value: 'scanned_original',
-                    child: Row(children: [Icon(Icons.document_scanner_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Text('ดูต้นฉบับสแกน (ใบรับรอง/ผลตรวจจริง)')]),
+                    child: Row(children: [Icon(Icons.document_scanner_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Expanded(child: Text('ดูต้นฉบับสแกน (ผลตรวจจริง)', overflow: TextOverflow.ellipsis))]),
                   ),
                   PopupMenuItem(
                     value: 'pdf',
-                    child: Row(children: [Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.blue), SizedBox(width: 8), Text('ส่งออก PDF (สอ.๓)')]),
+                    child: Row(children: [Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.blue), SizedBox(width: 8), Expanded(child: Text('ส่งออก PDF (สอ.๓)', overflow: TextOverflow.ellipsis))]),
                   ),
                   PopupMenuItem(
                     value: 'original',
-                    child: Row(children: [Icon(Icons.menu_book_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Text('ดูแบบฟอร์มต้นฉบับราชการ')]),
+                    child: Row(children: [Icon(Icons.menu_book_rounded, size: 18, color: Colors.teal), SizedBox(width: 8), Expanded(child: Text('ดูแบบฟอร์มต้นฉบับราชการ', overflow: TextOverflow.ellipsis))]),
                   ),
                   PopupMenuItem(
                     value: 'edit',
-                    child: Row(children: [Icon(Icons.edit_rounded, size: 18, color: Colors.indigo), SizedBox(width: 8), Text('แก้ไขข้อมูล')]),
+                    child: Row(children: [Icon(Icons.edit_rounded, size: 18, color: Colors.indigo), SizedBox(width: 8), Expanded(child: Text('แก้ไขข้อมูล', overflow: TextOverflow.ellipsis))]),
                   ),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Row(children: [Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red), SizedBox(width: 8), Text('ลบรายงาน')]),
+                    child: Row(children: [Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red), SizedBox(width: 8), Expanded(child: Text('ลบรายงาน', overflow: TextOverflow.ellipsis))]),
                   ),
                 ],
               ),

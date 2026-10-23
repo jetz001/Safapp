@@ -54,6 +54,11 @@ class _SdsSor3MeasurementDialogState extends State<SdsSor3MeasurementDialog> {
 
   String _samplingType = 'TWA_8HR';
   String _unit = 'ppm';
+
+  static String _normalizeUnit(String? u) {
+    if (u == 'mg/m3' || u == 'mg/m³') return 'mg/m³';
+    return 'ppm';
+  }
   ChemicalTlvItem? _selectedTlvChemical;
   TlvEvaluationResult? _evaluationResult;
 
@@ -396,15 +401,15 @@ class _SdsSor3MeasurementDialogState extends State<SdsSor3MeasurementDialog> {
                           Expanded(
                             flex: 2,
                             child: DropdownButtonFormField<String>(
-                              value: _unit,
+                              value: _normalizeUnit(_unit),
                               isExpanded: true,
                               decoration: const InputDecoration(labelText: 'หน่วยวัด', border: OutlineInputBorder()),
                               items: const [
                                 DropdownMenuItem(value: 'ppm', child: Text('ppm', overflow: TextOverflow.ellipsis)),
-                                DropdownMenuItem(value: 'mg/m3', child: Text('mg/m³', overflow: TextOverflow.ellipsis)),
+                                DropdownMenuItem(value: 'mg/m³', child: Text('mg/m³', overflow: TextOverflow.ellipsis)),
                               ],
                               onChanged: (u) {
-                                setState(() => _unit = u ?? 'ppm');
+                                setState(() => _unit = _normalizeUnit(u));
                                 _updateTlvLimitFromChemical();
                               },
                             ),
